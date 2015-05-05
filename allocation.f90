@@ -11,4 +11,6 @@ allocate (eps(2*ntot))
 allocate (xtotal(2*ntot))
 allocate (fbound(2,2*ntot))
 allocate (pp(ntot))
+allocate (Xu(2,2,-Xulimit:Xulimit))
+allocate (weight(2,maxcuantas))
 end

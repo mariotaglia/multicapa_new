@@ -8,8 +8,13 @@ endmodule
 module multicapa
 
 
+real*8, allocatable :: weight(:,:)
+real*8 sumweight(2)
+real*8 lseg
 integer kaitype
-real*8 xu1, xu2, xu3
+real*8, allocatable :: Xu(:,:,:)
+real*8 AA, BA, CA
+integer Xulimit
 real*8 minn
 REAL*8 sts(100), kbinds(100)
 INTEGER nst, nkbind
@@ -58,7 +63,7 @@ real*8 q
 endmodule
 
 module layer
-real*8 delta
+real*8, parameter :: delta = 0.5
 endmodule
 
 module volume

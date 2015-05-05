@@ -119,24 +119,24 @@ end
 !* on a three state RIS-model see Flory book                 *
 !* GENERA CADENAS DE PAH-Os                                  *
 !*************************************************************
-subroutine cadenas1(chains,ncha,LT)
+subroutine cadenas1(chains,chainsw,ncha,LT)
 use longs
 use seed1
 use pis
 use matrices
 use senos
+use multicapa
 implicit none
 
+real*8, external :: interaction11
 integer longo
-real*8 lseg
-parameter (lseg=0.5)
 integer i,state,ii,j,k1,k2,ncha
 real*8 rn,dista
 real*8 rands,angle
 real*8 m(3,3), mm(3,3)
 real*8 x(3),xend(3,maxlong+5),xendr(3,maxlong+5)
-
-REAL*8 chains(3,maxlong,100)
+real*8 tmp
+REAL*8 chains(3,maxlong,100), chainsw(100)
 integer LT
 character*1 test
 REAL*8 tolerancia    !tolerancia en el calculo de selfavoiding
@@ -217,16 +217,28 @@ xend(3,i)=xend(3,i-1)+x(3)
 enddo
 
 dista=0.0                       ! check self avoiding constraint (segmentos)
-do k1=4,longo
-do k2=2,k1-3
+do k1=1,longo
+do k2=k1+1,longo
 dista=(xend(1,k2)-xend(1,k1))**(2.0)
 dista=dista+(xend(2,k2)-xend(2,k1))**(2.0)
 dista=dista+(xend(3,k2)-xend(3,k1))**(2.0)
 dista=sqrt(dista)+tolerancia
 if (dista.lt.lseg) then
-!               print*,'no self-a.',k1,k2
 goto 223
 endif
+enddo
+enddo
+
+! determine statistical weight
+tmp = 1.0
+
+do k1=1, longo
+do k2=k1+1,longo
+dista=(xend(1,k2)-xend(1,k1))**(2.0)
+dista=dista+(xend(2,k2)-xend(2,k1))**(2.0)
+dista=dista+(xend(3,k2)-xend(3,k1))**(2.0)
+dista=sqrt(dista)
+tmp=tmp*exp(interaction11(dista))
 enddo
 enddo
 
@@ -240,10 +252,12 @@ do j=1,longo
  chains(2,j,ncha)=xendr(2,j+1)
  chains(3,j,ncha)=xendr(3,j+1)
 enddo
-
+ chainsw(ncha)=tmp
+ 
 enddo
 
 if (ncha.eq.0) goto 223
+
 return
 end
 

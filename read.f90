@@ -54,12 +54,15 @@ read(8,*),kbinds(i)
 end do
 
 read(8,*)nada
-read(8,*) eps1
+read(8,*)eps1
 
 read(8,*)nada
-read(8,*)kaitype
+read(8, *)Xulimit
 
 read(8,*)nada
-read(8, *)xu1,xu2,xu3
+read(8,*)lseg
+
+read(8,*)nada
+read(8,*)AA,BA,CA
 
 end

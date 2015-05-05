@@ -14,7 +14,7 @@ real*8 x(ntot),f(ntot)
 real*8 xh(2*ntot)
 real*8 xpot(2*ntot)
 real*8 pro(maxcuantas)
-integer i,j,k,k1,k2,ii, jj       ! dummy indices
+integer i,j,k,k1,k2,ii, jj,iz       ! dummy indices
 integer err
 INTEGER AT
 REAL*8 cortepegado
@@ -174,47 +174,18 @@ protemp = dlog(xh(i)**(vpol))
 if(nads.eq.0)protemp = protemp + (-eps(i))
 protemp = protemp-dlog(1.0-fbound(AT, i))
 
-if(kaitype.eq.1) then
-if(AT.eq.1) then ! add positive
-
-protemp=protemp + (xu1*st*vpol*avpolneg(i))
-if(i.lt.ntot)protemp=protemp + (xu2*st*vpol*avpolneg(i+1))
-if(i.lt.(ntot-1))protemp=protemp + (xu3*st*vpol*avpolneg(i+1))
-if(i.gt.1)protemp=protemp + (xu2*st*vpol*avpolneg(i-1))
-if(i.gt.2)protemp=protemp + (xu3*st*vpol*avpolneg(i-1))
-
-protemp=protemp - (xu1*st*vpol*avpolpos(i))
-if(i.lt.ntot)protemp=protemp - (xu2*st*vpol*avpolpos(i+1))
-if(i.lt.(ntot-1))protemp=protemp - (xu3*st*vpol*avpolpos(i+1))
-if(i.gt.1)protemp=protemp - (xu2*st*vpol*avpolpos(i-1))
-if(i.gt.2)protemp=protemp - (xu3*st*vpol*avpolpos(i-1))
-
-else
-
-protemp=protemp - (xu1*st*vpol*avpolneg(i))
-if(i.lt.ntot)protemp=protemp - (xu2*st*vpol*avpolneg(i+1))
-if(i.lt.(ntot-1))protemp=protemp - (xu3*st*vpol*avpolneg(i+1))
-if(i.gt.1)protemp=protemp - (xu2*st*vpol*avpolneg(i-1))
-if(i.gt.2)protemp=protemp - (xu3*st*vpol*avpolneg(i-1))
-
-protemp=protemp + (xu1*st*vpol*avpolpos(i))
-if(i.lt.ntot)protemp=protemp + (xu2*st*vpol*avpolpos(i+1))
-if(i.lt.(ntot-1))protemp=protemp + (xu3*st*vpol*avpolpos(i+1))
-if(i.gt.1)protemp=protemp + (xu2*st*vpol*avpolpos(i-1))
-if(i.gt.2)protemp=protemp + (xu3*st*vpol*avpolpos(i-1))
+do iz = -Xulimit, Xulimit
+if(((iz+i).ge.1).and.(iz+i).le.ntot) then
+if(AT.eq.1) then ! pos
+protemp=protemp + Xu(1,2,iz)*st/(vpol*vsol)*avpolneg(i+iz)
+protemp=protemp + Xu(1,1,iz)*st/(vpol*vsol)*avpolpos(i+iz)
+else ! neg
+protemp=protemp + Xu(1,1,iz)*st/(vpol*vsol)*avpolneg(i+iz)
+protemp=protemp + Xu(1,2,iz)*st/(vpol*vsol)*avpolpos(i+iz)
 endif
 endif
+enddo
 
-if(kaitype.eq.2) then
-protemp=protemp + (xu1*st*vpol*xtotal(i))
-if(i.lt.ntot)protemp=protemp + (xu2*st*vpol*xtotal(i+1))
-if(i.lt.(ntot-1))protemp=protemp + (xu3*st*vpol*xtotal(i+1))
-if(i.gt.1)protemp=protemp + (xu2*st*vpol*xtotal(i-1))
-if(i.gt.2)protemp=protemp + (xu3*st*vpol*xtotal(i-1))
-endif
-
-!if(i.eq.3) print*,'!3', protemp
-!if(i.eq.2) print*,'!2', protemp
 xpot(i) = dexp(protemp)
 enddo
 
@@ -234,7 +205,7 @@ avpol2_tmp = 0.0
 
 do ii=1, maxpol+1
  do i=1,newcuantas(AT)
- pro(i) = expmupol
+ pro(i) = expmupol*weight(AT,i)
  nnn = 0.0
     do j=1, maxlayer(AT, i)
      k = j+ii-1

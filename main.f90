@@ -2,6 +2,7 @@
 call initmpi
 call read
 call allocation
+call kais
 call solve
 end
 
@@ -41,6 +42,7 @@ external fcnelect         ! function containing the SCMFT eqs for solver
 integer i,j,k,m,ii,flag,c, jj ! dummy indice0s
 
 INTEGER temp
+real*8 tmp
 
 real*8 min1               ! variable to determine minimal position of chain
 
@@ -53,7 +55,7 @@ real*8 algo, algo2
 
 integer*1 in1(maxlong)
 real*8 chains(3,maxlong,100) ! chains(x,i,l)= coordinate x of segement i ,x=2 y=3,z=1
-
+real*8 chainsw(100), sumweight_tosend
 real*8 zp(maxlong)
 
 real*8 sum,sumel          ! auxiliary variable used in free energy computation  
@@ -107,7 +109,6 @@ cuantas(2) = cuantas2/size
 
 !     initializations of variables 
 pi=dacos(-1.0d0)          ! pi = arccos(-1) 
-delta=0.5                 ! layer thickness in nm
 itmax=200                 ! maximum number of iterations       
 n=ntot                    ! size of lattice
 conf=0                    ! counter for conformations
@@ -167,12 +168,13 @@ endif
 
 do LT = 1,2
 
-  call initcha              ! init matrices for chain generation
+   call initcha              ! init matrices for chain generation
 
    conf=0                    ! counter of number of conformations
+   sumweight_tosend = 0.0
 
    do while (conf.lt.cuantas(LT))
-   call cadenas1(chains,ncha, LT)
+   call cadenas1(chains,chainsw,ncha,LT)
 
    do j=1,ncha
    min1=1000
@@ -200,10 +202,18 @@ do LT = 1,2
    endif
    enddo
 
+   weight(LT,conf)=chainsw(j)
+   sumweight_tosend = sumweight_tosend +  weight(LT,conf)
+
    endif
 
    enddo ! j
    enddo ! while
+
+   tmp = 0.0
+   call MPI_REDUCE(sumweight_tosend, tmp, 1, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
+   CALL MPI_BCAST(tmp, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD,err)
+   sumweight(LT) = tmp
 
 enddo ! LT
 
@@ -260,6 +270,10 @@ xsolbulk=1.0 - phibulkpol
 Kbind0 = Kbind ! Intrinsic equilibrium constant from uncharged polymers.
 
 expmupol= phibulkpol/(vpol*cuantas(LT)*size*long(LT)*xsolbulk**(long(LT)*vpol))        ! exp of bulk value of pol. chem. pot.
+expmupol = expmupol/sumweight(LT)
+
+
+
 !expmupol=expmupol/dexp(1.4*st*vpol*(phibulkpol)*long(LT))
 
 do i=1,n             ! initial gues for x1
