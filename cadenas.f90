@@ -253,7 +253,6 @@ do j=1,longo
  chains(3,j,ncha)=xendr(3,j+1)
 enddo
  chainsw(ncha)=tmp
- 
 enddo
 
 if (ncha.eq.0) goto 223
