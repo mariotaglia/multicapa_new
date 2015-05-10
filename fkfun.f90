@@ -20,7 +20,7 @@ INTEGER AT
 REAL*8 cortepegado
 real*8 beta, gammap, gamman
 real*16 auxB, auxC
-REAL*8 avpolpos(ntot), avpolneg(ntot)
+REAL*8 avpolpos(2*ntot), avpolneg(2*ntot)
 REAL*8 ALGO, ALGO2
 integer n
 real*8 avpol_tmp(2*ntot), avpol2_tmp(2*ntot)
@@ -73,15 +73,13 @@ fbound = 0.0
 
 do i = 1,n
 xtotal(i) = 1.0 - xh(i)
-xtotal(i+n) = 0.0
+xtotal(i+n) = phibulkpol
 enddo
 
 ! stoichoimetry
 
-do i = 1, n
-avpolpos(i) = 0.0
-avpolneg(i) = 0.0
-end do
+avpolpos = 0.0
+avpolneg = 0.0
 
 do j = 1, nads ! loop over adsorbed layers
  if (Tcapas(j).eq.1) THEN
@@ -98,13 +96,13 @@ enddo
 ! not adsobed
 
 if (Tcapas(nads+1).eq.1) THEN ! adsorbs positive
-do i = 1, n
+do i = 1, 2*n
   avpolpos(i) = xtotal(i) - avpolneg(i)
 enddo
 
 else  ! adsorbs negative
 
-do i = 1, n
+do i = 1, 2*n
   avpolneg(i) = xtotal(i) - avpolpos(i)
 end do
 endif
@@ -141,13 +139,8 @@ enddo
 !stop
 !endif
 
-do i=1,n
-avpol(nads+1,i)=0.0d0         ! polymer volume fraction
-enddo
-
-do i=1,n                 ! polymer to adsorb
-avpol2(i)=0.0d0         ! polymer volume fraction
-enddo
+avpol(nads+1,:)=0.0d0         ! polymer volume fraction
+avpol2=0.0d0         ! polymer volume fraction
 
 !! pegado has the last layer with polymer
 
@@ -170,7 +163,7 @@ if(nads.eq.0)protemp = protemp + (-eps(i))
 protemp = protemp-dlog(1.0-fbound(AT, i))
 
 do iz = -Xulimit, Xulimit
-if(((iz+i).ge.1).and.(iz+i).le.ntot) then
+if((iz+i).ge.1) then
 if(AT.eq.1) then ! pos
 protemp=protemp + Xu(1,2,iz)*st/(vpol*vsol)*avpolneg(i+iz)
 protemp=protemp + Xu(1,1,iz)*st/(vpol*vsol)*avpolpos(i+iz)
@@ -185,8 +178,7 @@ xpot(i) = dexp(protemp)
 enddo
 
 do i = n+1, 2*n
-protemp = dlog(xsolbulk**(vpol))
-xpot(i) = dexp(protemp)
+xpot(i) = xpot(n)
 enddo
 
 !    probability distribution
@@ -204,13 +196,11 @@ do ii=1,ntot
  pro(i) = expmupol*weight(AT,i)
  nnn = 0.0
 
- if(ii.le.maxpol) then
     do j=1, maxlayer(AT, i)
      k = j+ii-1
      pro(i)= pro(i) * xpot(k)**in1n(AT, i, j)
      nnn = nnn + in1n(AT,i,j)*fbound(AT,j)
     enddo
- endif
 
     q=q+pro(i)
 
