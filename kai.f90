@@ -24,7 +24,6 @@ real*8 suma12
 real*8 cutoff
 integer jx,jy,jz
 real*8 LJ
-real*8 sumXu11, sumXu12
 real*8, external :: interaction11, interaction12
 
 limit = Xulimit +1
@@ -94,6 +93,7 @@ if(rank.eq.0)print*, 'Xu',iz,Xu(1,1,iz),Xu(1,2,iz)
 enddo
 
 if(rank.eq.0)print*, 'kais: Total Sum', suma11,suma12
+
 end
 
 double precision function interaction11(d)

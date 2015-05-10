@@ -149,12 +149,7 @@ do i=1,n                 ! polymer to adsorb
 avpol2(i)=0.0d0         ! polymer volume fraction
 enddo
 
-IF(nads.gt.0) then
-  do i = 1, n
-    IF(avpol(nads, i).gt.cortepegado)pegado=i
-  enddo
-end if
-
+!! pegado has the last layer with polymer
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -203,15 +198,20 @@ avpol_tmp = 0.0
 avpol2_tosend = 0.0
 avpol2_tmp = 0.0
 
-do ii=1, maxpol+1
+do ii=1,ntot 
  do i=1,newcuantas(AT)
+
  pro(i) = expmupol*weight(AT,i)
  nnn = 0.0
+
+ if(ii.le.maxpol) then
     do j=1, maxlayer(AT, i)
      k = j+ii-1
      pro(i)= pro(i) * xpot(k)**in1n(AT, i, j)
      nnn = nnn + in1n(AT,i,j)*fbound(AT,j)
     enddo
+ endif
+
     q=q+pro(i)
 
     do j=1,maxlayer(AT, i)
@@ -219,7 +219,6 @@ do ii=1, maxpol+1
      avpol2_tmp(k)=avpol2_tmp(k)+pro(i)*vpol*in1n(AT,i, j)  ! volume fraction polymer not normed
     enddo
 
-!    IF(ii.LE.(pegado-1)) THEN               ! ii posicion del primer segmento
       if(nnn.ge.minn) then
       do j=1,maxlayer(AT, i)
        k = j+ii-1

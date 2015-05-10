@@ -13,6 +13,7 @@ real*8 sumweight(2)
 real*8 lseg
 integer kaitype
 real*8, allocatable :: Xu(:,:,:)
+real*8 sumXu11, sumXu12
 real*8 AA, BA, CA
 integer Xulimit
 real*8 minn

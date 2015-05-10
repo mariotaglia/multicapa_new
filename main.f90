@@ -266,15 +266,12 @@ write(sigmaadfilename,'(A8,BZ,I5.5,A4)')'sigmaad.',countfile,'.dat'
 
 
 ! xh bulk
-xsolbulk=1.0 - phibulkpol
+xsolbulk=1.0  - phibulkpol
 Kbind0 = Kbind ! Intrinsic equilibrium constant from uncharged polymers.
 
 expmupol= phibulkpol/(vpol*size*long(LT)*xsolbulk**(long(LT)*vpol))        ! exp of bulk value of pol. chem. pot.
 expmupol = expmupol/sumweight(LT)
-
-
-
-!expmupol=expmupol/dexp(1.4*st*vpol*(phibulkpol)*long(LT))
+expmupol=expmupol/dexp(sumXu11*st/(vpol*vsol)*(phibulkpol)*long(LT))
 
 do i=1,n             ! initial gues for x1
 xg1(i)=x1(i)
