@@ -38,7 +38,7 @@ real*8, allocatable :: avpolall(:)
 INTEGER cuantas1, cuantas2
 INTEGER maxcuantas
 
-integer*1, allocatable :: in1n(:,:,:)
+integer*4, allocatable :: in1n(:,:,:)
 integer, allocatable ::  maxlayer(:,:)
 
 real*8 sigma

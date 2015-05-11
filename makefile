@@ -50,12 +50,13 @@ endif
 
 
 FF = mpif77 #${F90}
-VER = ~/bin/crystal
+VER = ~/bin/multicapa_new
 
 all:	$(TARGET)
 
 $(TARGET): $(SRC:.f90=.o)
 	$(FF) -o $(TARGET) $(SRC:.f90=.o) $(LFLAGS) $(LDFLAGS)
+	cp $(TARGET) $(VER)
 
 $(SRC:.f90=.o): $(SRC)
 	${FF} -c ${FFLAGS}  $(SRC) $(LFLAGS) $(LDFLAGS)
