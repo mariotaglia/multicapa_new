@@ -199,7 +199,7 @@ do ii=1,ntot
     do j=1, maxlayer(AT, i)
      k = j+ii-1
      pro(i)= pro(i) * xpot(k)**in1n(AT, i, j)
-     nnn = nnn + in1n(AT,i,j)*fbound(AT,j)
+     nnn = nnn + in1n(AT,i,j)*fbound(AT,k)
     enddo
 
     q=q+pro(i)
