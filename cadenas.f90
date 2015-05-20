@@ -248,9 +248,9 @@ call rota(xend,xendr,longo,test)   ! rotate chain conformation ncha time
 ncha=ncha+1
 
 do j=1,longo
- chains(1,j,ncha)=xendr(1,j+1)       ! output 
- chains(2,j,ncha)=xendr(2,j+1)
- chains(3,j,ncha)=xendr(3,j+1)
+ chains(1,j,ncha)=xendr(1,j)       ! output 
+ chains(2,j,ncha)=xendr(2,j)
+ chains(3,j,ncha)=xendr(3,j)
 enddo
  chainsw(ncha)=tmp
 enddo
