@@ -95,9 +95,14 @@ integer err
 integer ier_tosend
 double  precision norma_tosend
 
+
+
 !
 seed=435+ 3232*rank               ! seed for random number generator
 print*, 'I am', rank, ' and my seed is', seed
+
+if(rank.eq.0)print*, 'Program Multicapa'
+if(rank.eq.0)print*, 'GIT Version: ', _VERSION
 
 
 !     common declarations: used for communciations with other routines
