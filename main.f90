@@ -166,6 +166,15 @@ endif
 ! CHAIN GENERATION
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+   if (cadenastype.eq.1) then
+   if(rank.eq.1)print*, 'Calling RIS chain generator'
+   elseif (cadenastype.eq.2) then
+   if(rank.eq.1)print*, 'Calling MK chain generator'
+   else
+   stop 'Wrong chain generator'
+   endif
+
+
 do LT = 1,2
 
    call initcha              ! init matrices for chain generation
@@ -174,14 +183,11 @@ do LT = 1,2
    sumweight_tosend = 0.0
 
    do while (conf.lt.cuantas(LT))
-   print*, conf
 
    if (cadenastype.eq.1) then
    call cadenas1(chains,chainsw,ncha,LT)
    elseif (cadenastype.eq.2) then 
    call cadenas_MK(chains,chainsw,ncha,LT)
-   else
-   stop 'Wrong chain generator'
    endif
 
    do j=1,ncha
