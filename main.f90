@@ -54,8 +54,8 @@ real*8 algo, algo2
 
 
 integer*1 in1(maxlong)
-real*8 chains(3,maxlong,100) ! chains(x,i,l)= coordinate x of segement i ,x=2 y=3,z=1
-real*8 chainsw(100), sumweight_tosend
+real*8 chains(3,maxlong,ncha_max) ! chains(x,i,l)= coordinate x of segement i ,x=2 y=3,z=1
+real*8 chainsw(ncha_max), sumweight_tosend
 real*8 zp(maxlong)
 
 real*8 sum,sumel          ! auxiliary variable used in free energy computation  
@@ -171,6 +171,15 @@ endif
 ! CHAIN GENERATION
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+   if (cadenastype.eq.1) then
+   if(rank.eq.1)print*, 'Calling RIS chain generator'
+   elseif (cadenastype.eq.2) then
+   if(rank.eq.1)print*, 'Calling MK chain generator'
+   else
+   stop 'Wrong chain generator'
+   endif
+
+
 do LT = 1,2
 
    call initcha              ! init matrices for chain generation
@@ -179,7 +188,12 @@ do LT = 1,2
    sumweight_tosend = 0.0
 
    do while (conf.lt.cuantas(LT))
+
+   if (cadenastype.eq.1) then
    call cadenas1(chains,chainsw,ncha,LT)
+   elseif (cadenastype.eq.2) then 
+   call cadenas_MK(chains,chainsw,ncha,LT)
+   endif
 
    do j=1,ncha
    min1=1000

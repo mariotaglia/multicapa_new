@@ -6,8 +6,8 @@ double precision, allocatable :: pp(:)
 endmodule
 
 module multicapa
-
-
+integer cadenastype
+integer, parameter :: ncha_max = 700
 real*8, allocatable :: weight(:,:)
 real*8 sumweight(2)
 real*8 lseg
@@ -105,4 +105,14 @@ include 'mpif.h' ! librerias MPI
 integer rank, size, ierr
 integer flagsolver
 endmodule
+
+module posmk
+real*8, allocatable :: current(:,:)
+integer*2, allocatable :: nextbead(:)
+integer*2, allocatable :: firstcell(:,:,:)
+integer, parameter :: mcube = 100
+integer, parameter :: calq = 0
+real*8, parameter :: qprob0 = 0.6933
+integer, parameter :: nearbonds = 5
+endmodule posmk
 

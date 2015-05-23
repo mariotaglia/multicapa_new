@@ -136,7 +136,7 @@ real*8 rands,angle
 real*8 m(3,3), mm(3,3)
 real*8 x(3),xend(3,maxlong+5),xendr(3,maxlong+5)
 real*8 tmp
-REAL*8 chains(3,maxlong,100), chainsw(100)
+REAL*8 chains(3,maxlong,ncha_max), chainsw(ncha_max)
 integer LT
 character*1 test
 REAL*8 tolerancia    !tolerancia en el calculo de selfavoiding
@@ -248,9 +248,9 @@ call rota(xend,xendr,longo,test)   ! rotate chain conformation ncha time
 ncha=ncha+1
 
 do j=1,longo
- chains(1,j,ncha)=xendr(1,j+1)       ! output 
- chains(2,j,ncha)=xendr(2,j+1)
- chains(3,j,ncha)=xendr(3,j+1)
+ chains(1,j,ncha)=xendr(1,j)       ! output 
+ chains(2,j,ncha)=xendr(2,j)
+ chains(3,j,ncha)=xendr(3,j)
 enddo
  chainsw(ncha)=tmp
 enddo
