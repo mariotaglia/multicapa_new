@@ -136,7 +136,7 @@ real*8 rands,angle
 real*8 m(3,3), mm(3,3)
 real*8 x(3),xend(3,maxlong+5),xendr(3,maxlong+5)
 real*8 tmp
-REAL*8 chains(3,maxlong,100), chainsw(100)
+REAL*8 chains(3,maxlong,ncha_max), chainsw(ncha_max)
 integer LT
 character*1 test
 REAL*8 tolerancia    !tolerancia en el calculo de selfavoiding

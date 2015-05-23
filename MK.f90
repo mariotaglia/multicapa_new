@@ -29,7 +29,8 @@ use posmk
 implicit none
 
 real*8 x(3)
-integer ncha,chains(3,maxlong,100),chainsw(100),N
+integer ncha
+real*8 chains(3,maxlong,ncha_max),chainsw(ncha_max),N
 integer ncha_current
 common /comncha/ ncha_current
 integer N_max
@@ -91,7 +92,7 @@ logical   hit_bead
 external  hit_bead
 integer N_max
 common /compass/ N_max
-integer chains(3,maxlong,100), chainsw(100)
+real*8 chains(3,maxlong,ncha_max), chainsw(ncha_max)
 real*8 endtoendtemp(10000)
 !        integer*4, allocatable ::  deathcount(:)
 integer*4 deathtotal
@@ -111,7 +112,7 @@ integer k1,k2
 dseg = lseg
 
 if (N.eq.1) then
-! print 3,N,'root',ncha_current
+!print*, 3,N,'root',ncha_current
 stretched   = (N_max-1)*lseg                           ! EVENTUALLY MODEL SPECIFIC
 power = dlog(dble(mcube))/dlog(stretched/dseg)
 power = min(1.D0,power)
@@ -170,7 +171,7 @@ ix3 = nint(dexp(power*dlog(dabs(dummy)/delta))*sign(1.0D0,dummy))
 !     & size(firstcell, 3)
 
 if (hit_bead(ix1,ix2,ix3,x,N)) then
-! print 3,N,'hitbead return',ncha_current
+!print*, 3,N,'hitbead return',ncha_current
 goto 222
 end if
 
@@ -185,8 +186,7 @@ if (N.eq.N_max) then                   ! complete chain generated successfully
 ncha_current = ncha_current + 1
 
 
-! print 3,N,'chain end ---',ncha_current
-
+!print*, 3,N,'chain end ---',ncha_current
 
 ! determine statistical weight
 tmp = 1.0
@@ -206,8 +206,8 @@ do j=1,N
  chains(2,j,ncha_current)=current(j,2)
  chains(3,j,ncha_current)=current(j,3)
 enddo
- chainsw(ncha_current)=tmp
 
+ chainsw(ncha_current)=tmp
 
 !do j=1,N
 !iR = int(sqrt(current(j,1)**2+current(j,2)**2)/delta)+1
@@ -295,8 +295,8 @@ real*8 d2, b2
 
 tolerance = 1e-3
 
-d2 = lseg + tolerance
-b2 = lseg + tolerance
+d2 = lseg**2 + tolerance
+b2 = lseg**2 + tolerance
 
 hit_bead = .false.
 do k1=-1,1
