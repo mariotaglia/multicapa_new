@@ -174,7 +174,7 @@ do LT = 1,2
    sumweight_tosend = 0.0
 
    do while (conf.lt.cuantas(LT))
-   call cadenas1(chains,chainsw,ncha,LT)
+   call cadenas_MK(chains,chainsw,ncha,LT)
 
    do j=1,ncha
    min1=1000

@@ -285,6 +285,7 @@ use posmk
 use multicapa
 implicit none
 
+real*8 tolerance
 logical hit_bead
 integer ix1,ix2,ix3,k,N,k1,k2,k3
 real*8 x(3)
@@ -292,8 +293,10 @@ integer*2 beadno
 real*8 isd2
 real*8 d2, b2
 
-d2 = lseg
-b2 = lseg
+tolerance = 1e-3
+
+d2 = lseg + tolerance
+b2 = lseg + tolerance
 
 hit_bead = .false.
 do k1=-1,1
