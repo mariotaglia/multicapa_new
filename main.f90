@@ -22,12 +22,12 @@ real*8 pi
 real*8 Na               
 parameter (Na=6.02d23)
 
-real*8 avpol_red(ntot)
+real*8 avpol_red(ntot,2)
 
 REAL*8 avtotal(ntot)       ! sum over all avpol
 real*8 xsol(ntot)         ! volume fraction solvent
 
-real*8 x1(ntot),xg1(ntot)   ! density solvent iteration vector
+real*8 x1(2*ntot),xg1(2*ntot)   ! density solvent iteration vector
 real*8 zc(ntot)           ! z-coordinate layer 
 
 REAL*8 sumrhoz, meanz     ! Espesor medio pesado
@@ -49,7 +49,7 @@ real*8 min1               ! variable to determine minimal position of chain
 
 integer il,inda,ncha
 
-REAL*8 xfile(ntot)                        
+REAL*8 xfile(2*ntot)                        
 real*8 algo, algo2                  
 
 
@@ -140,32 +140,33 @@ enddo
 !!!!
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!     init guess all 1.0 
+!     init guess all
 
-do i=1,n
-
+do i=1,2*n
 xg1(i)=1.0d-10
 x1(i)=1.0d-10
+enddo
+do i = 1,n
 zc(i)= (i-0.5) * delta
-
 enddo
 
-!     init guess from files fort.100 (solvent) and fort.200 (potential)                      
+!     init guess from files fort.100 (solvent) and fort.200 (fraction of sticky)                      
 
 if (infile.ge.1) then
 do i=1,n
 read(100,*)j,xfile(i)   ! solvent
+read(200,*)j,xfile(i)   ! fraction of sticky
 enddo   
 endif
 
-if(infile.eq.2) then
-do ii=1, preads ! preadsorbed layers
-do i = 1, ntot
-read(300+ii, *)j, avpol(ii,i)
-print*, i, ii, avpol(ii, i)
-enddo
-enddo
-endif
+!if(infile.eq.2) then
+!do ii=1, preads ! preadsorbed layers
+!do i = 1, ntot
+!read(300+ii, *)j, avpol(ii,i,1)
+!print*, i, ii, avpol(ii, i)
+!enddo
+!enddo
+!endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! CHAIN GENERATION
@@ -207,14 +208,18 @@ do LT = 1,2
    conf=conf+1
    maxlayer(LT, conf) = 0
 
-   do k = 1, ntot
-   in1n(LT, conf,k)=0
-   enddo
+   in1n(LT, conf,:,:)=0
 
    do k=1,long(LT)
    temp=int((zp(k)-(min1+0.1))/delta)+1  ! put them into the correct layer
    if (temp.le.(ntot)) then            ! la cadena empieza en el layer 1
-   in1n(LT,conf, (temp)) =  in1n(LT, conf, (temp)) + 1
+
+   if(mod(k,every(LT)).eq.0) then ! is sticky
+     in1n(LT,conf,temp,1) =  in1n(LT,conf,temp,1) + 1
+   else ! not sticky
+     in1n(LT,conf,temp,2) =  in1n(LT,conf,temp,2) + 1
+   endif
+
    if(maxlayer(LT,conf).LT.(temp)) then
    maxlayer(LT,conf)=temp
    endif
@@ -292,7 +297,7 @@ expmupol= phibulkpol/(vpol*long(LT)*xsolbulk**(long(LT)*vpol))        ! exp of b
 expmupol = expmupol/sumweight(LT)
 expmupol=expmupol/dexp(sumXu11*st/(vpol*vsol)*(phibulkpol)*long(LT))
 
-do i=1,n             ! initial gues for x1
+do i=1,2*n             ! initial gues for x1
 xg1(i)=x1(i)
 enddo
 
@@ -320,21 +325,20 @@ if(rank.eq.0)print*,"LAYER ", nads+1, " ADSORBED!", st, kbind
 
 
 if (rank.eq.0) then
-  avpol_red(:) = avpol(nads+1,:)
-  CALL MPI_BCAST(avpol_red, ntot, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD,err)
+  avpol_red(:,:) = avpol(nads+1,:,:)
+  CALL MPI_BCAST(avpol_red, 2*ntot, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD,err)
   CALL MPI_BCAST(norma, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD,err)
 endif
 if(rank.ne.0) then
-  CALL MPI_BCAST(avpol_red, ntot, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD,err)
+  CALL MPI_BCAST(avpol_red, 2*ntot, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD,err)
   CALL MPI_BCAST(norma, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD,err)
-  avpol(nads+1,:) = avpol_red(:)
+  avpol(nads+1,:,:) = avpol_red(:,:)
 endif
 
 
 do i=1,n
-xsol(i)=(exp(-x1(i)))*(1.0-avpolall(i))       ! solvent density=volume fraction
+xsol(i)=(exp(-x1(i)))*(1.0-avpolall(i,1)-avpolall(i,2))       ! solvent density=volume fraction
 enddo
-
 
 if(norma.gt.error) then
 if(ccc.eq.1) then
@@ -360,7 +364,7 @@ endif
 if(rank.eq.0) then
 sumrho2 = 0.0
 do i=1,n
-sumrho2 = sumrho2 + avpol2(i)/vpol
+sumrho2 = sumrho2 + (avpol2(i,1)+avpol2(i,2))/vpol
 enddo
 
 sumrho2mol = sumrho2/vsol/Na*1.0d21*delta/1.0d7 ! mol.cm-2
@@ -377,11 +381,11 @@ sumrhoz=0.0
 
 do i=1,n
 do jj = 1, nads
-meanz=meanz+(avpol(jj,i))*zc(i)
-sumrhoz=sumrhoz+avpol(jj,i)
+meanz=meanz+(avpol(jj,i,1)+avpol(jj,i,2))*zc(i)
+sumrhoz=sumrhoz+avpol(jj,i,1)+avpol(jj,i,2)
 end do
-meanz=meanz+(avpol2(i))*zc(i) 
-sumrhoz=sumrhoz+avpol2(i)
+meanz=meanz+(avpol2(i,1)+avpol2(i,2))*zc(i) 
+sumrhoz=sumrhoz+avpol2(i,1)+avpol2(i,2)
 enddo
 meanz=meanz/sumrhoz
 
@@ -414,7 +418,7 @@ open(unit=600+jj,file=denspolfilename(jj))
 end do
 
 do i=1,n
-write(321,*)zc(i),avpol2(i)
+write(321,*)zc(i),avpol2(i,1)+avpol2(i,2)
 write(330,*)zc(i),xsol(i)
 
 do ii = 1,2
@@ -422,8 +426,8 @@ write(500+ii+5,*)zc(i),fbound(ii, i)
 end do
 
 do jj = 1, nads+1
-write(600+jj,*)zc(i),avpol(jj,i)
-avtotal(i) = avpol(jj,i)
+write(600+jj,*)zc(i),avpol(jj,i,1)+avpol(jj,i,2)
+avtotal(i) = avpol(jj,i,1)+avpol(jj,i,2)
 end do
 
 WRITE(323,*)zc(i),(avtotal(i))
@@ -450,9 +454,18 @@ write(310,*)'Kbind0      = ',Kbind0
 write(310,*)'cuantas(1)     = ',cuantas(1)
 write(310,*)'cuantas(2)     = ',cuantas(2)
 
+write(310,*)'sticky every(1)     = ',every(1)
+write(310,*)'sticky every(2)     = ',every(2)
+
+write(310,*)'number of sticky segments (1)     = ',sticky(1)
+write(310,*)'number of sticky segments (2)     = ',sticky(2)
+
 write(310,*)'iterations  = ',iter
 
 WRITE(310,*)'Tipo de capa=', LT
+
+WRITE(310,*)'GIT Version: ', _VERSION
+
 
 close(310)
 close(320)

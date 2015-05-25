@@ -31,14 +31,14 @@ INTEGER nads ! layers already assembled
 INTEGER,allocatable :: Tcapas(:) ! layers already assembled
 
 integer ntot ! lattice sites
-real*8, allocatable :: avpol(:,:) ! volume fraction polymers already adsorbed
-real*8, allocatable :: avpol2(:) ! volume fraction polymer in solution
-real*8, allocatable :: avpolall(:)
+real*8, allocatable :: avpol(:,:,:) ! volume fraction polymers already adsorbed
+real*8, allocatable :: avpol2(:,:) ! volume fraction polymer in solution
+real*8, allocatable :: avpolall(:,:)
 
 INTEGER cuantas1, cuantas2
 INTEGER maxcuantas
 
-integer*4, allocatable :: in1n(:,:,:)
+integer*4, allocatable :: in1n(:,:,:,:)
 integer, allocatable ::  maxlayer(:,:)
 
 real*8 sigma
@@ -49,7 +49,7 @@ integer newcuantas(2)       ! number of polymer configuration of allowed conform
 
 integer iter              ! counts number of iterations
 
-REAL*8, allocatable ::  xtotal(:)
+REAL*8, allocatable ::  xtotal(:,:)
 real*8 st
 integer pegado
 
@@ -84,7 +84,8 @@ endmodule
 
 module longs
 integer long(2)            ! length of polymer
-
+integer sticky(2)          ! number of sticky segments
+integer every(2)          ! number of sticky segments
 INTEGER long1,long2,maxlong
 endmodule
 

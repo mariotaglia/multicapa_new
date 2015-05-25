@@ -25,6 +25,16 @@ read(8,*)long1, long2
 maxlong = MAX(long1, long2)
 
 read(8,*),nada
+read(8,*)every(1), every(2)
+
+sticky = 0
+
+do i = 1, long1
+if(mod(i,every(1)).eq.0)sticky(1)=sticky(1)+1
+if(mod(i,every(2)).eq.0)sticky(2)=sticky(2)+1
+enddo
+
+read(8,*),nada
 read(8,*)minn
 
 READ(8,*),nada

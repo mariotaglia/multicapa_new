@@ -5,13 +5,13 @@ use posmk
 use longs
 
 allocate (Tcapas(adsmax))
-allocate (avpol(adsmax,ntot))
-allocate (avpol2(ntot))
-allocate (avpolall(ntot))
-allocate (in1n(2,maxcuantas,ntot))
+allocate (avpol(adsmax,ntot,2))
+allocate (avpol2(ntot,2))
+allocate (avpolall(ntot,2))
+allocate (in1n(2,maxcuantas,ntot,2))
 allocate (maxlayer(adsmax,maxcuantas))
 allocate (eps(2*ntot))
-allocate (xtotal(2*ntot))
+allocate (xtotal(2*ntot,2))
 allocate (fbound(2,2*ntot))
 allocate (pp(ntot))
 allocate (Xu(2,2,-Xulimit:Xulimit))
