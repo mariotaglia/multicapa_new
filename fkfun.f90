@@ -27,6 +27,8 @@ real*8 avpol_tmp(2*ntot,2), avpol2_tmp(2*ntot,2)
 real*8 avpol_red(ntot,2)
 real*8 avpol_tosend(ntot,2), avpol2_tosend(ntot,2)
 real*8 nnn
+real*8 fsticky(ntot)
+real*8 algos
 
 ! Jefe
 if(rank.eq.0) then ! llama a subordinados y pasa vector x
@@ -59,13 +61,13 @@ cuantas(1) = cuantas1
 cuantas(2) = cuantas2
 
 do i=1,n                  ! init xh and psi
-if(x(i).lt.0.0)x(i)=1d-30
+if(x(i).lt.0.0)x(i)=1d-10
 
 xh(i)=(exp(-x(i)))*(1.0-avpolall(i,1)-avpolall(i,2))             ! solvent density=volume fraction   
 xh(i+n)=xsolbulk       ! bulk value for chains protruding to the bulk
 
-xtotal(i,1) = (1.0-xh(i))*(exp(-x(i+n))) ! fraction of segments type 1 (sticky!)
-xtotal(i,2) = (1.0-xh(i))*(1.0-exp(-x(i+n))) ! fraction of segments type 2 (non-sticky)
+xtotal(i,1) = (1.0-xh(i))*(1.0-exp(-x(i+n))) ! fraction of segments type 1 (sticky!)
+xtotal(i,2) = (1.0-xh(i))*(exp(-x(i+n))) ! fraction of segments type 2 (non-sticky)
 enddo
 
 fbound = 0.0
@@ -260,15 +262,21 @@ do i=1,n
 
  f(i)=xh(i)-1.0d0
  f(i+n) = 0.0
+ fsticky(i) = 0.0
 
 do jj = 1, (nads)
  f(i) = f(i) + avpol(jj,i,1) + avpol(jj,i,2) 
- f(i+n) = f(i+n) + avpol(jj,i,1)
+ f(i+n) = f(i+n) + avpol(jj,i,2)
+ fsticky(i) = fsticky(i) + avpol(jj,i,1)
 end do
 
  f(i) = f(i) + avpol2(i,1)+avpol2(i,2)
- f(i+n) = f(i+n) + avpol2(i,1)
- f(i+n) = f(i+n)/f(i) - xtotal(i,1)/(xtotal(i,1)+xtotal(i,2)) ! fraction of sticky
+
+ fsticky(i) = fsticky(i) + avpol2(i,1)
+ fsticky(i) = - fsticky(i) + xtotal(i,1)
+
+ f(i+n) = f(i+n) + avpol2(i,2)
+ f(i+n) = - f(i+n) + xtotal(i,2) 
 
 enddo
 
@@ -281,8 +289,12 @@ algo = 0.0
 do i = 1, 2*n
  algo = algo + f(i)**2
 end do
+algos = 0.0
+do i = 1, n
+algos = algos + fsticky(i)**2
+enddo
 
-if(rank.eq.0)PRINT*, iter, algo
+if(rank.eq.0)PRINT*, iter, algo, algos
 norma=algo
 
 3333 continue

@@ -148,7 +148,7 @@ x1(i)=1.0d-10
 enddo
 
 do i=n+1,2*n
-xg1(i)=-log(float(sticky(1))/long1)
+xg1(i)=-log(float((long1-sticky(1)))/long1)
 x1(i)=xg1(i)
 enddo
 

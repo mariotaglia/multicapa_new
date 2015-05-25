@@ -44,6 +44,10 @@ common /psize/ neq
 do i = 1, neq
    pp(i) = 1.0 !0.1 / (1.0+exp(-udata(i)))
 enddo
+
+do i = neq/2, neq
+   pp(i) = 1.0  / (1.0+exp(-udata(i)))
+enddo
    ier = 0
 return
 end
@@ -78,7 +82,7 @@ scsteptol = 1.0d-6 ! Function-norm stopping tolerance
 maxl = 1000 ! maximum Krylov subspace dimesion (?!?!?!) ! Esto se usa para el preconditioner
 maxlrst = 5 ! maximum number of restarts
 max_niter = 5000
-globalstrat = 1
+globalstrat = 0
 
 call fnvinits(3, neq, ier) ! fnvinits inits NVECTOR module
 if (ier .ne. 0) then       ! 3 for Kinsol, neq ecuantion number, ier error flag (0 is OK)
@@ -100,7 +104,7 @@ call fkinsetrin('SSTEP_TOL', scsteptol, ier)
 call fkinsetiin('MAX_NITER', max_niter, ier)
 
 do i = 1, neq  !constraint vector
-   constr(i) = 2.0
+   constr(i) = 1.0
 enddo
 
 call fkinsetvin('CONSTR_VEC', constr, ier) ! constraint vector
