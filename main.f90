@@ -142,10 +142,18 @@ enddo
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     init guess all
 
-do i=1,2*n
+do i=1,n
 xg1(i)=1.0d-10
 x1(i)=1.0d-10
 enddo
+
+do i=n+1,2*n
+xg1(i)=-log(float(sticky(1))/long1)
+x1(i)=xg1(i)
+enddo
+
+
+
 do i = 1,n
 zc(i)= (i-0.5) * delta
 enddo

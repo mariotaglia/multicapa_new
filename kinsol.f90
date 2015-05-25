@@ -71,14 +71,14 @@ neq=2*ntot
 
 ! INICIA KINSOL
 
-msbpre  = 10 ! maximum number of iterations without prec. setup (?)
+msbpre  = 50 ! maximum number of iterations without prec. setup (?)
 fnormtol = 1.0d-6 ! Function-norm stopping tolerance
 scsteptol = 1.0d-6 ! Function-norm stopping tolerance
 
 maxl = 1000 ! maximum Krylov subspace dimesion (?!?!?!) ! Esto se usa para el preconditioner
 maxlrst = 5 ! maximum number of restarts
 max_niter = 5000
-globalstrat = 0
+globalstrat = 1
 
 call fnvinits(3, neq, ier) ! fnvinits inits NVECTOR module
 if (ier .ne. 0) then       ! 3 for Kinsol, neq ecuantion number, ier error flag (0 is OK)
