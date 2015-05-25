@@ -50,7 +50,7 @@ GIT_VERSION := $(shell git describe --abbrev=6 --dirty --always --tags)
 GFLAGS=-cpp -D_VERSION=\"$(GIT_VERSION)\"
 
 FF = mpif77 #${F90}
-VER = ~/bin/multicapa_new
+VER = ~/bin/multicapa_every
 
 all:	$(TARGET)
 

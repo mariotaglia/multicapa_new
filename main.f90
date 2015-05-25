@@ -73,6 +73,7 @@ character*17 sigmaadfilename
 character*18 sysfilename      ! contains value of free energy, input parameter etc
 character*26 denssolfilename  ! contains the denisty of the solvent
 character*29 denspolfilename(adsmax)
+character*29 denspolfilename2(adsmax)
 character*28 densendfilename
 character*26 densbindfilename(2)
 CHARACTER*24 totalfilename
@@ -406,6 +407,7 @@ write(totalfilename,'(A13,BZ,I3.3,A1,I3.3,A4)')'densitytotal.',countfileuno,'.',
 
 do jj = 1, nads+1
 write(denspolfilename(jj),'(A14,BZ,I2.2,A1,I3.3,A1,I3.3,A4)')'densitypolymer',jj,'.',countfileuno,'.',countfile,'.dat'
+write(denspolfilename2(jj),'(A14,BZ,I2.2,A1,I3.3,A1,I3.3,A4)')'densitypolstic',jj,'.',countfileuno,'.',countfile,'.dat'
 end do
 
 do ii = 1, 2
@@ -423,6 +425,7 @@ end do
 
 do jj = 1, nads+1
 open(unit=600+jj,file=denspolfilename(jj))
+open(unit=700+jj,file=denspolfilename2(jj))
 end do
 
 do i=1,n
@@ -435,6 +438,7 @@ end do
 
 do jj = 1, nads+1
 write(600+jj,*)zc(i),avpol(jj,i,1)+avpol(jj,i,2)
+write(700+jj,*)zc(i),avpol(jj,i,1)
 avtotal(i) = avpol(jj,i,1)+avpol(jj,i,2)
 end do
 
