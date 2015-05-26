@@ -41,7 +41,8 @@ real*8 fnorm              ! L2 norm of residual vector function fcn
 external fcnelect         ! function containing the SCMFT eqs for solver
 integer i,j,k,m,ii,flag,c, jj ! dummy indice0s
 
-INTEGER temp, tempr
+INTEGER temp
+real*8 tempr
 real*8 tmp
 
 real*8 min1               ! variable to determine minimal position of chain
@@ -132,8 +133,8 @@ end do
 
 ! eps
 
-eps(1)=eps1
-do i=2,2*ntot
+eps(ntot)=eps1
+do i=1,ntot-1
 eps(i)=0
 enddo
 
@@ -179,6 +180,7 @@ endif
    stop 'Wrong chain generator'
    endif
 
+in1n = 0
 
 do LT = 1,2
 
@@ -198,21 +200,27 @@ do LT = 1,2
 
    if(conf.lt.cuantas(LT)) then
    conf=conf+1
-   in1n(LT,conf,:,:)=0
 
    do ii = 1, ntot ! position of first segment
-       do k=1,long(LT)
-        tempr=((chains(1,k,j)+(ii-1)*delta+1e-4)**2+chains(2,k,j)**2)**(0.5)
+       weight(LT,conf,ii)=chainsw(j)
+
+      do k=1,long(LT)
+        tempr=((chains(1,k,j)+(float(ii)-0.5)*delta)**2+chains(2,k,j)**2)**(0.5)
         temp=int(tempr/delta)+1  ! put them into the correct layer
 
-        weight(LT,conf,ii)=chainsw(j)
- 
         if (temp.le.ntot) then            ! la cadena empieza en el layer 1
             in1n(LT,conf,ii,temp) =  in1n(LT,conf,ii,temp) + 1
         else
             weight(LT,conf,ii)=0.0 ! out of pore
         endif
        enddo ! k
+
+!   if((conf.eq.3).and.(LT.eq.1).and.(ii.eq.1)) then
+!      do jj = 1, ntot
+!      print*, 'oo', jj, in1n(LT,conf,ii,jj)
+!      enddo
+!   endif
+
    enddo ! ii
    sumweight_tosend = sumweight_tosend +  chainsw(j)
    endif
@@ -226,6 +234,23 @@ do LT = 1,2
    sumweight(LT) = tmp
 
 enddo ! LT
+
+!do LT = 1,2
+!do i = 1, cuantas(LT)
+!do ii = 1, ntot
+!do j = 1, ntot
+!print*, LT,i,ii,j,in1n(LT,i,ii,j)
+!enddo
+!enddo
+!enddo
+!enddo
+
+!stop
+
+!   do j = 1, ntot
+!   print*, j, ii, in1n(1,3,1,j)
+!   enddo
+!   stop
 
 !     end chains generation 
 if(rank.eq.0)print*," chains ready"

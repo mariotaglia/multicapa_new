@@ -36,6 +36,8 @@ if(rank.eq.0) then ! llama a subordinados y pasa vector x
    CALL MPI_BCAST(x, ntot , MPI_DOUBLE_PRECISION,0, MPI_COMM_WORLD,err)
 endif
 
+n = ntot
+
 ! common declarations
 ! avpolall
 avpolall = 0
