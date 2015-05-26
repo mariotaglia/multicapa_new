@@ -1,6 +1,4 @@
 
-
-
 module mkinsol
 double precision, allocatable :: pp(:)
 endmodule
@@ -8,7 +6,7 @@ endmodule
 module multicapa
 integer cadenastype
 integer, parameter :: ncha_max = 700
-real*8, allocatable :: weight(:,:)
+real*8, allocatable :: weight(:,:,:)
 real*8 sumweight(2)
 real*8 lseg
 integer kaitype
@@ -38,8 +36,8 @@ real*8, allocatable :: avpolall(:)
 INTEGER cuantas1, cuantas2
 INTEGER maxcuantas
 
-integer*4, allocatable :: in1n(:,:,:)
-integer, allocatable ::  maxlayer(:,:)
+integer*4, allocatable :: in1n(:,:,:,:)
+!integer, allocatable ::  maxlayer(:,:)
 
 real*8 sigma
 

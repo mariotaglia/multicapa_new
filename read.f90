@@ -6,7 +6,6 @@ implicit none
 integer i
 
 !     reading in of variables from stdin
-
 read(8,*),nada
 read(8,*),adsmax
 
@@ -32,7 +31,6 @@ READ(8,*),phibulkpol
 
 READ(8,*),nada
 read(8,*),nst
-
 do i =1, nst
 read(8,*),sts(i)
 end do

@@ -41,7 +41,7 @@ real*8 fnorm              ! L2 norm of residual vector function fcn
 external fcnelect         ! function containing the SCMFT eqs for solver
 integer i,j,k,m,ii,flag,c, jj ! dummy indice0s
 
-INTEGER temp
+INTEGER temp, tempr
 real*8 tmp
 
 real*8 min1               ! variable to determine minimal position of chain
@@ -62,6 +62,8 @@ real*8 sum,sumel          ! auxiliary variable used in free energy computation
 real*8 sumpi,sumrho,sumrhopol, sumrho2, sumrho2mol !suma de la fraccion de polimero
 
 INTEGER LT ! layer type being adsorbed
+integer ini,fin,step
+
 
 
 ! global running files
@@ -143,11 +145,9 @@ enddo
 !     init guess all 1.0 
 
 do i=1,n
-
 xg1(i)=1.0d-10
 x1(i)=1.0d-10
 zc(i)= (i-0.5) * delta
-
 enddo
 
 !     init guess from files fort.100 (solvent) and fort.200 (potential)                      
@@ -183,7 +183,6 @@ endif
 do LT = 1,2
 
    call initcha              ! init matrices for chain generation
-
    conf=0                    ! counter of number of conformations
    sumweight_tosend = 0.0
 
@@ -196,34 +195,26 @@ do LT = 1,2
    endif
 
    do j=1,ncha
-   min1=1000
-
-   do k=1,long(LT)
-   zp(k)=chains(1,k,j) ! z coordinate of chains
-   if(zp(k).lt.min1)min1=zp(k) ! find minimal coordinate to shift chains to begin in layer 1
-   enddo
 
    if(conf.lt.cuantas(LT)) then
    conf=conf+1
-   maxlayer(LT, conf) = 0
+   in1n(LT,conf,:,:)=0
 
-   do k = 1, ntot
-   in1n(LT, conf,k)=0
-   enddo
+   do ii = 1, ntot ! position of first segment
+       do k=1,long(LT)
+        tempr=((chains(1,k,j)+(ii-1)*delta+1e-4)**2+chains(2,k,j)**2)**(0.5)
+        temp=int(tempr/delta)+1  ! put them into the correct layer
 
-   do k=1,long(LT)
-   temp=int((zp(k)-(min1+0.1))/delta)+1  ! put them into the correct layer
-   if (temp.le.(ntot)) then            ! la cadena empieza en el layer 1
-   in1n(LT,conf, (temp)) =  in1n(LT, conf, (temp)) + 1
-   if(maxlayer(LT,conf).LT.(temp)) then
-   maxlayer(LT,conf)=temp
-   endif
-   endif
-   enddo
-
-   weight(LT,conf)=chainsw(j)
-   sumweight_tosend = sumweight_tosend +  weight(LT,conf)
-
+        weight(LT,conf,ii)=chainsw(j)
+ 
+        if (temp.le.ntot) then            ! la cadena empieza en el layer 1
+            in1n(LT,conf,ii,temp) =  in1n(LT,conf,ii,temp) + 1
+        else
+            weight(LT,conf,ii)=0.0 ! out of pore
+        endif
+       enddo ! k
+   enddo ! ii
+   sumweight_tosend = sumweight_tosend +  chainsw(j)
    endif
 
    enddo ! j
