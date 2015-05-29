@@ -36,8 +36,11 @@ real*8, allocatable :: avpolall(:)
 INTEGER cuantas1, cuantas2
 INTEGER maxcuantas
 
+integer curvature, radio
+
 integer*4, allocatable :: in1n(:,:,:,:)
-!integer, allocatable ::  maxlayer(:,:)
+integer, allocatable ::  maxpos(:,:,:)
+integer, allocatable ::  minpos(:,:,:)
 
 real*8 sigma
 

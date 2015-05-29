@@ -168,14 +168,14 @@ do ii=1,ntot ! position of segment #0
  pro(i) = expmupol*weight(AT,i,ii)
  nnn = 0.0
 
-    do j=1, ntot ! posicion dentro del poro
+    do j=minpos(AT,i,ii), maxpos(AT,i,ii) ! posicion dentro del poro
      pro(i)= pro(i) * xpot(j)**in1n(AT,i,ii,j)
      nnn = nnn + in1n(AT,i,ii,j)*fbound(AT,j)
     enddo
 
     q=q+pro(i)
 
-    do j=1,ntot
+    do j=minpos(AT,i,ii), maxpos(AT,i,ii)
      avpol2_tmp(j)=avpol2_tmp(j)+pro(i)*vpol*in1n(AT,i,ii,j)*factorcurv(ii,j)  ! volume fraction polymer not normed
     enddo
 

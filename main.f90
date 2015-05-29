@@ -204,15 +204,40 @@ do LT = 1,2
    do ii = 1, ntot ! position of first segment
        weight(LT,conf,ii)=chainsw(j)
 
+      minpos(LT,conf,ii) = ntot
+      maxpos(LT,conf,ii) = 0 
+
       do k=1,long(LT)
+
+      select case abs(curvature)
+      case 2
+        tempr=( (chains(1,k,j)+(float(ii)-0.5)*delta)**2 + chains(2,k,j)**2 +chains(3,k,j)**2 )**(0.5)
+        temp=int(tempr/delta)+1  ! put them into the correct layer
+      case 1
         tempr=((chains(1,k,j)+(float(ii)-0.5)*delta)**2+chains(2,k,j)**2)**(0.5)
         temp=int(tempr/delta)+1  ! put them into the correct layer
+      case 0 
+        tempr=(chains(1,k,j)+(float(ii)-0.5)*delta)
+        temp=int(tempr/delta)+1  ! put them into the correct layer
+      endselect
 
+      if(curvature.lt.0) then   ! pore 
         if (temp.le.ntot) then            ! la cadena empieza en el layer 1
             in1n(LT,conf,ii,temp) =  in1n(LT,conf,ii,temp) + 1
         else
             weight(LT,conf,ii)=0.0 ! out of pore
         endif
+      else ! convex
+        if (temp.gt.radio) then            ! la cadena empieza en el layer 1
+            in1n(LT,conf,ii,temp) =  in1n(LT,conf,ii,temp) + 1
+        else
+            weight(LT,conf,ii)=0.0 ! collide with the walls
+        endif
+      endif
+
+       if(temp.gt.minpos(LT,conf,ii))minpos(LT,conf,ii)=temp
+       if(temp.lt.maxpos(LT,conf,ii))maxpos(LT,conf,ii)=temp
+
        enddo ! k
 
 !   if((conf.eq.3).and.(LT.eq.1).and.(ii.eq.1)) then

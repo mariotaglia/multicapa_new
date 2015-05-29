@@ -6,6 +6,15 @@ implicit none
 integer i
 
 !     reading in of variables from stdin
+
+read(8,*),nada
+read(8,*),curvature
+
+read(8,*),nada
+read(8,*),radio
+
+if(curvature.le.0)radio=1 ! pore or planar
+
 read(8,*),nada
 read(8,*),adsmax
 
