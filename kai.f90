@@ -10,10 +10,10 @@ use MPI
 use layer
 implicit none
 
-real*8 l ! medio lseg, radio del segmento
+real*8 l ! medio lseg, radio0 del segmento
 integer MCsteps ! numero de steps de MC
 integer iz
-real*8 x,y,z, radio
+real*8 x,y,z, radio0
 integer limit
 real*8,allocatable :: matriz11(:)
 real*8,allocatable :: matriz12(:)
@@ -50,16 +50,16 @@ x = 2.0*cutoff*(((float(jx)-0.5)/float(MCsteps))-0.5) ! number between -cutoff a
 y = 2.0*cutoff*(((float(jy)-0.5)/float(MCsteps))-0.5)
 z = 2.0*cutoff*(((float(jz)-0.5)/float(MCsteps))-0.5)
 
-radio = sqrt(x**2 + y**2 + z**2) ! espacio real
+radio0 = sqrt(x**2 + y**2 + z**2) ! espacio real
 
-if(radio.gt.cutoff) cycle ! No esta dentro de la esfera del cut-off   
-if(radio.lt.l) cycle ! esta dentro de la esfera del segmento
+if(radio0.gt.cutoff) cycle ! No esta dentro de la esfera del cut-off   
+if(radio0.lt.l) cycle ! esta dentro de la esfera del segmento
 
  ! celda 
  iz = int(anint(z/delta))
 
- matriz11(iz) = matriz11(iz) + interaction11(radio)
- matriz12(iz) = matriz12(iz) + interaction12(radio)
+ matriz11(iz) = matriz11(iz) + interaction11(radio0)
+ matriz12(iz) = matriz12(iz) + interaction12(radio0)
 
 enddo
 enddo

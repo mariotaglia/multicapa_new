@@ -209,14 +209,14 @@ do LT = 1,2
 
       do k=1,long(LT)
 
-      select case abs(curvature)
-      case 2
+      select case (abs(curvature))
+      case (2)
         tempr=( (chains(1,k,j)+(float(ii)-0.5)*delta)**2 + chains(2,k,j)**2 +chains(3,k,j)**2 )**(0.5)
         temp=int(tempr/delta)+1  ! put them into the correct layer
-      case 1
+      case (1)
         tempr=((chains(1,k,j)+(float(ii)-0.5)*delta)**2+chains(2,k,j)**2)**(0.5)
         temp=int(tempr/delta)+1  ! put them into the correct layer
-      case 0 
+      case (0) 
         tempr=(chains(1,k,j)+(float(ii)-0.5)*delta)
         temp=int(tempr/delta)+1  ! put them into the correct layer
       endselect
@@ -235,8 +235,8 @@ do LT = 1,2
         endif
       endif
 
-       if(temp.gt.minpos(LT,conf,ii))minpos(LT,conf,ii)=temp
-       if(temp.lt.maxpos(LT,conf,ii))maxpos(LT,conf,ii)=temp
+       if(temp.lt.minpos(LT,conf,ii))minpos(LT,conf,ii)=temp
+       if(temp.gt.maxpos(LT,conf,ii))maxpos(LT,conf,ii)=temp
 
        enddo ! k
 
