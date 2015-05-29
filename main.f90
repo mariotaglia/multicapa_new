@@ -226,14 +226,12 @@ do LT = 1,2
       if(curvature.lt.0) then   ! pore 
         if (temp.le.ntot) then            ! la cadena empieza en el layer 1
              in1tmp(temp) = in1tmp(temp)+1
-!            in1n(LT,conf,ii,temp) =  in1n(LT,conf,ii,temp) + 1
         else
             weight(LT,conf,ii)=0.0 ! out of pore
         endif
       else ! convex
         if (temp.gt.radio) then            ! la cadena empieza en el layer 1
              in1tmp(k) = temp
-!            in1n(LT,conf,ii,temp) =  in1n(LT,conf,ii,temp) + 1
         else
             weight(LT,conf,ii)=0.0 ! collide with the walls
         endif
@@ -251,7 +249,7 @@ do LT = 1,2
        endif
 
        do k = 1, long(LT)
-       temp = in1tmp(k)-minpos(LT,conf,ii) 
+       temp = in1tmp(k)-minpos(LT,conf,ii)+1 
        in1n(LT,conf,ii,temp) =  in1n(LT,conf,ii,temp) + 1
        enddo
 
