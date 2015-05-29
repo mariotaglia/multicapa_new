@@ -12,7 +12,7 @@ integer*4 ier2
 real*8 protemp
 real*8 x(ntot),f(ntot)
 real*8 xh(ntot)
-real*8 xpot(ntot)
+real*8 xpot(2*ntot)
 real*8 pro(maxcuantas)
 integer i,j,k1,k2,ii, jj,iz       ! dummy indices
 integer err
@@ -22,7 +22,7 @@ real*16 auxB, auxC
 REAL*8 avpolpos(ntot), avpolneg(ntot)
 REAL*8 ALGO, ALGO2
 integer n
-real*8 avpol_tmp(ntot), avpol2_tmp(ntot)
+real*8 avpol_tmp(2*ntot), avpol2_tmp(2*ntot)
 real*8 avpol_red(ntot)
 real*8 avpol_tosend(ntot), avpol2_tosend(ntot)
 real*8 nnn
@@ -149,9 +149,9 @@ protemp = protemp-dlog(1.0-fbound(AT, i))
 xpot(i) = dexp(protemp)
 enddo
 
-!do i = n+1, 2*n
-!xpot(i) = xpot(n)
-!enddo
+do i = n+1, 2*n
+xpot(i) = xpot(n)
+enddo
 
 !    probability distribution
 q=0.0d0                   ! init q to zero
@@ -180,7 +180,7 @@ do ii=1,ntot ! position of segment #0
     enddo
 
       if(nnn.ge.minn) then
-      do j=1,ntot
+      do j=minpos(AT,i,ii), maxpos(AT,i,ii)
        avpol_tmp(j)=avpol_tmp(j)+pro(i)*vpol*in1n(AT,i,ii,j)*factorcurv(ii,j) ! only bound polymer!!!
       enddo
     endif
