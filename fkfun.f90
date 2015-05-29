@@ -99,18 +99,30 @@ endif
 if (curvature.lt.0) then ! pore
 avpolneg(n) = avpolneg(n) + sigma
 else
-avpolneg(1) = avpolneg(1) + sigma
+avpolneg(radio) = avpolneg(radio) + sigma
 endif
 
 ! maxpol : position of the last layer with complementary polymer
 maxpol = 1
 if (nads.gt.0) then
+
+  if (curvature.lt.0) then
   do i = n,1,-1
    IF(avpol(nads, i).gt.0.0)maxpol=i
   end do
+
+  else
+
+  do i = 1, n
+   IF(avpol(nads, i).gt.0.0)maxpol=i
+  end do
+  endif
+
 endif
 
 !!! calculation of fbound 
+
+if (curvature.lt.0) then
 
 do i=maxpol,n ! see notes, A = pos = 1, B = neg = 2
   auxC = avpolneg(i)/avpolpos(i)
@@ -118,6 +130,19 @@ do i=maxpol,n ! see notes, A = pos = 1, B = neg = 2
   fbound(1, i) = (-auxB - SQRT(auxB**2 - 4.0*auxC))/2.0
   fbound(2, i) = avpolpos(i)*fbound(1, i)/avpolneg(i)
 enddo
+
+else
+
+do i=1,maxpol ! see notes, A = pos = 1, B = neg = 2
+  auxC = avpolneg(i)/avpolpos(i)
+  auxB = -1.0 -auxC - 1.0/Kbind0/avpolpos(i)
+  fbound(1, i) = (-auxB - SQRT(auxB**2 - 4.0*auxC))/2.0
+  fbound(2, i) = avpolpos(i)*fbound(1, i)/avpolneg(i)
+enddo
+
+endif
+
+
 
 avpol(nads+1,:)=0.0d0         ! polymer volume fraction
 avpol2=0.0d0         ! polymer volume fraction
