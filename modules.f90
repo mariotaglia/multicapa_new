@@ -4,6 +4,9 @@ double precision, allocatable :: pp(:)
 endmodule
 
 module multicapa
+
+integer, parameter :: base = 20
+
 integer cadenastype
 integer, parameter :: ncha_max = 700
 real*8, allocatable :: weight(:,:,:)
@@ -39,6 +42,7 @@ INTEGER maxcuantas
 integer curvature, radio
 
 integer*4, allocatable :: in1n(:,:,:,:)
+integer*4, allocatable :: in1tmp(:)
 integer, allocatable ::  maxpos(:,:,:)
 integer, allocatable ::  minpos(:,:,:)
 

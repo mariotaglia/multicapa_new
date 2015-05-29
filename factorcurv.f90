@@ -1,9 +1,9 @@
-double precision function factorcurv (base, pos)
+double precision function factorcurv (bas, pos)
 
 use multicapa
 implicit none
-integer base, pos
-factorcurv = (float(base)-0.5)/(float(pos)-0.5)
+integer bas, pos
+factorcurv = (float(bas)-0.5)/(float(pos)-0.5)
 
 return
 end

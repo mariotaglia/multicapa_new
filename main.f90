@@ -207,6 +207,8 @@ do LT = 1,2
       minpos(LT,conf,ii) = ntot
       maxpos(LT,conf,ii) = 0 
 
+      in1tmp = 0
+
       do k=1,long(LT)
 
       select case (abs(curvature))
@@ -223,13 +225,15 @@ do LT = 1,2
 
       if(curvature.lt.0) then   ! pore 
         if (temp.le.ntot) then            ! la cadena empieza en el layer 1
-            in1n(LT,conf,ii,temp) =  in1n(LT,conf,ii,temp) + 1
+             in1tmp(temp) = in1tmp(temp)+1
+!            in1n(LT,conf,ii,temp) =  in1n(LT,conf,ii,temp) + 1
         else
             weight(LT,conf,ii)=0.0 ! out of pore
         endif
       else ! convex
         if (temp.gt.radio) then            ! la cadena empieza en el layer 1
-            in1n(LT,conf,ii,temp) =  in1n(LT,conf,ii,temp) + 1
+             in1tmp(k) = temp
+!            in1n(LT,conf,ii,temp) =  in1n(LT,conf,ii,temp) + 1
         else
             weight(LT,conf,ii)=0.0 ! collide with the walls
         endif
@@ -239,6 +243,18 @@ do LT = 1,2
        if(temp.gt.maxpos(LT,conf,ii))maxpos(LT,conf,ii)=temp
 
        enddo ! k
+
+       if((maxpos(LT,conf,ii)-minpos(LT,conf,ii)).ge.base) then
+       if(rank.eq.0)print*,'Increase base'
+       call MPI_FINALIZE(ierr) ! finaliza MPI
+       stop
+       endif
+
+       do k = 1, long(LT)
+       temp = in1tmp(k)-minpos(LT,conf,ii) 
+       in1n(LT,conf,ii,temp) =  in1n(LT,conf,ii,temp) + 1
+       enddo
+
 
 !   if((conf.eq.3).and.(LT.eq.1).and.(ii.eq.1)) then
 !      do jj = 1, ntot

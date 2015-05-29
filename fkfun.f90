@@ -26,7 +26,7 @@ real*8 avpol_tmp(2*ntot), avpol2_tmp(2*ntot)
 real*8 avpol_red(ntot)
 real*8 avpol_tosend(ntot), avpol2_tosend(ntot)
 real*8 nnn
-
+integer k
 double precision, external :: factorcurv
 
 ! Jefe
@@ -169,19 +169,22 @@ do ii=1,ntot ! position of segment #0
  nnn = 0.0
 
     do j=minpos(AT,i,ii), maxpos(AT,i,ii) ! posicion dentro del poro
-     pro(i)= pro(i) * xpot(j)**in1n(AT,i,ii,j)
-     nnn = nnn + in1n(AT,i,ii,j)*fbound(AT,j)
+     k = j-minpos(AT,i,ii)+1
+     pro(i)= pro(i) * xpot(j)**in1n(AT,i,ii,k)
+     nnn = nnn + in1n(AT,i,ii,k)*fbound(AT,j)
     enddo
 
     q=q+pro(i)
 
     do j=minpos(AT,i,ii), maxpos(AT,i,ii)
-     avpol2_tmp(j)=avpol2_tmp(j)+pro(i)*vpol*in1n(AT,i,ii,j)*factorcurv(ii,j)  ! volume fraction polymer not normed
+     k = j-minpos(AT,i,ii)+1
+     avpol2_tmp(j)=avpol2_tmp(j)+pro(i)*vpol*in1n(AT,i,ii,k)*factorcurv(ii,j)  ! volume fraction polymer not normed
     enddo
 
       if(nnn.ge.minn) then
       do j=minpos(AT,i,ii), maxpos(AT,i,ii)
-       avpol_tmp(j)=avpol_tmp(j)+pro(i)*vpol*in1n(AT,i,ii,j)*factorcurv(ii,j) ! only bound polymer!!!
+       k = j-minpos(AT,i,ii)+1
+       avpol_tmp(j)=avpol_tmp(j)+pro(i)*vpol*in1n(AT,i,ii,k)*factorcurv(ii,j) ! only bound polymer!!!
       enddo
     endif
 
