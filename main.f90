@@ -225,7 +225,7 @@ do LT = 1,2
 
       if(curvature.lt.0) then   ! pore 
         if (temp.le.ntot) then            ! la cadena empieza en el layer 1
-             in1tmp(temp) = in1tmp(temp)+1
+            in1tmp(k) = temp
         else
             weight(LT,conf,ii)=0.0 ! out of pore
         endif
@@ -239,9 +239,11 @@ do LT = 1,2
 
        if(temp.lt.minpos(LT,conf,ii))minpos(LT,conf,ii)=temp
        if(temp.gt.maxpos(LT,conf,ii))maxpos(LT,conf,ii)=temp
-
+    
        enddo ! k
 
+       if(weight(LT,conf,ii).gt.0.0) then
+  
        if((maxpos(LT,conf,ii)-minpos(LT,conf,ii)).ge.base) then
        if(rank.eq.0)print*,'Increase base'
        call MPI_FINALIZE(ierr) ! finaliza MPI
@@ -249,10 +251,12 @@ do LT = 1,2
        endif
 
        do k = 1, long(LT)
+!       print*, k, in1tmp(k),minpos(LT,conf,ii) 
        temp = in1tmp(k)-minpos(LT,conf,ii)+1 
        in1n(LT,conf,ii,temp) =  in1n(LT,conf,ii,temp) + 1
        enddo
 
+       endif
 
 !   if((conf.eq.3).and.(LT.eq.1).and.(ii.eq.1)) then
 !      do jj = 1, ntot
