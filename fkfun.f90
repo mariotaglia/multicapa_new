@@ -96,7 +96,11 @@ do i = 1, n
 end do
 endif
 
+if (curvature.lt.0) then ! pore
 avpolneg(n) = avpolneg(n) + sigma
+else
+avpolneg(1) = avpolneg(1) + sigma
+endif
 
 ! maxpol : position of the last layer with complementary polymer
 maxpol = 1
