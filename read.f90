@@ -18,7 +18,6 @@ read(8,*)cadenastype
 
 read(8,*),nada
 read(8,*)cuantas1, cuantas2
-maxcuantas = MAX(cuantas1, cuantas2)
 
 read(8,*),nada
 read(8,*)long1, long2
