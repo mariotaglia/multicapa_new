@@ -103,7 +103,7 @@ avpolneg(radio) = avpolneg(radio) + sigma
 endif
 
 ! maxpol : position of the last layer with complementary polymer
-maxpol = 1
+maxpol = radio
 if (nads.gt.0) then
 
   if (curvature.lt.0) then
@@ -133,7 +133,7 @@ enddo
 
 else
 
-do i=1,maxpol ! see notes, A = pos = 1, B = neg = 2
+do i=radio,maxpol ! see notes, A = pos = 1, B = neg = 2
   auxC = avpolneg(i)/avpolpos(i)
   auxB = -1.0 -auxC - 1.0/Kbind0/avpolpos(i)
   fbound(1, i) = (-auxB - SQRT(auxB**2 - 4.0*auxC))/2.0

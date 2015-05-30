@@ -230,7 +230,7 @@ do LT = 1,2
             weight(LT,conf,ii)=0.0 ! out of pore
         endif
       else ! convex
-        if (temp.gt.radio) then            ! la cadena empieza en el layer 1
+        if (temp.ge.radio) then            ! la cadena empieza en el layer 1
              in1tmp(k) = temp
         else
             weight(LT,conf,ii)=0.0 ! collide with the walls
@@ -239,8 +239,9 @@ do LT = 1,2
 
        if(temp.lt.minpos(LT,conf,ii))minpos(LT,conf,ii)=temp
        if(temp.gt.maxpos(LT,conf,ii))maxpos(LT,conf,ii)=temp
-    
+ 
        enddo ! k
+
 
        if(weight(LT,conf,ii).gt.0.0) then
   
