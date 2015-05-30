@@ -114,7 +114,6 @@ long(2) = long2
 
 cuantas(1) = cuantas1/size
 cuantas(2) = cuantas2/size
-maxcuantas=max(cuantas(1),cuantas(2))
 
 !     initializations of variables 
 pi=dacos(-1.0d0)          ! pi = arccos(-1) 
