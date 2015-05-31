@@ -8,7 +8,12 @@ allocate (Tcapas(adsmax))
 allocate (avpol(adsmax,ntot))
 allocate (avpol2(ntot))
 allocate (avpolall(ntot))
-allocate (in1n(2,maxcuantas,ntot,base))
+!allocate (in1n(2,maxcuantas,ntot,base))
+
+if(maxcuantas.ne.48000)stop
+if(base.ne.20)stop
+if(ntot.ne.300)stop
+
 allocate (in1tmp(maxlong))
 allocate (maxpos(2,maxcuantas,2*ntot))
 allocate (minpos(2,maxcuantas,2*ntot))

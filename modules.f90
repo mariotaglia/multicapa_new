@@ -41,7 +41,8 @@ INTEGER maxcuantas
 
 integer curvature, radio
 
-integer*1, allocatable :: in1n(:,:,:,:)
+integer*1 in1n(2,48000,300,20)
+!integer*1, allocatable :: in1n(:,:,:,:)
 integer*4, allocatable :: in1tmp(:)
 integer, allocatable ::  maxpos(:,:,:)
 integer, allocatable ::  minpos(:,:,:)
