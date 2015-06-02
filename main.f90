@@ -201,6 +201,8 @@ do LT = 1,2
    if(conf.lt.cuantas(LT)) then
    conf=conf+1
 
+   if((rank.eq.0).and.(mod(conf,100).eq.0))print*, 'LT', LT, 'conf', conf 
+
    do ii = 1, ntot ! position of first segment
        weight(LT,conf,ii)=chainsw(j)
 
