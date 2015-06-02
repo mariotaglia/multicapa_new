@@ -201,8 +201,6 @@ do LT = 1,2
    if(conf.lt.cuantas(LT)) then
    conf=conf+1
 
-   if((rank.eq.0).and.(mod(conf,100).eq.0))print*, 'LT', LT, 'conf', conf 
-
    do ii = 1, ntot ! position of first segment
        weight(LT,conf,ii)=chainsw(j)
 
@@ -248,7 +246,7 @@ do LT = 1,2
        if(weight(LT,conf,ii).gt.0.0) then
   
        if((maxpos(LT,conf,ii)-minpos(LT,conf,ii)).ge.base) then
-       if(rank.eq.0)print*,'Increase base'
+       print*,'Rank', rank, 'Increase base'
        call MPI_FINALIZE(ierr) ! finaliza MPI
        stop
        endif

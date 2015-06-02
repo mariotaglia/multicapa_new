@@ -5,7 +5,7 @@ endmodule
 
 module multicapa
 
-integer, parameter :: base = 20
+integer, parameter :: base = 25
 
 integer cadenastype
 integer, parameter :: ncha_max = 700
