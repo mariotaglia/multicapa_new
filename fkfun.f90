@@ -13,7 +13,7 @@ real*8 protemp
 real*8 x(ntot),f(ntot)
 real*8 xh(2*ntot)
 real*8 xpot(2*ntot)
-real*8 pro(maxcuantas)
+real*8 pro
 integer i,j,k,k1,k2,ii, jj,iz       ! dummy indices
 integer err
 INTEGER AT
@@ -55,11 +55,11 @@ end do
 
 ! chain parameters
 
-long(1) = long1
-long(2) = long2
+!long(1) = long1
+!long(2) = long2
 
-cuantas(1) = cuantas1
-cuantas(2) = cuantas2
+!cuantas(1) = cuantas1
+!cuantas(2) = cuantas2
 
 do i=1,n                  ! init xh and psi
 if(x(i).lt.0.0)x(i)=1d-30
@@ -120,16 +120,26 @@ if (nads.gt.0) then
 ENDif
 
 
+!!!!!!!!!!!!!!!
+! calculation of rho from avpol
+!
+
+do i = 1, ntot
+rhopos(i) = avpolpos(i)/vc(1)*nc(1)
+rhoneg(i) = avpolneg(i)/vc(2)*nc(2)
+enddo
+
+
 !!!
 !!! calculation of fbound 
 !!!
 
 do i=1,maxpol ! see notes, A = pos = 1, B = neg = 2
-auxC = avpolneg(i)/avpolpos(i)
-auxB = -1.0 -auxC - 1.0/Kbind0/avpolpos(i)
+auxC = rhoneg(i)/rhopos(i)
+auxB = -1.0 -auxC - 1.0/Kbind0/rhopos(i)
 
 fbound(1, i) = (-auxB - SQRT(auxB**2 - 4.0*auxC))/2.0
-fbound(2, i) = avpolpos(i)*fbound(1, i)/avpolneg(i)
+fbound(2, i) = rhopos(i)*fbound(1, i)/nhoneg(i)
 enddo
 
 !if (nads.eq.1) then
@@ -157,29 +167,29 @@ avpol2=0.0d0         ! polymer volume fraction
 ! xpot
 AT = Tcapas(nads+1) ! type of layer to add
 
-do i = 1, n
-protemp = dlog(xh(i)**(vpol))
-if(nads.eq.0)protemp = protemp + (-eps(i))
-protemp = protemp-dlog(1.0-fbound(AT, i))
+!do i = 1, n
+!protemp = dlog(xh(i)**(vc(AT)))
+!if(nads.eq.0)protemp = protemp + (-eps(i))
+!protemp = protemp-dlog(1.0-fbound(AT, i))
 
-do iz = -Xulimit, Xulimit
-if((iz+i).ge.1) then
-if(AT.eq.1) then ! pos
-protemp=protemp + Xu(1,2,iz)*st/(vpol*vsol)*avpolneg(i+iz)
-protemp=protemp + Xu(1,1,iz)*st/(vpol*vsol)*avpolpos(i+iz)
-else ! neg
-protemp=protemp + Xu(1,1,iz)*st/(vpol*vsol)*avpolneg(i+iz)
-protemp=protemp + Xu(1,2,iz)*st/(vpol*vsol)*avpolpos(i+iz)
-endif
-endif
-enddo
-
-xpot(i) = dexp(protemp)
-enddo
-
-do i = n+1, 2*n
-xpot(i) = xpot(n)
-enddo
+!do iz = -Xulimit, Xulimit
+!if((iz+i).ge.1) then
+!if(AT.eq.1) then ! pos
+!protemp=protemp + Xu(1,2,iz)*st/(vpol*vsol)*avpolneg(i+iz)
+!protemp=protemp + Xu(1,1,iz)*st/(vpol*vsol)*avpolpos(i+iz)
+!else ! neg
+!protemp=protemp + Xu(1,1,iz)*st/(vpol*vsol)*avpolneg(i+iz)
+!protemp=protemp + Xu(1,2,iz)*st/(vpol*vsol)*avpolpos(i+iz)
+!endif
+!endif
+!enddo
+!
+!xpot(i) = dexp(protemp)
+!enddo
+!
+!do i = n+1, 2*n
+!xpot(i) = xpot(n)
+!enddo
 
 !    probability distribution
 
@@ -191,28 +201,31 @@ avpol2_tosend = 0.0
 avpol2_tmp = 0.0
 
 do ii=1,ntot 
- do i=1,newcuantas(AT)
 
- pro(i) = expmupol*weight(AT,i)
+ pro = expmupol  !*weight(AT,i)
  nnn = 0.0
 
-    do j=1, maxlayer(AT, i)
+    do j=1, dc(AT)
      k = j+ii-1
-     pro(i)= pro(i) * xpot(k)**in1n(AT, i, j)
-     nnn = nnn + in1n(AT,i,j)*fbound(AT,k)
+!protemp = dlog(xh(i)**(vc(AT)))
+!if(nads.eq.0)protemp = protemp + (-eps(i))
+!protemp = protemp-dlog(1.0-fbound(AT, i))
+
+     pro= pro * (xh(k)**(sph(j,AT)/vsol) / ((1.0-fbound(AT,i))**(nc(AT)*sph(j,AT)/vc(AT))))
+     nnn = nnn + sph(j,AT)*nc(AT)/vc(AT)*fbound(AT,k)
     enddo
 
     q=q+pro(i)
 
-    do j=1,maxlayer(AT, i)
+    do j=1, dc(AT)
      k = j+ii-1
-     avpol2_tmp(k)=avpol2_tmp(k)+pro(i)*vpol*in1n(AT,i, j)  ! volume fraction polymer not normed
+     avpol2_tmp(k)=avpol2_tmp(k)+pro(i)*sph(j, AT)  ! volume fraction polymer not normed
     enddo
 
       if(nnn.ge.minn) then
-      do j=1,maxlayer(AT, i)
+      do j=1,dc(AT)
        k = j+ii-1
-       avpol_tmp(k)=avpol_tmp(k)+pro(i)*vpol*in1n(AT,i, j) ! only bound polymer!!!
+       avpol_tmp(k)=avpol_tmp(k)+pro(i)*sph(j, AT) ! only bound polymer!!!
       enddo
     endif
  enddo ! i

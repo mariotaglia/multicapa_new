@@ -15,8 +15,12 @@ use bulk
 use seed1
 use longs
 use MPI
+use colloids
 
 implicit none
+
+real*8 sphtmp(:)
+
 integer *4 ier ! Kinsol error flag
 real*8 pi
 real*8 Na               
@@ -95,7 +99,10 @@ integer err
 integer ier_tosend
 double  precision norma_tosend
 
-
+if(size.ne.1) then
+print*, 'Only one processor for colloids!!!'
+stop
+endif
 
 !
 seed=435+ 3232*rank               ! seed for random number generator
@@ -106,11 +113,20 @@ if(rank.eq.0)print*, 'GIT Version: ', _VERSION
 
 
 !     common declarations: used for communciations with other routines
-long(1) = long1
-long(2) = long2
+!long(1) = long1
+!long(2) = long2
 
-cuantas(1) = cuantas1/size
-cuantas(2) = cuantas2/size
+!cuantas(1) = cuantas1/size
+!cuantas(2) = cuantas2/size
+
+dc(1) = int(rc1/delta)+1
+dc(2) = int(rc2/delta)+1
+nc(1) = nc1
+nc(2) = nc2
+
+maxdc = max(dc(1), dc(2))
+rc(1) = rc1
+rc(2) = rc2
 
 !     initializations of variables 
 pi=dacos(-1.0d0)          ! pi = arccos(-1) 
@@ -171,74 +187,93 @@ endif
 ! CHAIN GENERATION
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-   if (cadenastype.eq.1) then
-   if(rank.eq.1)print*, 'Calling RIS chain generator'
-   elseif (cadenastype.eq.2) then
-   if(rank.eq.1)print*, 'Calling MK chain generator'
-   else
-   stop 'Wrong chain generator'
-   endif
+!   if (cadenastype.eq.1) then
+!   if(rank.eq.1)print*, 'Calling RIS chain generator'
+!   elseif (cadenastype.eq.2) then
+!   if(rank.eq.1)print*, 'Calling MK chain generator'
+!   else
+!   stop 'Wrong chain generator'
+!   endif
+!
+!
+!do LT = 1,2
+!
+!   call initcha              ! init matrices for chain generation
+!
+!   conf=0                    ! counter of number of conformations
+!   sumweight_tosend = 0.0
+!
+!   do while (conf.lt.cuantas(LT))
+!
+!   if (cadenastype.eq.1) then
+!   call cadenas1(chains,chainsw,ncha,LT)
+!   elseif (cadenastype.eq.2) then 
+!   call cadenas_MK(chains,chainsw,ncha,LT)
+!   endif
+!
+!   do j=1,ncha
+!   min1=1000
+!
+!   do k=1,long(LT)
+!   zp(k)=chains(1,k,j) ! z coordinate of chains
+!   if(zp(k).lt.min1)min1=zp(k) ! find minimal coordinate to shift chains to begin in layer 1
+!   enddo
+!
+!   if(conf.lt.cuantas(LT)) then
+!   conf=conf+1
+!   maxlayer(LT, conf) = 0
+!
+!   do k = 1, ntot
+!   in1n(LT, conf,k)=0
+!   enddo
+!
+!   do k=1,long(LT)
+!   temp=int((zp(k)-(min1+0.1))/delta)+1  ! put them into the correct layer
+!   if (temp.le.(ntot)) then            ! la cadena empieza en el layer 1
+!   in1n(LT,conf, (temp)) =  in1n(LT, conf, (temp)) + 1
+!   if(maxlayer(LT,conf).LT.(temp)) then
+!   maxlayer(LT,conf)=temp
+!   endif
+!   endif
+!   enddo
+!
+!   weight(LT,conf)=chainsw(j)
+!   sumweight_tosend = sumweight_tosend +  weight(LT,conf)
+!
+!   endif
+!
+!   enddo ! j
+!   enddo ! while
+!
+!   tmp = 0.0
+!   call MPI_REDUCE(sumweight_tosend, tmp, 1, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
+!   CALL MPI_BCAST(tmp, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD,err)
+!   sumweight(LT) = tmp
+!
+!enddo ! LT
+!
+!!     end chains generation 
+!if(rank.eq.0)print*," chains ready"
+!
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!  Colloid generation
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+allocate(sph(maxdc,2))
+allocate(sphtmp(maxdc))
 
 do LT = 1,2
-
-   call initcha              ! init matrices for chain generation
-
-   conf=0                    ! counter of number of conformations
-   sumweight_tosend = 0.0
-
-   do while (conf.lt.cuantas(LT))
-
-   if (cadenastype.eq.1) then
-   call cadenas1(chains,chainsw,ncha,LT)
-   elseif (cadenastype.eq.2) then 
-   call cadenas_MK(chains,chainsw,ncha,LT)
-   endif
-
-   do j=1,ncha
-   min1=1000
-
-   do k=1,long(LT)
-   zp(k)=chains(1,k,j) ! z coordinate of chains
-   if(zp(k).lt.min1)min1=zp(k) ! find minimal coordinate to shift chains to begin in layer 1
-   enddo
-
-   if(conf.lt.cuantas(LT)) then
-   conf=conf+1
-   maxlayer(LT, conf) = 0
-
-   do k = 1, ntot
-   in1n(LT, conf,k)=0
-   enddo
-
-   do k=1,long(LT)
-   temp=int((zp(k)-(min1+0.1))/delta)+1  ! put them into the correct layer
-   if (temp.le.(ntot)) then            ! la cadena empieza en el layer 1
-   in1n(LT,conf, (temp)) =  in1n(LT, conf, (temp)) + 1
-   if(maxlayer(LT,conf).LT.(temp)) then
-   maxlayer(LT,conf)=temp
-   endif
-   endif
-   enddo
-
-   weight(LT,conf)=chainsw(j)
-   sumweight_tosend = sumweight_tosend +  weight(LT,conf)
-
-   endif
-
-   enddo ! j
-   enddo ! while
-
-   tmp = 0.0
-   call MPI_REDUCE(sumweight_tosend, tmp, 1, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
-   CALL MPI_BCAST(tmp, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD,err)
-   sumweight(LT) = tmp
-
+call sphere(sphtmp, rc(LT))
+sph(:,LT) = sphtmp(:)*0.95
+vc(LT) = sum(sphtmp)
+print*, 'Colloid', LT
+print*, 'Radius', rc(LT)
+print*, 'Number of layers', dc(LT)
+print*, 'Number of sites', nc(LT)
+print*, 'Volume', vc(LT)
+print*, 'Volume distribution', sph(:,LT)
 enddo ! LT
-
-!     end chains generation 
-if(rank.eq.0)print*," chains ready"
-
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     computation starts
@@ -248,8 +283,9 @@ if(rank.eq.0)print*," chains ready"
 
 
 iter=0                    ! iteration counter
-newcuantas(1)=cuantas(1)
-newcuantas(2)=cuantas(2)
+
+!newcuantas(1)=cuantas(1)
+!newcuantas(2)=cuantas(2)
 
 if(rank.eq.0) then
 open(unit=533,file='ADS-mol.cm-2.dat')
@@ -288,9 +324,11 @@ write(sigmaadfilename,'(A8,BZ,I5.5,A4)')'sigmaad.',countfile,'.dat'
 xsolbulk=1.0  - phibulkpol
 Kbind0 = Kbind ! Intrinsic equilibrium constant from uncharged polymers.
 
-expmupol= phibulkpol/(vpol*long(LT)*xsolbulk**(long(LT)*vpol))        ! exp of bulk value of pol. chem. pot.
-expmupol = expmupol/sumweight(LT)
-expmupol=expmupol/dexp(sumXu11*st/(vpol*vsol)*(phibulkpol)*long(LT))
+!expmupol= phibulkpol/(vpol*long(LT)*xsolbulk**(long(LT)*vpol))        ! exp of bulk value of pol. chem. pot.
+!expmupol = expmupol/sumweight(LT)
+!expmupol=expmupol/dexp(sumXu11*st/(vpol*vsol)*(phibulkpol)*long(LT))
+
+expmupol= phibulkpol/((vc(LT)/vsol)*xsolbulk**(vc(LT)/vsol))        ! exp of bulk value of pol. chem. pot.
 
 do i=1,n             ! initial gues for x1
 xg1(i)=x1(i)
@@ -357,34 +395,34 @@ endif
 ! Determination of adsorbed polymer
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-if(rank.eq.0) then
-sumrho2 = 0.0
-do i=1,n
-sumrho2 = sumrho2 + avpol2(i)/vpol
-enddo
-
-sumrho2mol = sumrho2/vsol/Na*1.0d21*delta/1.0d7 ! mol.cm-2
-
-sumrho2 = sumrho2/vsol*delta/long(LT)           ! chains by nm2
-
-WRITE(533,*)(nads+1), sumrho2mol  ! mol.cm-2
-WRITE(534,*)(nads+1), sumrho2  ! chains by nm2
-
-! weighted z
-
-meanz=0.0
-sumrhoz=0.0
-
-do i=1,n
-do jj = 1, nads
-meanz=meanz+(avpol(jj,i))*zc(i)
-sumrhoz=sumrhoz+avpol(jj,i)
-end do
-meanz=meanz+(avpol2(i))*zc(i) 
-sumrhoz=sumrhoz+avpol2(i)
-enddo
-meanz=meanz/sumrhoz
-
+!if(rank.eq.0) then
+!sumrho2 = 0.0
+!do i=1,n
+!sumrho2 = sumrho2 + avpol2(i)/vpol
+!enddo
+!
+!sumrho2mol = sumrho2/vsol/Na*1.0d21*delta/1.0d7 ! mol.cm-2
+!
+!sumrho2 = sumrho2/vsol*delta/long(LT)           ! chains by nm2
+!
+!WRITE(533,*)(nads+1), sumrho2mol  ! mol.cm-2
+!WRITE(534,*)(nads+1), sumrho2  ! chains by nm2
+!
+!! weighted z
+!
+!meanz=0.0
+!sumrhoz=0.0
+!
+!do i=1,n
+!do jj = 1, nads
+!meanz=meanz+(avpol(jj,i))*zc(i)
+!sumrhoz=sumrhoz+avpol(jj,i)
+!end do
+!meanz=meanz+(avpol2(i))*zc(i) 
+!sumrhoz=sumrhoz+avpol2(i)
+!enddo
+!meanz=meanz/sumrhoz
+!
 
 write(535,*)(nads+1), meanz
 write(sysfilename,'(A7,BZ,I3.3,A1,I3.3,A4)')'system.', countfileuno,'.',countfile,'.dat'
@@ -441,14 +479,14 @@ write(310,*)'q           = ',q
 write(310,*)'length seg  = ',0.50 ! value see subroutine cadenas
 write(310,*)'delta       = ',delta
 write(310,*)'vsol        = ',vsol
-write(310,*)'vpol        = ',vpol*vsol
+!write(310,*)'vpol        = ',vpol*vsol
 
 write(310,*)'Kbind       = ',Kbind
 write(310,*)'Kbind0      = ',Kbind0
 
 
-write(310,*)'cuantas(1)     = ',cuantas(1)
-write(310,*)'cuantas(2)     = ',cuantas(2)
+!write(310,*)'cuantas(1)     = ',cuantas(1)
+!write(310,*)'cuantas(2)     = ',cuantas(2)
 
 write(310,*)'iterations  = ',iter
 

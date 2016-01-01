@@ -33,7 +33,7 @@ radio = sqrt(x**2 + y**2 + z**2) ! espacio real
 if (radio.gt.radius) cycle ! outside sphere
 
  ! celda 
- iz = int(anint(z/delta))
+ iz = int((z+radius)/delta)+1
  sphere(iz) = sphere(iz) + 1.0
  suma = suma + 1.0
 

@@ -1,7 +1,9 @@
 module colloids
-integer nc1, nc2, maxnc
-real*8 rc1, rc2
-integer dc1, dc2, maxdc
+integer nc1, nc2, nc(2), maxnc
+real*8 rc1, rc2, rc(2)
+integer dc(2), maxdc
+real*8 sph(:,:)
+
 endmodule colloids
 
 module mkinsol
