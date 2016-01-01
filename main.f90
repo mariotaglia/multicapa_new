@@ -19,7 +19,7 @@ use colloids
 
 implicit none
 
-real*8 sphtmp(:)
+real*8, allocatable :: sphtmp(:)
 
 integer *4 ier ! Kinsol error flag
 real*8 pi
@@ -264,7 +264,7 @@ allocate(sph(maxdc,2))
 allocate(sphtmp(maxdc))
 
 do LT = 1,2
-call sphere(sphtmp, rc(LT))
+call sphere(sphtmp, maxdc, rc(LT))
 sph(:,LT) = sphtmp(:)*0.95
 vc(LT) = sum(sphtmp)
 print*, 'Colloid', LT
@@ -395,7 +395,8 @@ endif
 ! Determination of adsorbed polymer
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-!if(rank.eq.0) then
+if(rank.eq.0) then
+
 !sumrho2 = 0.0
 !do i=1,n
 !sumrho2 = sumrho2 + avpol2(i)/vpol

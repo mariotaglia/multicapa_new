@@ -2,6 +2,7 @@ subroutine read
 use longs
 use multicapa
 use bulk
+use colloids
 implicit none
 integer i
 

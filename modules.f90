@@ -1,8 +1,9 @@
 module colloids
 integer nc1, nc2, nc(2), maxnc
 real*8 rc1, rc2, rc(2)
+real*8 vc(2)
 integer dc(2), maxdc
-real*8 sph(:,:)
+real*8, allocatable :: sph(:,:)
 
 endmodule colloids
 

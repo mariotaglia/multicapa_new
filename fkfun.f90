@@ -6,8 +6,9 @@ use volume
 use bulk
 use longs
 use MPI
+use colloids
 implicit none
-
+real*8 rhoneg(ntot), rhopos(ntot)
 integer*4 ier2
 real*8 protemp
 real*8 x(ntot),f(ntot)
@@ -139,7 +140,7 @@ auxC = rhoneg(i)/rhopos(i)
 auxB = -1.0 -auxC - 1.0/Kbind0/rhopos(i)
 
 fbound(1, i) = (-auxB - SQRT(auxB**2 - 4.0*auxC))/2.0
-fbound(2, i) = rhopos(i)*fbound(1, i)/nhoneg(i)
+fbound(2, i) = rhopos(i)*fbound(1, i)/rhoneg(i)
 enddo
 
 !if (nads.eq.1) then
@@ -215,20 +216,19 @@ do ii=1,ntot
      nnn = nnn + sph(j,AT)*nc(AT)/vc(AT)*fbound(AT,k)
     enddo
 
-    q=q+pro(i)
+    q=q+pro
 
     do j=1, dc(AT)
      k = j+ii-1
-     avpol2_tmp(k)=avpol2_tmp(k)+pro(i)*sph(j, AT)  ! volume fraction polymer not normed
+     avpol2_tmp(k)=avpol2_tmp(k)+pro*sph(j, AT)  ! volume fraction polymer not normed
     enddo
 
       if(nnn.ge.minn) then
       do j=1,dc(AT)
        k = j+ii-1
-       avpol_tmp(k)=avpol_tmp(k)+pro(i)*sph(j, AT) ! only bound polymer!!!
+       avpol_tmp(k)=avpol_tmp(k)+pro*sph(j, AT) ! only bound polymer!!!
       enddo
     endif
- enddo ! i
 enddo   ! ii
 
 avpol_tosend(1:ntot)=avpol_tmp(1:ntot)
