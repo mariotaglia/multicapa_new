@@ -1,5 +1,8 @@
-
-
+module colloids
+integer nc1, nc2, maxnc
+real*8 rc1, rc2
+integer dc1, dc2, maxdc
+endmodule colloids
 
 module mkinsol
 double precision, allocatable :: pp(:)
