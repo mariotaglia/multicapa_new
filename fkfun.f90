@@ -124,7 +124,16 @@ endif
 rhopos = 0
 rhoneg = 0
 
-do i = 1, 2*ntot
+maxpol = 1
+
+if (nads.gt.0) then
+ do i = 1,n
+  IF(avpol(nads, i).gt.0.0)maxpol=i
+ end do
+ENDif
+
+
+do i = 1, maxpol !2*ntot
 poltmp(i) = avpolpos(i)
 do j = dc(1)-1, 1, -1 ! go back j
 if((i-j).gt.0) then
@@ -134,12 +143,27 @@ enddo ! j
 poltmp(i) = poltmp(i)/sph(1,1) ! number density of particles in nm-3
 do k = 1, dc(1)
 if((i+k-1).le.2*ntot) then
-rhopos(i+k-1) = poltmp(i)*nc(1)*sphs(k,1) ! distribute ligands
+rhopos(i+k-1) = rhopos(i+k-1) + poltmp(i)*nc(1)*sphs(k,1) ! distribute ligands
+
+!if(AT.eq.2) then
+!print*, '!', i, k, dc(1), rhopos(i+k-1)
+!endif
+
 endif
 enddo
 enddo ! i
 
-do i = 1, 2*ntot
+!if(AT.eq.2) then
+!do i = 1, maxpol
+!print*, i, rhopos(i), poltmp(i), avpolpos(i)
+!enddo
+!print*, sphs(:,1), nc(1)
+!stop
+!endif
+!
+
+
+do i = 1, maxpol !2*ntot
 poltmp(i) = avpolneg(i)
 do j = dc(2)-1, 1, -1 ! go back j
 if((i-j).gt.0) then
@@ -149,7 +173,7 @@ enddo ! j
 poltmp(i) = poltmp(i)/sph(1,2) ! number density of particles in nm-3
 do k = 1, dc(2)
 if((i+k-1).le.2*ntot) then
-rhoneg(i+k-1) = poltmp(i)*nc(2)*sphs(k,2) ! distribute ligands
+rhoneg(i+k-1) = rhoneg(i+k-1) + poltmp(i)*nc(2)*sphs(k,2) ! distribute ligands
 endif
 enddo
 enddo ! i
@@ -157,15 +181,13 @@ enddo ! i
 rhoneg(1) = rhoneg(1) + sigma/(vpol*vsol)
 
 
+!do i = 1, ntot
+!if(AT.eq.2)print*, i, rhopos(i), rhoneg(i), avpolpos(i), avpolneg(i)
+!if(abs(rhopos(i)).lt.1d-15)rhopos(i)=0.0
+!if(abs(rhoneg(i)).lt.1d-15)rhoneg(i)=0.0
+!enddo
+
 ! maxpol : position of the last layer with complementary polymer
-
-maxpol = 1
-
-if (nads.gt.0) then
- do i = 1,n
-  IF(avpol(nads, i).gt.0.0)maxpol=i
- end do
-ENDif
 
 
 
@@ -180,6 +202,13 @@ auxB = -1.0 -auxC - 1.0/Kbind0/rhopos(i)
 fbound(1, i) = (-auxB - SQRT(auxB**2 - 4.0*auxC))/2.0
 fbound(2, i) = rhopos(i)*fbound(1, i)/rhoneg(i)
 enddo
+
+!if(AT.eq.2) then
+!do i = 1, maxpol
+!print*,i , fbound(1,i), fbound(2,i), rhopos(i), rhoneg(i)
+!enddo
+!stop
+!endif
 
 avpol(nads+1,:)=0.0d0         ! polymer volume fraction
 avpol2=0.0d0         ! polymer volume fraction
@@ -315,6 +344,8 @@ do i = 1, n
 end do
 
 !if(rank.eq.0)PRINT*, iter, algo
+!if(AT.eq.2)stop
+
 norma=algo
 3333 continue
 

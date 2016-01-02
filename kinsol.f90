@@ -42,7 +42,7 @@ double precision vtemp1(*), vtemp2(*)
 common /psize/ neq
 
 do i = 1, neq
-   pp(i) = 1.0 !0.1 / (1.0+exp(-udata(i)))
+   pp(i) = 0.1 / (1.0+exp(-udata(i)))
 enddo
    ier = 0
 return
@@ -77,7 +77,7 @@ scsteptol = 1.0d-6 ! Function-norm stopping tolerance
 
 maxl = 1000 ! maximum Krylov subspace dimesion (?!?!?!) ! Esto se usa para el preconditioner
 maxlrst = 5 ! maximum number of restarts
-max_niter = 5000
+max_niter = 500
 globalstrat = 0
 
 call fnvinits(3, neq, ier) ! fnvinits inits NVECTOR module
