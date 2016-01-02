@@ -19,8 +19,8 @@ use colloids
 
 implicit none
 
-real*8, allocatable :: sphtmp(:)
-
+real*8, allocatable :: sphtmp(:), sphtmps(:)
+real*8 rctemp
 integer *4 ier ! Kinsol error flag
 real*8 pi
 real*8 Na               
@@ -29,10 +29,10 @@ parameter (Na=6.02d23)
 real*8 avpol_red(ntot)
 
 REAL*8 avtotal(ntot)       ! sum over all avpol
-real*8 xsol(ntot)         ! volume fraction solvent
 
-real*8 x1(ntot),xg1(ntot)   ! density solvent iteration vector
+real*8 x1OK(ntot), x1(ntot),xg1(ntot)   ! density solvent iteration vector
 real*8 zc(ntot)           ! z-coordinate layer 
+real*8 kbindOK
 
 REAL*8 sumrhoz, meanz     ! Espesor medio pesado
 real*8 pro                ! probability distribution function 
@@ -101,7 +101,6 @@ double  precision norma_tosend
 
 if(size.ne.1) then
 print*, 'Only one processor for colloids!!!'
-stop
 endif
 
 !
@@ -261,20 +260,37 @@ endif
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 allocate(sph(maxdc,2))
+allocate(sphs(maxdc,2))
 allocate(sphtmp(maxdc))
+allocate(sphtmps(maxdc))
 
 do LT = 1,2
-call sphere(rc(LT), sphtmp, maxdc)
+rctemp = rc(LT) - 0.001
+call sphere(rc(LT),rctemp, sphtmp, sphtmps, maxdc)
 sph(:,LT) = sphtmp(:)
+sphs(:,LT) = sphtmps(:)
 vc(LT) = sum(sphtmp)
+
+! OJO
+sphs(:,LT) = sph(:,LT)/sum(sph(:,LT))
+
+
 print*, 'Colloid', LT
 print*, 'Radius', rc(LT)
 print*, 'Number of layers', dc(LT)
 print*, 'Number of sites', nc(LT)
 print*, 'Volume', vc(LT)
-print*, 'Volume distribution', sph(:,LT)
-enddo ! LT
+print*, 'Volume Distribution'
+do j = 1, maxdc
+print*, j, sph(j,LT)
+enddo
+print*, 'Surface Distribution'
+do j = 1, maxdc
+print*, j, sphs(j,LT)
+enddo
 
+
+enddo ! LT
 print*, 'Colloid OK'
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -356,7 +372,6 @@ if(rank.ne.0) then
      if(flagsolver.eq.0) exit ! Detiene el programa para este nodo
    enddo
 endif
-if(rank.eq.0)print*,"LAYER ", nads+1, " ADSORBED!", st, kbind
 
 
 if (rank.eq.0) then
@@ -371,25 +386,34 @@ if(rank.ne.0) then
 endif
 
 
-do i=1,n
-xsol(i)=(exp(-x1(i)))*(1.0-avpolall(i))       ! solvent density=volume fraction
-enddo
+!do i=1,n
+!xsol(i)=(exp(-x1(i)))*(1.0-avpolall(i))       ! solvent density=volume fraction
+!enddo
 
 
 if(norma.gt.error) then
+
 if(ccc.eq.1) then
 Kbind = Kbind/2.0
 goto 123
 endif
+
 if(rank.eq.0)print*, 'Fail', Kbind
-Kbind=(kbinds(ccc-1)+Kbind)/2.0
+Kbind=(kbindOK+Kbind)/2.0
+
 if(rank.eq.0)print*, 'Try', Kbind
-kbinds(ccc-1) = Kbind
+!kbinds(ccc-1) = Kbind
+x1 = x1OK
 goto 123
 endif
 
+if(rank.eq.0)print*,"LAYER ", nads+1, " ADSORBED!", st, kbind
+x1OK = x1
+KbindOK = Kbind
+
 if(kbinds(ccc).ne.Kbind) then
 Kbind = kbinds(ccc)
+print*, 'Now try', Kbind
 goto 123
 endif
 

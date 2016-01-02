@@ -4,6 +4,7 @@ real*8 rc1, rc2, rc(2)
 real*8 vc(2)
 integer dc(2), maxdc
 real*8, allocatable :: sph(:,:)
+real*8, allocatable :: sphs(:,:)
 
 endmodule colloids
 
@@ -40,7 +41,7 @@ integer ntot ! lattice sites
 real*8, allocatable :: avpol(:,:) ! volume fraction polymers already adsorbed
 real*8, allocatable :: avpol2(:) ! volume fraction polymer in solution
 real*8, allocatable :: avpolall(:)
-
+real*8, allocatable :: xsol(:)
 INTEGER cuantas1, cuantas2
 INTEGER maxcuantas
 

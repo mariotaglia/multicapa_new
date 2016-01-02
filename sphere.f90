@@ -1,16 +1,16 @@
-subroutine sphere(radius,sph, dc) ! radius: radius of the sph in nm, sphere: vector distribution, must be preallocated
+subroutine sphere(radius,radius2, sph,sphs, dc) ! radius: radius of the sph in nm, sphere: vector distribution, must be preallocated
 use layer
 
 implicit none
 integer dc
-real*8 sph(dc)
+real*8 sph(dc), sphs(dc)
 integer MCsteps ! numero de steps de MC
 integer ix, iy , iz
 real*8 x,y,z, radio
 integer i
 real*8 rands
 real*8 suma
-real*8 radius
+real*8 radius,radius2
 integer im
 integer iix,iiy,iiz
 real*8 vol
@@ -19,7 +19,7 @@ print*, 'sphere: init sphere calculation'
 
 suma = 0.0
 sph = 0.0
-
+sphs = 0.0
 MCsteps = 200
 
 do iix = 1, MCsteps
@@ -39,13 +39,17 @@ if (radio.gt.radius) cycle ! outside sph
  sph(iz) = sph(iz) + 1.0
  suma = suma + 1.0
 
+if (radio.lt.radius2) cycle
+ 
+ sphs(iz) = sphs(iz) + 1.0
+
+
 enddo !ix
 enddo !iy
 enddo !iz
-print*, suma, radius, dc, sph
 vol = 4.0/3.0*3.14159*(radius**3)
 sph = sph/suma*vol ! normalize volume
-
+sphs = sphs/sum(sphs)
 end
 
 

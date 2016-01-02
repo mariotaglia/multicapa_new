@@ -8,7 +8,7 @@ use longs
 use MPI
 use colloids
 implicit none
-real*8 rhoneg(ntot), rhopos(ntot)
+real*8 rhoneg(2*ntot), rhopos(2*ntot), poltmp(2*ntot)
 integer*4 ier2
 real*8 protemp
 real*8 x(ntot),f(ntot)
@@ -62,9 +62,17 @@ end do
 !cuantas(1) = cuantas1
 !cuantas(2) = cuantas2
 
+AT = Tcapas(nads+1) ! type of layer to add
 do i=1,n                  ! init xh and psi
 if(x(i).lt.0.0)x(i)=1d-30
+
 xh(i)=(exp(-x(i)))*(1.0-avpolall(i))             ! solvent density=volume fraction   
+xsol(i) = xh(i)
+
+do j = 2, dc(AT)
+if((i+j-1).le.ntot)avpolall(i+j-1)=avpolall(i+j-1)+(1.0-xh(i)-avpolall(i))/sph(1,AT)*sph(j,AT)
+enddo
+
 xh(i+n)=xsolbulk       ! bulk value for chains protruding to the bulk
 enddo
 
@@ -113,11 +121,38 @@ do i = 1, 2*n
 end do
 endif
 
-do i = 1, ntot
-rhopos(i) = avpolpos(i)/vc(1)*nc(1)
-rhoneg(i) = avpolneg(i)/vc(2)*nc(2)
-enddo
+rhopos = 0
+rhoneg = 0
 
+do i = 1, 2*ntot
+poltmp(i) = avpolpos(i)
+do j = dc(1)-1, 1, -1 ! go back j
+if((i-j).gt.0) then
+poltmp(i) = poltmp(i) - poltmp(i-j)*sph(j+1,1)
+endif
+enddo ! j
+poltmp(i) = poltmp(i)/sph(1,1) ! number density of particles in nm-3
+do k = 1, dc(1)
+if((i+k-1).le.2*ntot) then
+rhopos(i+k-1) = poltmp(i)*nc(1)*sphs(k,1) ! distribute ligands
+endif
+enddo
+enddo ! i
+
+do i = 1, 2*ntot
+poltmp(i) = avpolneg(i)
+do j = dc(2)-1, 1, -1 ! go back j
+if((i-j).gt.0) then
+poltmp(i) = poltmp(i) - poltmp(i-j)*sph(j+1,2)
+endif
+enddo ! j
+poltmp(i) = poltmp(i)/sph(1,2) ! number density of particles in nm-3
+do k = 1, dc(2)
+if((i+k-1).le.2*ntot) then
+rhoneg(i+k-1) = poltmp(i)*nc(2)*sphs(k,2) ! distribute ligands
+endif
+enddo
+enddo ! i
 
 rhoneg(1) = rhoneg(1) + sigma/(vpol*vsol)
 
@@ -146,17 +181,9 @@ fbound(1, i) = (-auxB - SQRT(auxB**2 - 4.0*auxC))/2.0
 fbound(2, i) = rhopos(i)*fbound(1, i)/rhoneg(i)
 enddo
 
-
-
-!if (nads.eq.1) then
-!do i = 1, ntot
-!print*, i , xh(i), xtotal(i)
-!enddo
-!stop
-!endif
-
 avpol(nads+1,:)=0.0d0         ! polymer volume fraction
 avpol2=0.0d0         ! polymer volume fraction
+
 
 !! pegado has the last layer with polymer
 
@@ -211,15 +238,17 @@ do ii=1,ntot
  pro = expmupol  !*weight(AT,i)
  nnn = 0.0
 
+
     do j=1, dc(AT)
      k = j+ii-1
 !protemp = dlog(xh(i)**(vc(AT)))
 !if(nads.eq.0)protemp = protemp + (-eps(i))
 !protemp = protemp-dlog(1.0-fbound(AT, i))
 
-     pro= pro * (xh(k)**(sph(j,AT)/vsol) / ((1.0-fbound(AT,k))**(nc(AT)*sph(j,AT)/vc(AT))))
-     nnn = nnn + sph(j,AT)*nc(AT)/vc(AT)*fbound(AT,k)
+     pro= pro * (xh(k)**(sph(j,AT)/vsol) / ((1.0-fbound(AT,k))**(nc(AT)*sphs(j,AT))))
+     nnn = nnn + sphs(j,AT)*nc(AT)*fbound(AT,k)
     enddo
+
 
     q=q+pro
 
@@ -285,9 +314,8 @@ do i = 1, n
  algo = algo + f(i)**2
 end do
 
-if(rank.eq.0)PRINT*, iter, algo
+!if(rank.eq.0)PRINT*, iter, algo
 norma=algo
-
 3333 continue
 
 return
