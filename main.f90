@@ -394,7 +394,10 @@ endif
 if(norma.gt.error) then
 
 if(ccc.eq.1) then
+if(rank.eq.0)print*, 'Fail', Kbind
 Kbind = Kbind/2.0
+if(rank.eq.0)print*, 'Try', Kbind
+x1 = x1OK
 goto 123
 endif
 

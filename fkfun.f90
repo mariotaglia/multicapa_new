@@ -343,8 +343,9 @@ do i = 1, n
  algo = algo + f(i)**2
 end do
 
-!if(rank.eq.0)PRINT*, iter, algo
-!if(AT.eq.2)stop
+if(AT.eq.2) then
+if(rank.eq.0)PRINT*, iter, algo
+endif
 
 norma=algo
 3333 continue

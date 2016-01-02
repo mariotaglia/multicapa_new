@@ -42,7 +42,7 @@ double precision vtemp1(*), vtemp2(*)
 common /psize/ neq
 
 do i = 1, neq
-   pp(i) = 0.1 / (1.0+exp(-udata(i)))
+   pp(i) = 0.001 / (1.0+exp(-udata(i)))
 enddo
    ier = 0
 return
