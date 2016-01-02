@@ -94,6 +94,11 @@ do j = 1, nads ! loop over adsorbed layers
  endif
 enddo
 
+!!!!!!!!!!!!!!!
+! calculation of rho from avpol
+!
+
+
 ! not adsobed
 
 if (Tcapas(nads+1).eq.1) THEN ! adsorbs positive
@@ -108,7 +113,14 @@ do i = 1, 2*n
 end do
 endif
 
-avpolneg(1) = avpolneg(1) + sigma
+do i = 1, ntot
+rhopos(i) = avpolpos(i)/vc(1)*nc(1)
+rhoneg(i) = avpolneg(i)/vc(2)*nc(2)
+enddo
+
+
+rhoneg(1) = rhoneg(1) + sigma/(vpol*vsol)
+
 
 ! maxpol : position of the last layer with complementary polymer
 
@@ -120,15 +132,6 @@ if (nads.gt.0) then
  end do
 ENDif
 
-
-!!!!!!!!!!!!!!!
-! calculation of rho from avpol
-!
-
-do i = 1, ntot
-rhopos(i) = avpolpos(i)/vc(1)*nc(1)
-rhoneg(i) = avpolneg(i)/vc(2)*nc(2)
-enddo
 
 
 !!!
@@ -142,6 +145,8 @@ auxB = -1.0 -auxC - 1.0/Kbind0/rhopos(i)
 fbound(1, i) = (-auxB - SQRT(auxB**2 - 4.0*auxC))/2.0
 fbound(2, i) = rhopos(i)*fbound(1, i)/rhoneg(i)
 enddo
+
+
 
 !if (nads.eq.1) then
 !do i = 1, ntot
@@ -212,7 +217,7 @@ do ii=1,ntot
 !if(nads.eq.0)protemp = protemp + (-eps(i))
 !protemp = protemp-dlog(1.0-fbound(AT, i))
 
-     pro= pro * (xh(k)**(sph(j,AT)/vsol) / ((1.0-fbound(AT,i))**(nc(AT)*sph(j,AT)/vc(AT))))
+     pro= pro * (xh(k)**(sph(j,AT)/vsol) / ((1.0-fbound(AT,k))**(nc(AT)*sph(j,AT)/vc(AT))))
      nnn = nnn + sph(j,AT)*nc(AT)/vc(AT)*fbound(AT,k)
     enddo
 
@@ -220,13 +225,13 @@ do ii=1,ntot
 
     do j=1, dc(AT)
      k = j+ii-1
-     avpol2_tmp(k)=avpol2_tmp(k)+pro*sph(j, AT)  ! volume fraction polymer not normed
+     avpol2_tmp(k)=avpol2_tmp(k)+pro*sph(j, AT)/vsol  ! volume fraction polymer not normed
     enddo
 
       if(nnn.ge.minn) then
       do j=1,dc(AT)
        k = j+ii-1
-       avpol_tmp(k)=avpol_tmp(k)+pro*sph(j, AT) ! only bound polymer!!!
+       avpol_tmp(k)=avpol_tmp(k)+pro*sph(j, AT)/vsol ! only bound polymer!!!
       enddo
     endif
 enddo   ! ii

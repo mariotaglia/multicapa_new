@@ -119,8 +119,8 @@ if(rank.eq.0)print*, 'GIT Version: ', _VERSION
 !cuantas(1) = cuantas1/size
 !cuantas(2) = cuantas2/size
 
-dc(1) = int(rc1/delta)+1
-dc(2) = int(rc2/delta)+1
+dc(1) = int(2*rc1/delta)+1
+dc(2) = int(2*rc2/delta)+1
 nc(1) = nc1
 nc(2) = nc2
 
@@ -264,8 +264,8 @@ allocate(sph(maxdc,2))
 allocate(sphtmp(maxdc))
 
 do LT = 1,2
-call sphere(sphtmp, maxdc, rc(LT))
-sph(:,LT) = sphtmp(:)*0.95
+call sphere(rc(LT), sphtmp, maxdc)
+sph(:,LT) = sphtmp(:)
 vc(LT) = sum(sphtmp)
 print*, 'Colloid', LT
 print*, 'Radius', rc(LT)
@@ -274,6 +274,8 @@ print*, 'Number of sites', nc(LT)
 print*, 'Volume', vc(LT)
 print*, 'Volume distribution', sph(:,LT)
 enddo ! LT
+
+print*, 'Colloid OK'
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     computation starts
@@ -322,7 +324,7 @@ write(sigmaadfilename,'(A8,BZ,I5.5,A4)')'sigmaad.',countfile,'.dat'
 
 ! xh bulk
 xsolbulk=1.0  - phibulkpol
-Kbind0 = Kbind ! Intrinsic equilibrium constant from uncharged polymers.
+Kbind0 = Kbind/vpol ! Intrinsic equilibrium constant from uncharged polymers.
 
 !expmupol= phibulkpol/(vpol*long(LT)*xsolbulk**(long(LT)*vpol))        ! exp of bulk value of pol. chem. pot.
 !expmupol = expmupol/sumweight(LT)

@@ -1,4 +1,4 @@
-subroutine sphere(radius,dc, sph) ! radius: radius of the sph in nm, sphere: vector distribution, must be preallocated
+subroutine sphere(radius,sph, dc) ! radius: radius of the sph in nm, sphere: vector distribution, must be preallocated
 use layer
 
 implicit none
@@ -14,6 +14,9 @@ real*8 radius
 integer im
 integer iix,iiy,iiz
 real*8 vol
+
+print*, 'sphere: init sphere calculation'
+
 suma = 0.0
 sph = 0.0
 
@@ -39,7 +42,7 @@ if (radio.gt.radius) cycle ! outside sph
 enddo !ix
 enddo !iy
 enddo !iz
-
+print*, suma, radius, dc, sph
 vol = 4.0/3.0*3.14159*(radius**3)
 sph = sph/suma*vol ! normalize volume
 
