@@ -19,6 +19,7 @@ use colloids
 
 implicit none
 
+real*8 xsol(ntot)
 real*8, allocatable :: sphtmp(:), sphtmps(:)
 real*8 rctemp
 integer *4 ier ! Kinsol error flag
@@ -30,7 +31,7 @@ real*8 avpol_red(ntot)
 
 REAL*8 avtotal(ntot)       ! sum over all avpol
 
-real*8 x1OK(ntot), x1(ntot),xg1(ntot)   ! density solvent iteration vector
+real*8 x1OK(2*ntot), x1(2*ntot),xg1(2*ntot)   ! density solvent iteration vector
 real*8 zc(ntot)           ! z-coordinate layer 
 real*8 kbindOK
 
@@ -53,7 +54,7 @@ real*8 min1               ! variable to determine minimal position of chain
 
 integer il,inda,ncha
 
-REAL*8 xfile(ntot)                        
+REAL*8 xfile(2*ntot)                        
 real*8 algo, algo2                  
 
 
@@ -157,18 +158,17 @@ enddo
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     init guess all 1.0 
 
-do i=1,n
-
+do i=1,2*n
 xg1(i)=1.0d-10
 x1(i)=1.0d-10
-zc(i)= (i-0.5) * delta
-
 enddo
-
+do i = 1, n
+zc(i)= (i-0.5) * delta
+enddo
 !     init guess from files fort.100 (solvent) and fort.200 (potential)                      
 
 if (infile.ge.1) then
-do i=1,n
+do i=1,2*ntot
 read(100,*)j,xfile(i)   ! solvent
 enddo   
 endif
@@ -271,10 +271,6 @@ sph(:,LT) = sphtmp(:)
 sphs(:,LT) = sphtmps(:)
 vc(LT) = sum(sphtmp)
 
-! OJO
-sphs(:,LT) = sph(:,LT)/sum(sph(:,LT))
-
-
 print*, 'Colloid', LT
 print*, 'Radius', rc(LT)
 print*, 'Number of layers', dc(LT)
@@ -348,14 +344,14 @@ Kbind0 = Kbind/vpol ! Intrinsic equilibrium constant from uncharged polymers.
 
 expmupol= phibulkpol/((vc(LT)/vsol)*xsolbulk**(vc(LT)/vsol))        ! exp of bulk value of pol. chem. pot.
 
-do i=1,n             ! initial gues for x1
+do i=1,2*ntot             ! initial gues for x1
 xg1(i)=x1(i)
 enddo
 
 ! JEFE
 if(rank.eq.0) then ! solo el jefe llama al solver
    iter = 0
-   print*, 'solve: Enter solver ', ntot, ' eqs'
+   print*, 'solve: Enter solver ', 2*ntot, ' eqs'
    call call_kinsol(x1, xg1, ier)
    flagsolver = 0
    CALL MPI_BCAST(flagsolver, 1, MPI_INTEGER, 0, MPI_COMM_WORLD,err)
@@ -386,9 +382,9 @@ if(rank.ne.0) then
 endif
 
 
-!do i=1,n
-!xsol(i)=(exp(-x1(i)))*(1.0-avpolall(i))       ! solvent density=volume fraction
-!enddo
+do i=1,n
+xsol(i)=(exp(-x1(i)))*(1.0-avpolall(i))       ! solvent density=volume fraction
+enddo
 
 
 if(norma.gt.error) then
@@ -403,10 +399,7 @@ endif
 
 if(rank.eq.0)print*, 'Fail', Kbind
 Kbind=(kbindOK+Kbind)/2.0
-
 if(rank.eq.0)print*, 'Try', Kbind
-!kbinds(ccc-1) = Kbind
-x1 = x1OK
 goto 123
 endif
 

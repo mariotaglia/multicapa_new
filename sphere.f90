@@ -20,7 +20,7 @@ print*, 'sphere: init sphere calculation'
 suma = 0.0
 sph = 0.0
 sphs = 0.0
-MCsteps = 200
+MCsteps = 300
 
 do iix = 1, MCsteps
 do iiy = 1, MCsteps
