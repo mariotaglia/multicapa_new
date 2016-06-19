@@ -5,7 +5,7 @@ implicit none
 integer bas, pos
 
 
-select case abs((curvature))
+select case (abs(curvature))
 case (0)
 factorcurv = 1.0
 case (1)
