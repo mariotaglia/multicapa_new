@@ -8,7 +8,7 @@ use longs
 use MPI
 implicit none
 
-integer*4 ier2
+integer ier2
 real*8 protemp
 real*8 x(ntot),f(ntot)
 real*8 xh(ntot)
@@ -270,5 +270,7 @@ norma=algo
 
 3333 continue
 
+
+ier2 = 0
 return
 end
