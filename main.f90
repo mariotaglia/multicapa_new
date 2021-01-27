@@ -25,13 +25,13 @@ parameter (Na=6.02d23)
 real*8 avpol_red(ntot)
 
 REAL*8 avtotal(ntot)       ! sum over all avpol
-real*8 xsol(ntot)         ! volume fraction solvent
+!real*8 xsol(ntot)         ! volume fraction solvent
 
 real*8 x1(ntot),xg1(ntot)   ! density solvent iteration vector
 real*8 zc(ntot)           ! z-coordinate layer 
 
 REAL*8 sumrhoz, meanz     ! Espesor medio pesado
-real*8 pro                ! probability distribution function 
+!real*8 pro                ! probability distribution function 
 
 
 integer n                 ! number of lattice sites
@@ -378,6 +378,8 @@ if(rank.ne.0) then
 endif
 if(rank.eq.0)print*,"LAYER ", nads+1, " ADSORBED!", st, kbind
 
+print*,'xsol',xsol(1)
+call fe(cc)
 
 if (rank.eq.0) then
   avpol_red(:) = avpol(nads+1,:)

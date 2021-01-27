@@ -13,13 +13,13 @@ real*8 protemp
 real*8 x(ntot),f(ntot)
 real*8 xh(ntot)
 real*8 xpot(2*ntot)
-real*8 pro(maxcuantas)
+!real*8 pro(maxcuantas)  !!G
 integer i,j,k1,k2,ii, jj,iz       ! dummy indices
 integer err
 INTEGER AT
 real*8 beta, gammap, gamman
 real*16 auxB, auxC
-REAL*8 avpolpos(ntot), avpolneg(ntot)
+!REAL*8 avpolpos(ntot), avpolneg(ntot)  !G
 REAL*8 ALGO, ALGO2
 integer n
 real*8 avpol_tmp(2*ntot), avpol2_tmp(2*ntot)

@@ -33,8 +33,12 @@ INTEGER,allocatable :: Tcapas(:) ! layers already assembled
 
 integer ntot ! lattice sites
 real*8, allocatable :: avpol(:,:) ! volume fraction polymers already adsorbed
+real*8, allocatable :: avpolneg(:) !G 
+real*8, allocatable :: avpolpos(:)  !G
 real*8, allocatable :: avpol2(:) ! volume fraction polymer in solution
 real*8, allocatable :: avpolall(:)
+real*8, allocatable :: xsol(:) !!!G
+real*8, allocatable :: pro(:)  !!!G
 
 INTEGER cuantas1, cuantas2
 INTEGER maxcuantas
