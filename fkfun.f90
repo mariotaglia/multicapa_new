@@ -16,7 +16,7 @@ real*8 xpot(2*ntot)
 !real*8 pro(maxcuantas)  !!G
 integer i,j,k1,k2,ii, jj,iz       ! dummy indices
 integer err
-INTEGER AT
+!INTEGER AT
 real*8 beta, gammap, gamman
 real*16 auxB, auxC
 !REAL*8 avpolpos(ntot), avpolneg(ntot)  !G
@@ -249,6 +249,7 @@ endif
 avpol(nads+1,:) = avpol_red(:)
 
 ! contruction of f and the volume fractions
+
 
 do i=1,n
  f(i)=xh(i)-1.0d0
