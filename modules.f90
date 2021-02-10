@@ -24,9 +24,11 @@ real*8 error              ! error imposed accuaracy
 real*8 infile             ! inputfile control variable for reading input files  value 0,1
 CHARACTER nada
 INTEGER preads ! number of pre-adsorbed layers
-
+real*8  fesum
+real*8 fesum2
 real*8 norma
 INTEGER adsmax
+integer AT !G
 integer cuantas(2)          ! number of polymer configuration or  bound sequences
 INTEGER nads ! layers already assembled
 INTEGER,allocatable :: Tcapas(:) ! layers already assembled
@@ -35,11 +37,11 @@ integer ntot ! lattice sites
 real*8, allocatable :: avpol(:,:) ! volume fraction polymers already adsorbed
 real*8, allocatable :: avpolneg(:) !G 
 real*8, allocatable :: avpolpos(:)  !G
+real*8, allocatable :: avpolposcero(:)
 real*8, allocatable :: avpol2(:) ! volume fraction polymer in solution
 real*8, allocatable :: avpolall(:)
 real*8, allocatable :: xsol(:) !!!G
 real*8, allocatable :: pro(:)  !!!G
-
 INTEGER cuantas1, cuantas2
 INTEGER maxcuantas
 

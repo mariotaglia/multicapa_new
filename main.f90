@@ -107,7 +107,6 @@ print*, 'I am', rank, ' and my seed is', seed
 if(rank.eq.0)print*, 'Program Multicapa'
 if(rank.eq.0)print*, 'GIT Version: ', _VERSION
 
-
 !     common declarations: used for communciations with other routines
 long(1) = long1
 long(2) = long2
@@ -378,9 +377,6 @@ if(rank.ne.0) then
 endif
 if(rank.eq.0)print*,"LAYER ", nads+1, " ADSORBED!", st, kbind
 
-print*,'xsol',xsol(1)
-call fe(cc)
-
 if (rank.eq.0) then
   avpol_red(:) = avpol(nads+1,:)
   CALL MPI_BCAST(avpol_red, ntot, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD,err)
@@ -415,6 +411,7 @@ Kbind = kbinds(ccc)
 goto 123
 endif
 
+!call fe(cc)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Determination of adsorbed polymer
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -548,6 +545,7 @@ countfile = countfile+1 ! next
 
 endif ! rank
 
+call fe(cc)
 END do ! loop de kbind
 end do ! loop de st
 
