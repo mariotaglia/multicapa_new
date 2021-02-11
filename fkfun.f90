@@ -183,13 +183,17 @@ xpot(i) = xpot(n)
 enddo
 
 !    probability distribution
-q=0.0d0                   ! init q to zero
 avpol_tosend = 0.0
 avpol_tmp = 0.0
 avpol2_tosend = 0.0
 avpol2_tmp = 0.0
+sumprolnpro = 0.0
 
 do ii=1,ntot ! position of segment #0 
+
+splp = 0.0
+q=0.0d0                   ! init q to zero (para c/layer)
+
  do i=1,newcuantas(AT)
 
  if(weight(AT,i,ii).ne.0.0) then
@@ -204,6 +208,9 @@ do ii=1,ntot ! position of segment #0
     enddo
 
     q=q+pro(i)
+    splp = splp + pro(i)*log(pro(i)) 
+
+    rhopol2_tmp(ii)=rhopol2_tmp(ii)+pro(i) ! NUEVO
 
     do j=minpos(AT,i,ii), maxpos(AT,i,ii)
      k = j-minpos(AT,i,ii)+1
@@ -220,6 +227,9 @@ do ii=1,ntot ! position of segment #0
  endif ! weight
  
  enddo ! i
+
+ sumprolnpro(ii) = splp/q - ln(q)
+
 enddo   ! ii
 
 avpol_tosend(1:ntot)=avpol_tmp(1:ntot)

@@ -47,13 +47,13 @@ F_mix_avpolA=0.0
 !!Consulta   avpol2(i) == rho_a*vp ? Lo estoy tomando asi por ahora
 do i=1,n
 !if (avpol2(i)>0.) then
- F_mix_avpolA=F_mix_avpolA+(avpol2(i))*(log((avpol2(i))/vpol)-1.0 ) 
- F_mix_avpolA=F_mix_avpolA-(phibulkpol)*(log((phibulkpol)/vpol)-1.0)
+ F_mix_avpolA=F_mix_avpolA+(rhopol2(i))*(log(rhopol2*vsol)-1.0) 
+ F_mix_avpolA=F_mix_avpolA-(phibulkpol/float(long(AT))/vpol/vsol)*(log(phibulkpol/float(long(AT))/vpol/vsol)-1.0) ! NUEVO
 !endif
 enddo
 
 
-F_mix_avpolA=F_mix_avpolA *delta/(vsol*vpol) 
+F_mix_avpolA=F_mix_avpolA *delta ! NUEVO
 
 Free_energy= Free_energy +F_mix_avpolA
 
@@ -62,15 +62,10 @@ print*,'fmixA',F_mix_avpolA
 F_Conf=0
 !!!!!!
 do i=1,n
-do j=1,newcuantas(AT)
-!if (avpol2(i)>0.)then
-F_Conf=F_Conf+(avpol2(i))*(pro(j)/q)*log(pro(j)/q) 
-!endif
-
-enddo
+ F_Conf=F_Conf+rhopol2(i)*sumprolnpro(i)
 enddo
 
-F_conf=F_conf*delta/(vpol*vsol)  !! TEstear si es vpol o vpol *M
+F_conf=F_conf*delta  !! TEstear si es vpol o vpol *M
 print*,'F_conf',F_conf
 !!!!!!
 
@@ -123,7 +118,7 @@ do i=1, n
  sumrho= sumrho-(-xsolbulk)
 !endif
 ! if(avpol2(i)>0.)then
- sumrhopol=sumrhopol-(avpol2(i))
+ sumrhopol=sumrhopol-(avpol2(i))   ! RHOPOL2
  sumrhopol=sumrhopol-(-phibulkpol)
 ! endif
 

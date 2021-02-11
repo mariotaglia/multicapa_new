@@ -8,6 +8,8 @@ HOST=$(shell hostname)
 $(info HOST is ${HOST})
 
 
+LFLAGS = -lm /usr/lib/x86_64-linux-gnu/librt.so  -L/usr/local/lib  -lsundials_fkinsol -lsundials_kinsol -lsundials_fnvecserial -lsundials_nvecserial ${LIBS} -Wl,-rpath,/usr/local/lib
+
 # some definitions
 SHELL = /bin/bash
 FFLAGS=  -fbacktrace -fbounds-check # -O3
