@@ -11,8 +11,10 @@ allocate (avpolall(ntot))
 allocate (xsol(ntot))  !!!!G
 allocate (avpolneg(ntot))!G
 allocate (avpolpos(ntot))!G
+allocate (rhopol2(ntot))!G
 allocate (avpolposcero(ntot))
 allocate (pro(maxcuantas)) !!!G
+allocate (sumprolnpro(ntot))
 allocate (in1n(2,maxcuantas,ntot,base))
 allocate (in1tmp(maxlong))
 allocate (maxpos(2,maxcuantas,2*ntot))

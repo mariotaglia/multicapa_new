@@ -24,8 +24,9 @@ REAL*8 ALGO, ALGO2
 integer n
 real*8 avpol_tmp(2*ntot), avpol2_tmp(2*ntot)
 real*8 avpol_red(ntot)
-real*8 avpol_tosend(ntot), avpol2_tosend(ntot)
-real*8 nnn
+real*8 avpol_tosend(ntot), avpol2_tosend(ntot),rhopol2_tosend(ntot)
+real*8 nnn,rhopol2_tmpvalue
+real*8 rhopol2_tmp(ntot) !Nuevo
 integer k
 double precision, external :: factorcurv
 
@@ -188,12 +189,12 @@ avpol_tmp = 0.0
 avpol2_tosend = 0.0
 avpol2_tmp = 0.0
 sumprolnpro = 0.0
-
+rhopol2_tosend=0.0
+rhopol2_tmp=0.0
 do ii=1,ntot ! position of segment #0 
-
+rhopol2_tmpvalue=0.0
 splp = 0.0
 q=0.0d0                   ! init q to zero (para c/layer)
-
  do i=1,newcuantas(AT)
 
  if(weight(AT,i,ii).ne.0.0) then
@@ -210,7 +211,7 @@ q=0.0d0                   ! init q to zero (para c/layer)
     q=q+pro(i)
     splp = splp + pro(i)*log(pro(i)) 
 
-    rhopol2_tmp(ii)=rhopol2_tmp(ii)+pro(i) ! NUEVO
+    rhopol2_tmpvalue=rhopol2_tmpvalue +pro(i) ! NUEVO
 
     do j=minpos(AT,i,ii), maxpos(AT,i,ii)
      k = j-minpos(AT,i,ii)+1
@@ -227,13 +228,16 @@ q=0.0d0                   ! init q to zero (para c/layer)
  endif ! weight
  
  enddo ! i
-
- sumprolnpro(ii) = splp/q - ln(q)
+ rhopol2_tmp(ii)=rhopol2_tmpvalue
+ sumprolnpro(ii) = splp/q - log(q)
 
 enddo   ! ii
 
 avpol_tosend(1:ntot)=avpol_tmp(1:ntot)
 avpol2_tosend(1:ntot)=avpol2_tmp(1:ntot)
+
+rhopol2_tosend(1:ntot)=rhopol2_tmp(1:ntot)!!
+
 !------------------ MPI -----------------`-----------------------------
 !1. Todos al jefe
 
@@ -253,8 +257,16 @@ if(rank.ne.0) then
   call MPI_REDUCE(avpol_tosend, avpol_red, ntot, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
   call MPI_REDUCE(avpol2_tosend, avpol2, ntot, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
 !!!!!!!!!!! IMPORTANTE, LOS SUBORDINADOS TERMINAN ACA... SINO VER !MPI_allreduce!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
-  goto 3333
+!  goto 3333
 endif
+
+if(rank.ne.0) then
+  call MPI_REDUCE(rhopol2_tosend, rhopol2, ntot, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
+!!!!!!!!!!! IMPORTANTE, LOS SUBORDINADOS TERMINAN ACA... SINO VER !MPI_allreduce!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+  goto 3333
+
+endif
+
 
 avpol(nads+1,:) = avpol_red(:)
 

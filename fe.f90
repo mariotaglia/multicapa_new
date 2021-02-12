@@ -24,6 +24,7 @@ real*8 Free_energy,Free_energy2
 real*8 F_mix_s,F_mix_avpolA,F_mix_avpolb,F_conf,F_EQ,Fpro
 integer i,ii,j,jj
 real*8 sumas,sumrho,sumrhopol,sumpi,sum
+real*8 Fact_rhobulk
 Free_energy = 0.0
 
 F_mix_s= 0.0
@@ -45,11 +46,12 @@ Free_energy= Free_energy +F_mix_s
 
 F_mix_avpolA=0.0
 !!Consulta   avpol2(i) == rho_a*vp ? Lo estoy tomando asi por ahora
+Fact_rhobulk=(phibulkpol/float(long(AT))/vpol/vsol)
 do i=1,n
-!if (avpol2(i)>0.) then
- F_mix_avpolA=F_mix_avpolA+(rhopol2(i))*(log(rhopol2*vsol)-1.0) 
- F_mix_avpolA=F_mix_avpolA-(phibulkpol/float(long(AT))/vpol/vsol)*(log(phibulkpol/float(long(AT))/vpol/vsol)-1.0) ! NUEVO
-!endif
+ F_mix_avpolA=F_mix_avpolA+(rhopol2(i))*(log(rhopol2(i)*vsol)-1.0) 
+! F_mix_avpolA=F_mix_avpolA-(phibulkpol/float(long(AT))/vpol/vsol)*(log(phibulkpol/float(long(AT))/vpol/vsol)-1.0) ! NUEVO
+  F_mix_avpolA=F_mix_avpolA-(Fact_rhobulk)*(log(Fact_rhobulk)-1.0) ! NUEVO
+
 enddo
 
 
@@ -118,8 +120,8 @@ do i=1, n
  sumrho= sumrho-(-xsolbulk)
 !endif
 ! if(avpol2(i)>0.)then
- sumrhopol=sumrhopol-(avpol2(i))   ! RHOPOL2
- sumrhopol=sumrhopol-(-phibulkpol)
+ sumrhopol=sumrhopol-(rhopol2(i))   ! RHOPOL2
+ sumrhopol=sumrhopol-(-Fact_rhobulk) !G 
 ! endif
 
  sumas=sumas+avpolpos(i)*fbound(1,i)
