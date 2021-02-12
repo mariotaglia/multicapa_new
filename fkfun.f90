@@ -72,11 +72,12 @@ enddo
 
 avpolpos = 0.0
 avpolneg = 0.0
-
+avpolposcero=0.0
 do j = 1, nads ! loop over adsorbed layers
  if (Tcapas(j).eq.1) THEN
   do i = 1, n
    avpolpos(i) = avpolpos(i) + avpol(j, i)
+   avpolposcero(i)= avpolposcero(i) +avpol(j,i)
   end do
  else
   do i = 1, n
