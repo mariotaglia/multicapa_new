@@ -45,13 +45,12 @@ Free_energy= Free_energy +F_mix_s
 
 
 F_mix_avpolA=0.0
-!!Consulta   avpol2(i) == rho_a*vp ? Lo estoy tomando asi por ahora
 Fact_rhobulk=(phibulkpol/float(long(AT))/vpol/vsol)
 do i=1,n
  F_mix_avpolA=F_mix_avpolA+(rhopol2(i))*(log(rhopol2(i)*vsol)-1.0) 
 ! F_mix_avpolA=F_mix_avpolA-(phibulkpol/float(long(AT))/vpol/vsol)*(log(phibulkpol/float(long(AT))/vpol/vsol)-1.0) ! NUEVO
-  F_mix_avpolA=F_mix_avpolA-(Fact_rhobulk)*(log(Fact_rhobulk)-1.0) ! NUEVO
-
+  F_mix_avpolA=F_mix_avpolA-(Fact_rhobulk)*(log(Fact_rhobulk*vsol)-1.0) ! NUEVO
+!print*, i, F_mix_avpolA, rhopol2(i), Fact_rhobulk
 enddo
 
 
@@ -112,7 +111,7 @@ do i=1, n
 ! if (xsol(i)>0.)then
  sumpi= sumpi + log(xsol(i)) 
  sumpi= sumpi - log(xsolbulk)
- sumpi= sumpi*(1.0-avpolneg(i)*vpol*vsol-avpolposcero(i)*vpol*vsol)! 
+ sumpi= sumpi*(1.0-avpolneg(i)-avpolposcero(i))! 
 ! sumpi= sumpi*(1.0-avpolneg(i)-avpolposcero(i))! 
 
 
@@ -132,7 +131,7 @@ enddo
 
 sumpi=sumpi*delta/vsol
 sumrho=sumrho*delta/vsol
-sumrhopol=sumrhopol*delta/(vpol*vsol)
+sumrhopol=sumrhopol*delta
 sumas=sumas*delta/(vpol*vsol)
 
 

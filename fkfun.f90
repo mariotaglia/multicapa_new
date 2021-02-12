@@ -211,7 +211,7 @@ q=0.0d0                   ! init q to zero (para c/layer)
     q=q+pro(i)
     splp = splp + pro(i)*log(pro(i)) 
 
-    rhopol2_tmpvalue=rhopol2_tmpvalue +pro(i) ! NUEVO
+    rhopol2_tmpvalue=rhopol2_tmpvalue + pro(i) ! NUEVO
 
     do j=minpos(AT,i,ii), maxpos(AT,i,ii)
      k = j-minpos(AT,i,ii)+1
@@ -245,12 +245,18 @@ rhopol2_tosend(1:ntot)=rhopol2_tmp(1:ntot)!!
 avpol_red = 0.0
 call MPI_Barrier(MPI_COMM_WORLD, err)
 
+
 ! Jefe
 if (rank.eq.0) then
 ! Junta avpol       
   call MPI_REDUCE(avpol_tosend, avpol_red, ntot, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
   call MPI_REDUCE(avpol2_tosend, avpol2, ntot, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
+  call MPI_REDUCE(rhopol2_tosend, rhopol2, ntot, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
 endif
+
+
+
+
 ! Subordinados
 if(rank.ne.0) then
 ! Junta avpol       
