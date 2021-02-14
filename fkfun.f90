@@ -22,7 +22,7 @@ real*16 auxB, auxC
 !REAL*8 avpolpos(ntot), avpolneg(ntot)  !G
 REAL*8 ALGO, ALGO2
 integer n
-real*8 avpol_tmp(2*ntot), avpol2_tmp(2*ntot)
+real*8 avpol_tmp(ntot), avpol2_tmp(ntot)
 real*8 avpol_red(ntot)
 real*8 avpol_tosend(ntot), avpol2_tosend(ntot),rhopol2_tosend(ntot)
 real*8 nnn,rhopol2_tmpvalue
@@ -192,52 +192,72 @@ avpol2_tmp = 0.0
 sumprolnpro = 0.0
 rhopol2_tosend=0.0
 rhopol2_tmp=0.0
+
+
 do ii=1,ntot ! position of segment #0 
-rhopol2_tmpvalue=0.0
+
 splp = 0.0
 q=0.0d0                   ! init q to zero (para c/layer)
+
  do i=1,newcuantas(AT)
 
  if(weight(AT,i,ii).ne.0.0) then
 
- pro(i) = expmupol*weight(AT,i,ii)
+ pro(i) = 1.0
  nnn = 0.0
 
     do j=minpos(AT,i,ii), maxpos(AT,i,ii) ! posicion dentro del poro
+
+! reflecting boundary condition
+     jj = j
+     if (jj.gt.n)jj=2*n-jj+1
+
      k = j-minpos(AT,i,ii)+1
-     pro(i)= pro(i) * xpot(j)**in1n(AT,i,ii,k)
-     nnn = nnn + in1n(AT,i,ii,k)*fbound(AT,j)
+     pro(i)= pro(i) * xpot(jj)**in1n(AT,i,ii,k)
+
+     nnn = nnn + in1n(AT,i,ii,k)*fbound(AT,jj)
     enddo
 
-    q=q+pro(i)
+    q=q+pro(i) ! single-chain partition function
     splp = splp + pro(i)*log(pro(i)) 
-
-    rhopol2_tmpvalue=rhopol2_tmpvalue + pro(i) ! NUEVO
+    rhopol2_tmp(ii)=rhopol2_tmp(ii) + pro(i)*expmupol*weight(AT,i,ii) 
 
     do j=minpos(AT,i,ii), maxpos(AT,i,ii)
      k = j-minpos(AT,i,ii)+1
-     avpol2_tmp(j)=avpol2_tmp(j)+pro(i)*vpol*in1n(AT,i,ii,k)*factorcurv(ii,j)  ! volume fraction polymer not normed
+
+! reflecting boundary condition
+     jj = j
+     if (jj.gt.n)jj=2*n-jj+1
+
+     avpol2_tmp(jj)=avpol2_tmp(jj)+pro(i)*expmupol*weight(AT,i,ii)*vpol*vsol*in1n(AT,i,ii,k)*factorcurv(ii,jj)  ! volume fraction polymer not normed
     enddo
+
+
 
       if(nnn.ge.minn) then
       do j=minpos(AT,i,ii), maxpos(AT,i,ii)
+
+! reflecting boundary condition
+     jj = j
+     if (jj.gt.n)jj=2*n-jj+1
+
        k = j-minpos(AT,i,ii)+1
-       avpol_tmp(j)=avpol_tmp(j)+pro(i)*vpol*in1n(AT,i,ii,k)*factorcurv(ii,j) ! only bound polymer!!!
+       avpol_tmp(jj)=avpol_tmp(jj)+pro(i)*expmupol*weight(AT,i,ii)*vpol*vsol*in1n(AT,i,ii,k)*factorcurv(ii,jj) ! only bound polymer!!!
       enddo
     endif
 
  endif ! weight
  
  enddo ! i
- rhopol2_tmp(ii)=rhopol2_tmpvalue
+
  sumprolnpro(ii) = splp/q - log(q)
 
 enddo   ! ii
 
-avpol_tosend(1:ntot)=avpol_tmp(1:ntot)
-avpol2_tosend(1:ntot)=avpol2_tmp(1:ntot)
+avpol_tosend=avpol_tmp
+avpol2_tosend=avpol2_tmp
 
-rhopol2_tosend(1:ntot)=rhopol2_tmp(1:ntot)!!
+rhopol2_tosend=rhopol2_tmp
 
 !------------------ MPI -----------------`-----------------------------
 !1. Todos al jefe
