@@ -31,8 +31,6 @@ Free_energy = 0.0
 F_mix_s= 0.0
 n=ntot
 
-
-
 !!!!!!!!! F mix s !!!!!!!!!!!!!
 
 Fact_rhobulk=phibulkpol/(float(long(AT))*vpol*vsol)
@@ -93,7 +91,9 @@ F_EQ=0.
 !!!!   avpolpos==<na> y avpolneg == <nb> 
 do i=1, n
 
+
 F_EQ=F_EQ+avpolpos(i)*fbound(1,i)*(-log(Kbind0)) !chequear signo
+!F_EQ=F_EQ+avpolpos(i)*fbound(1,i)*(-log( fbound(2,i)/(1.0-fbound(1,i))/(1.0-fbound(2,i))/(avpolpos(i)/vsol/vpol) )) !chequear signo
 F_EQ=F_EQ+avpolpos(i)*(1.0-fbound(1,i))*(log(1.0-fbound(1,i)))
 
 if (fbound(1,i)>0.0)then
