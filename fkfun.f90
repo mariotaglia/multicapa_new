@@ -219,7 +219,7 @@ q=0.0d0                   ! init q to zero (para c/layer)
 
     q=q+pro(i) ! single-chain partition function
     splp = splp + pro(i)*log(pro(i)) 
-    rhopol2_tmp(ii)=rhopol2_tmp(ii) + pro(i)*expmupol*weight(AT,i,ii) 
+    rhopol2_tmp(ii)=rhopol2_tmp(ii) + pro(i)*expmupol/vsol*weight(AT,i,ii) 
 
     do j=minpos(AT,i,ii), maxpos(AT,i,ii)
      k = j-minpos(AT,i,ii)+1
@@ -228,7 +228,7 @@ q=0.0d0                   ! init q to zero (para c/layer)
      jj = j
      if (jj.gt.n)jj=2*n-jj+1
 
-     avpol2_tmp(jj)=avpol2_tmp(jj)+pro(i)*expmupol*weight(AT,i,ii)*vpol*vsol*in1n(AT,i,ii,k)*factorcurv(ii,jj)  ! volume fraction polymer not normed
+     avpol2_tmp(jj)=avpol2_tmp(jj)+pro(i)*expmupol*weight(AT,i,ii)*vpol*in1n(AT,i,ii,k)*factorcurv(ii,jj)  ! volume fraction polymer not normed
     enddo
 
 
@@ -241,7 +241,7 @@ q=0.0d0                   ! init q to zero (para c/layer)
      if (jj.gt.n)jj=2*n-jj+1
 
        k = j-minpos(AT,i,ii)+1
-       avpol_tmp(jj)=avpol_tmp(jj)+pro(i)*expmupol*weight(AT,i,ii)*vpol*vsol*in1n(AT,i,ii,k)*factorcurv(ii,jj) ! only bound polymer!!!
+       avpol_tmp(jj)=avpol_tmp(jj)+pro(i)*expmupol*weight(AT,i,ii)*vpol*in1n(AT,i,ii,k)*factorcurv(ii,jj) ! only bound polymer!!!
       enddo
     endif
 
@@ -306,6 +306,13 @@ do jj = 1, (nads)
 end do
  f(i) = f(i) + avpol2(i)
 enddo
+
+
+if (curvature.lt.0) then ! pore
+avpolneg(n) = avpolneg(n) + sigma
+else ! particle
+f(radio) = f(radio) + sigma
+endif
 
 iter=iter+1
 
