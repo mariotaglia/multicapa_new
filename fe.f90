@@ -26,6 +26,7 @@ real*8 F_mix_s,F_mix_avpolA,F_mix_avpolb,F_conf,F_EQ,Fpro
 integer i,ii,j,jj
 real*8 sumas,sumrho,sumrhopol,sumpi,sum
 real*8 Fact_rhobulk
+
 Free_energy = 0.0
 
 F_mix_s= 0.0
@@ -158,13 +159,9 @@ print*,'sumas',sumas
 
 sum=sumpi+sumrho+sumrhopol+sumas
 
-
-
 Free_energy2=sum
 
 print*, 'FREE_energy :', Free_energy, Free_energy2
-
-stop
 
 !fesum=fesum+Free_energy
 !fesum2=fesum2+Free_energy2

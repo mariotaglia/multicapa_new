@@ -42,7 +42,7 @@ n = ntot
 ! common declarations
 ! avpolall
 avpolall = 0
-do j = 1, nads ! loop over adsorbed layers
+do j = 0, nads ! loop over adsorbed layers
 do i = 1, ntot
 avpolall(i) = avpolall(i) + avpol(j,i)
 end do
@@ -73,7 +73,7 @@ enddo
 avpolpos = 0.0
 avpolneg = 0.0
 avpolposcero=0.0
-do j = 1, nads ! loop over adsorbed layers
+do j = 0, nads ! loop over adsorbed layers
  if (Tcapas(j).eq.1) THEN
   do i = 1, n
    avpolpos(i) = avpolpos(i) + avpol(j, i)
@@ -96,12 +96,6 @@ else  ! adsorbs negative
 do i = 1, n
   avpolneg(i) = xtotal(i) - avpolpos(i)
 end do
-endif
-
-if (curvature.lt.0) then ! pore
-avpolneg(n) = avpolneg(n) + sigma
-else
-avpolneg(radio) = avpolneg(radio) + sigma
 endif
 
 ! maxpol : position of the last layer with complementary polymer
@@ -161,7 +155,6 @@ AT = Tcapas(nads+1) ! type of layer to add
 do i = 1, ntot
 
 protemp = dlog(xh(i)**(vpol))
-if(nads.eq.0)protemp = protemp + (-eps(i))
 protemp = protemp-dlog(1.0-fbound(AT, i))
 
 !do iz = -Xulimit, Xulimit
@@ -301,18 +294,11 @@ avpol(nads+1,:) = avpol_red(:)
 
 do i=1,n
  f(i)=xh(i)-1.0d0
-do jj = 1, (nads)
+do jj = 0, nads
  f(i) = f(i) + avpol(jj, i)
 end do
  f(i) = f(i) + avpol2(i)
 enddo
-
-
-if (curvature.lt.0) then ! pore
-avpolneg(n) = avpolneg(n) + sigma
-else ! particle
-f(radio) = f(radio) + sigma
-endif
 
 iter=iter+1
 

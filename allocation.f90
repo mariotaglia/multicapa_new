@@ -4,8 +4,8 @@ use mkinsol
 use posmk
 use longs
 
-allocate (Tcapas(adsmax))
-allocate (avpol(adsmax,ntot))
+allocate (Tcapas(0:adsmax))
+allocate (avpol(0:adsmax,ntot))
 allocate (avpol2(ntot))
 allocate (avpolall(ntot))
 allocate (xsol(ntot))  !!!!G

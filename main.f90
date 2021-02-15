@@ -123,7 +123,7 @@ conf=0                    ! counter for conformations
 vsol=0.030                ! volume solvent molecule in (nm)^3
 vpol= ((4.0/3.0)*pi*(0.3)**3)/vsol  ! volume polymer segment in units of vsol
 
-do i = 1, adsmax
+do i = 0, adsmax
 algo = MOD(i,2)
 IF(algo.EQ.0)Tcapas(i) = 2 
 IF(algo.NE.0)Tcapas(i) = 1 
@@ -322,6 +322,13 @@ endif
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+
+! surface layer 
+if (curvature.lt.0) then ! pore
+avpol(0,n) = avpol(0,n) + sigma
+else
+avpol(0,radio) = avpol(0,radio) + sigma
+endif
 
 countfileuno=1           
 
