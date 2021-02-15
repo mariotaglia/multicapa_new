@@ -32,6 +32,7 @@ F_mix_s= 0.0
 n=ntot
 
 
+
 !!!!!!!!! F mix s !!!!!!!!!!!!!
 
 Fact_rhobulk=phibulkpol/(float(long(AT))*vpol*vsol)
@@ -50,7 +51,7 @@ Free_energy= Free_energy +F_mix_s
 F_mix_avpolA=0.0
 do i=1,n
  F_mix_avpolA=F_mix_avpolA+(rhopol2(i))*(log(rhopol2(i)*vsol)-1.0) 
-  F_mix_avpolA=F_mix_avpolA-(Fact_rhobulk)*(log(Fact_rhobulk*vsol)-1.0) ! NUEVO
+ F_mix_avpolA=F_mix_avpolA-(Fact_rhobulk)*(log(Fact_rhobulk*vsol)-1.0) ! NUEVO
 enddo
 
 F_mix_avpolA=F_mix_avpolA *delta 
@@ -93,7 +94,7 @@ F_EQ=0.
 do i=1, n
 
 F_EQ=F_EQ+avpolpos(i)*fbound(1,i)*(-log(Kbind0)) !chequear signo
-F_EQ=F_EQ+avpolpos(i)*(1.-fbound(1,i))*(log(1-fbound(1,i)))
+F_EQ=F_EQ+avpolpos(i)*(1.0-fbound(1,i))*(log(1.0-fbound(1,i)))
 
 if (fbound(1,i)>0.0)then
   F_eq=F_eq+avpolpos(i)*(fbound(1,i))*(log(fbound(1,i)))
@@ -108,7 +109,7 @@ print*,'Feq',F_eq*delta/(vpol*vsol)
 do i = 1,n
 if (fbound(2,i)>0.)then
  F_eq=F_eq + avpolneg(i)*fbound(2,i)*log(fbound(2,i)) !! 
- F_eq=F_eq + avpolneg(i)*(1.-fbound(2,i))*log(1.-fbound(2,i)) ! <= ojo, error de parentesis
+ F_eq=F_eq + avpolneg(i)*(1.-fbound(2,i))*log(1.-fbound(2,i)) ! <= ojo, habia error de parentesis
 endif
 enddo
 
