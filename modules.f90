@@ -40,6 +40,7 @@ real*8, allocatable :: avpol(:,:) ! volume fraction polymers already adsorbed
 real*8, allocatable :: avpolneg(:) !G 
 real*8, allocatable :: avpolpos(:)  !G
 real*8, allocatable :: rhopol2(:)
+real*8, allocatable :: avpolnegcero(:)
 real*8, allocatable :: avpolposcero(:)
 real*8, allocatable :: avpol2(:) ! volume fraction polymer in solution
 real*8, allocatable :: avpolall(:)
@@ -79,6 +80,8 @@ endmodule
 
 module layer
 real*8, parameter :: delta = 0.5
+!real*8, parameter :: deltaR= 0.5!!TEstear
+!real*8, parameter :: deltaZ= 1.0!!TEstear
 endmodule
 
 module volume

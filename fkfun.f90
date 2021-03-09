@@ -73,7 +73,9 @@ enddo
 avpolpos = 0.0
 avpolneg = 0.0
 avpolposcero=0.0
+avpolnegcero=0.0
 do j = 0, nads ! loop over adsorbed layers
+
  if (Tcapas(j).eq.1) THEN
   do i = 1, n
    avpolpos(i) = avpolpos(i) + avpol(j, i)
@@ -82,6 +84,7 @@ do j = 0, nads ! loop over adsorbed layers
  else
   do i = 1, n
    avpolneg(i) = avpolneg(i) + avpol(j, i)
+   avpolnegcero(i)=avpolnegcero(i) + avpol(j,i)
   end do
  endif
 enddo
@@ -91,10 +94,12 @@ enddo
 if (Tcapas(nads+1).eq.1) THEN ! adsorbs positive
 do i = 1, n
   avpolpos(i) = xtotal(i) - avpolneg(i)
+!  avpolnegcero(i)=avpolneg(i)
 enddo
 else  ! adsorbs negative
 do i = 1, n
   avpolneg(i) = xtotal(i) - avpolpos(i)
+!  avpolposcero(i)=avpolpos(i)
 end do
 endif
 
@@ -208,13 +213,14 @@ q=0.0d0                   ! init q to zero (para c/layer)
      pro(i)= pro(i) * xpot(jj)**in1n(AT,i,ii,k)
 
      nnn = nnn + in1n(AT,i,ii,k)*fbound(AT,jj)
+
     enddo
 
     q=q+pro(i) ! single-chain partition function
     splp = splp + pro(i)*log(pro(i)) 
-    rhopol2_tmp(ii)=rhopol2_tmp(ii) + pro(i)*expmupol/vsol*weight(AT,i,ii) 
-
-    do j=minpos(AT,i,ii), maxpos(AT,i,ii)
+    rhopol2_tmp(ii)=rhopol2_tmp(ii) + pro(i)*expmupol/vsol*weight(AT,i,ii)!*factorcurv(ii,jj)!G
+    
+   do j=minpos(AT,i,ii), maxpos(AT,i,ii)
      k = j-minpos(AT,i,ii)+1
 
 ! reflecting boundary condition

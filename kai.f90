@@ -18,14 +18,14 @@ integer limit
 real*8,allocatable :: matriz11(:)
 real*8,allocatable :: matriz12(:)
 integer i
-real*8 rands
+real*8 rands,R
 real*8 suma11
 real*8 suma12
 real*8 cutoff
-integer jx,jy,jz
+integer jx,jy,jz,dimz,ir
 real*8 LJ
 real*8, external :: interaction11, interaction12
-
+dimz=1
 limit = Xulimit +1
 cutoff = float(Xulimit)*delta
 
@@ -52,15 +52,30 @@ z = 2.0*cutoff*(((float(jz)-0.5)/float(MCsteps))-0.5)
 
 radio0 = sqrt(x**2 + y**2 + z**2) ! espacio real
 
+   select case (abs(curvature))
+   case (0)
+   R = abs(x)
+   Z = z
+   case (1)
+   R = sqrt(x**2 + y**2)
+   Z = z
+   case (2)
+   R = sqrt(x**2 + y**2 + z**2)
+   if(dimZ.ne.1)stop
+   Z = 0.0
+   end select
+
 if(radio0.gt.cutoff) cycle ! No esta dentro de la esfera del cut-off   
 if(radio0.lt.l) cycle ! esta dentro de la esfera del segmento
 
  ! celda 
+ iR = int(R/delta)+1! 
  iz = int(anint(z/delta))
 
+if(iz.le.ntot)then
  matriz11(iz) = matriz11(iz) + interaction11(radio0)
  matriz12(iz) = matriz12(iz) + interaction12(radio0)
-
+endif
 enddo
 enddo
 enddo
