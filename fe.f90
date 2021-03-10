@@ -17,6 +17,7 @@ use layer
 use multicapa
 use volume
 use longs
+use MPI
 implicit none
 
 integer cc
@@ -28,6 +29,11 @@ real*8 sumas,sumrho,sumrhopol,sumpi,sum
 real*8 Fact_rhobulk
 integer iz,ir,dimz
 double precision, external :: jacobian
+integer sumnewcuantas
+integer err
+
+call MPI_REDUCE(newcuantas(AT), sumnewcuantas, 1, MPI_INTEGER, MPI_SUM,0, MPI_COMM_WORLD, err)
+
 dimz=1
 
 F_mix_s= 0.0
@@ -42,7 +48,7 @@ do iR =1, n
 enddo
 
 F_mix_s=F_mix_s *delta /vsol 
-print*,'fmixs',F_mix_s
+if(rank.eq.0)print*,'fmixs',F_mix_s
 
 Free_energy= Free_energy +F_mix_s
 
@@ -59,7 +65,7 @@ F_mix_avpolA=F_mix_avpolA *delta
 
 Free_energy= Free_energy +F_mix_avpolA
 
-print*,'fmixA',F_mix_avpolA
+if(rank.eq.0)print*,'fmixA',F_mix_avpolA
 
 !!!!!  F mupol !!!!!!!!!!!!!!!!!!
 
@@ -72,7 +78,7 @@ Fmupol=Fmupol*delta !-delta
 
 Free_energy= Free_energy +Fmupol
 
-print*,'fmupol',Fmupol
+if(rank.eq.0)print*,'fmupol',Fmupol
 
 !!!!!! Fconf !!!!!!!!!!!!!!!!!!!!!
 
@@ -82,11 +88,11 @@ do iR=1,n
 if (rhopol2(ir).ne.0.0)then
  F_Conf=F_Conf+rhopol2(iR)*sumprolnpro(iR)*jacobian(iR)
 endif
- F_Conf=F_Conf-Fact_rhobulk*log(1.0/float(newcuantas(AT))) *jacobian(iR)
+ F_Conf=F_Conf-Fact_rhobulk*log(1.0/float(sumnewcuantas)) *jacobian(iR)
 enddo
 !Linea  82 es porque  tenemos en el bulk pol?
 F_conf=F_conf*delta  
-print*,'F_conf',F_conf
+if(rank.eq.0)print*,'F_conf',F_conf
 !!!!!!
 
 Free_energy=Free_energy+F_conf
@@ -105,7 +111,7 @@ if (fbound(1,iR)>0.0)then
 endif
 enddo
 
-print*,'Feq',F_eq*delta/(vpol*vsol) 
+if(rank.eq.0)print*,'Feq',F_eq*delta/(vpol*vsol) 
 
 do iR = 1,n
 if (fbound(2,iR)>0.)then
@@ -114,7 +120,7 @@ if (fbound(2,iR)>0.)then
 endif
 enddo
 
-print*,'Feq',F_eq*delta/(vpol*vsol) 
+if(rank.eq.0)print*,'Feq',F_eq*delta/(vpol*vsol) 
 
 
 F_EQ=F_EQ*delta/(vpol*vsol) 
@@ -154,17 +160,18 @@ sumas=sumas*delta/(vpol*vsol)!
 
 
 
-print*,'sumpi',sumpi
-print*,'sumrho',sumrho
-print*,'sumrhopol',sumrhopol
-print*,'sumas',sumas
+if(rank.eq.0)print*,'sumpi',sumpi
+if(rank.eq.0)print*,'sumrho',sumrho
+if(rank.eq.0)print*,'sumrhopol',sumrhopol
+if(rank.eq.0)print*,'sumas',sumas
 
 sum=sumpi+sumrho+sumrhopol+sumas
 
 Free_energy2=sum
 
-print*, 'FREE_energy :', Free_energy, Free_energy2
-if (abs(Free_energy-Free_energy2)>1.)then
+if(rank.eq.0)print*, 'FREE_energy :', Free_energy, Free_energy2
+
+if ((abs(Free_energy-Free_energy2)>1.).and.(rank.eq.0))then
 stop
 endif
 !fesum=fesum+Free_energy

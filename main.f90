@@ -551,8 +551,8 @@ end do
 countfile = countfile+1 ! next
 
 endif ! rank
-
 call fe(cc)
+
 END do ! loop de kbind
 end do ! loop de st
 
