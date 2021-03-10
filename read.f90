@@ -14,8 +14,6 @@ read(8,*),curvature
 read(8,*),nada
 read(8,*),radio
 
-if(curvature.le.0)radio=1 ! pore or planar
-
 read(8,*),nada
 read(8,*),adsmax
 
@@ -75,5 +73,9 @@ read(8,*)lseg
 
 read(8,*)nada
 read(8,*)AA,BA,CA
+
+if(curvature.eq.0)radio=1 ! planar
+if(curvature.lt.0)ntot=radio ! pore
+
 
 end

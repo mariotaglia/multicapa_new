@@ -125,7 +125,7 @@ endif
 
 if (curvature.lt.0) then
 
-do i=maxpol,n ! see notes, A = pos = 1, B = neg = 2
+do i=maxpol, ntot ! see notes, A = pos = 1, B = neg = 2, maxpol < radio
   auxC = avpolneg(i)/avpolpos(i)
   auxB = -1.0 -auxC - 1.0/Kbind0/(avpolpos(i)/vpol/vsol)
   fbound(1, i) = (-auxB - SQRT(auxB**2 - 4.0*auxC))/2.0
