@@ -218,7 +218,7 @@ q=0.0d0                   ! init q to zero (para c/layer)
 
     q=q+pro(i) ! single-chain partition function
     splp = splp + pro(i)*log(pro(i)) 
-    rhopol2_tmp(ii)=rhopol2_tmp(ii) + pro(i)*expmupol/vsol*weight(AT,i,ii)!*factorcurv(ii,jj)!G
+    rhopol2_tmp(ii)=rhopol2_tmp(ii) + pro(i)*expmupol/vsol*weight(AT,i,ii)
     
    do j=minpos(AT,i,ii), maxpos(AT,i,ii)
      k = j-minpos(AT,i,ii)+1
