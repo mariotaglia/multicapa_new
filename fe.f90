@@ -32,6 +32,34 @@ double precision, external :: jacobian
 integer sumnewcuantas
 integer err
 
+
+if(rank.eq.0) then
+print*, 'Starting free energy calculation...'
+! open files
+open(unit=301, file='F_tot.dat')
+!open(unit=302, file='F_mixs.dat')
+!open(unit=303, file='F_mixpos.dat')
+!open(unit=304, file='F_mixneg.dat')
+!open(unit=305, file='F_mixH.dat')
+!open(unit=306, file='F_mixOH.dat')
+!open(unit=307, file='F_conf.dat')
+!open(unit=308, file='F_eq.dat')
+
+!do is=1,Npoorsv
+!do js=1,Npoorsv
+!write(F_vdWfilename(is,js),'(A6,BZ,I3.3,A1,I3.3,A4)')'F_vdW.',is,'.',js,'.dat'
+!open(unit=10000*is+js, file=F_vdWfilename(is,js) )
+!enddo
+!enddo
+
+open(unit=312, file='F_tot2.dat')
+!open(unit=313, file='F_mixp.dat')
+!open(unit=314, file='F_Uchain.dat')
+endif
+
+
+
+
 call MPI_REDUCE(newcuantas(AT), sumnewcuantas, 1, MPI_INTEGER, MPI_SUM,0, MPI_COMM_WORLD, err)
 
 dimz=1
@@ -171,13 +199,33 @@ Free_energy2=sum
 
 if(rank.eq.0)print*, 'FREE_energy :', Free_energy, Free_energy2
 
-if ((abs(Free_energy-Free_energy2)>1.).and.(rank.eq.0))then
-stop
+!if ((abs(Free_energy-Free_energy2)>1.).and.(rank.eq.0))then
+!stop
+!endif
+
+
+if(rank.eq.0) then
+  write(301,*) nads+1,cc,  Free_energy
+!  write(302,*)  F_Mix_s
+!  write(303,*)  F_Mix_avpolA
+!  write(304,*)  F_mupol
+ ! write(305,*) npol, F_Mix_Hplus/npol
+!  write(306,*) npol, F_Mix_OHmin/npol
+ ! write(307,*) npol, F_Conf/npol
+ ! write(308,*) npol, F_Eq/npol
+! write(313,*)counter, counter2, F_Eq_P                              
+ ! do is=1,Npoorsv
+ !   do js=1,Npoorsv
+ !      write(10000*is+js,*) npol, F_vdW(is,js)/npol
+ !   enddo
+ ! enddo
+  write(312,*)cc,  Free_energy2
+ ! write(313,*) npol, F_Mix_p/npol
+ ! write(314,*) npol, F_Uchain/npol
 endif
-!fesum=fesum+Free_energy
-!fesum2=fesum2+Free_energy2
-!print*, 'fesum',  fesum,  fesum2
+
 return
+
 
 
 end subroutine

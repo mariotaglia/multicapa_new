@@ -351,6 +351,8 @@ write(sigmafilename,'(A6,BZ,I5.5,A4)')'sigma.',countfile,'.dat'
 write(sigmaadfilename,'(A8,BZ,I5.5,A4)')'sigmaad.',countfile,'.dat'
 
 
+constq=delta*delta*4.0*pi*lb/vsol   ! multiplicative factor in poisson eq  
+
 ! xh bulk
 xsolbulk=1.0  - phibulkpol
 Kbind0 = Kbind ! Intrinsic equilibrium constant from uncharged polymers.

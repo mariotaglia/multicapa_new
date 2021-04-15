@@ -19,7 +19,7 @@ return
 end 
 
 subroutine initcha
-use pis
+use const
 use matrices
 use senos
 implicit none

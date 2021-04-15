@@ -19,7 +19,7 @@ end
 
 double precision function jacobian(i)
 use multicapa
-use pis
+use const
 use layer
 implicit none
 integer i

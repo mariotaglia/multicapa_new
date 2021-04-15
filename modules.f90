@@ -105,8 +105,12 @@ integer long(2)            ! length of polymer
 INTEGER long1,long2,maxlong
 endmodule
 
-module pis
+module const
 real*8 pi
+real*8, parameter :: Na = 6.02d23 ! Avogadro's number
+real*8, parameter :: lb = 0.714   ! bjerrum lenght in water in nm
+real*8 constq
+real*8 pKw
 endmodule
 
 module matrices
