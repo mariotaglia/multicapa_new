@@ -86,6 +86,12 @@ CHARACTER*24 totalfilename
 character*27 denspol2filename
 
 
+character*27 xposfilename
+character*27 xnegfilename
+character*27 xHplusfilename
+character*27 xOHminfilename
+character*27 potenfilename
+
 integer countfile         ! enumerates the outputfiles 
 integer countfileuno     ! enumerates the outputfiles para una corrida
 integer conf              ! counts number of conformations
@@ -513,6 +519,13 @@ write(denspol2filename,'(A16,BZ,I3.3,A1,I3.3,A4)')'densitypolymerA.',countfileun
 write(denssolfilename,'(A15,BZ,I3.3,A1,I3.3,A4)')'densitysolvent.', countfileuno,'.',countfile,'.dat'
 write(totalfilename,'(A13,BZ,I3.3,A1,I3.3,A4)')'densitytotal.',countfileuno,'.',countfile,'.dat'
 
+write(xposfilename,'(A10,BZ,I3.3,A1,I3.3,A4)')'xpostotal.',countfileuno,'.',countfile,'.dat'
+write(xnegfilename,'(A10,BZ,I3.3,A1,I3.3,A4)')'xnegtotal.',countfileuno,'.',countfile,'.dat'
+write(xHplusfilename,'(A12,BZ,I3.3,A1,I3.3,A4)')'xHplustotal.',countfileuno,'.',countfile,'.dat'
+write(xOHminfilename,'(A12,BZ,I3.3,A1,I3.3,A4)')'xOHmintotal.',countfileuno,'.',countfile,'.dat'
+write(potenfilename,'(A6,BZ,I3.3,A1,I3.3,A4)')'poten.',countfileuno,'.',countfile,'.dat'
+
+
 do jj = 1, nads+1
 write(denspolfilename(jj),'(A14,BZ,I2.2,A1,I3.3,A1,I3.3,A4)')'densitypolymer',jj,'.',countfileuno,'.',countfile,'.dat'
 end do
@@ -525,6 +538,13 @@ open(unit=310,file=sysfilename)
 open(unit=321,file=denspol2filename)
 open(unit=323,file=totalfilename)
 open(unit=330,file=denssolfilename)
+
+open(unit=331,file=xposfilename)
+open(unit=332,file=xOHminfilename)
+open(unit=333,file=xHplusfilename)
+open(unit=334,file=xOHminfilename)
+open(unit=335,file=potenfilename)
+
 
 do ii = 1,2
 open(unit=500+ii+5,file=densbindfilename(ii))
@@ -548,8 +568,18 @@ avtotal(i) = avpol(jj,i)
 end do
 
 WRITE(323,*)zc(i),(avtotal(i))
-
 enddo
+
+
+do i=1,n
+write(331,*)zc(i),xpos(i)
+write(332,*)zc(i),xneg(i)
+write(333,*)zc(i),xHplus(i)
+write(334,*)zc(i),xOHmin(i)
+write(335,*)zc(i),psi(i)
+end do
+
+
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     additional system information
