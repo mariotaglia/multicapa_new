@@ -69,6 +69,7 @@ real*8 sumpi,sumrho,sumrhopol, sumrho2, sumrho2mol !suma de la fraccion de polim
 INTEGER LT ! layer type being adsorbed
 integer ini,fin,step
 
+real*8 fNchargebulk(2)
 
 
 ! global running files
@@ -153,14 +154,7 @@ xOHminbulk = (cOHmin*Na/(1.0d24))*(vsol)  ! volume fraction H+ in bulk vH+=vsol
 
 xsalt=(csalt*Na/(1.0d24))*(vsalt*vsol)   ! volume fraction salt,csalt in mol/l 
 
-if(pHbulk.le.7) then  ! pH<= 7
-   xposbulk=xsalt/zpos
-   xnegbulk= -xsalt/zneg +(xHplusbulk -xOHminbulk) *vsalt ! NaCl+ HCl  
-else                  ! pH >7 
-   xposbulk=xsalt/zpos +(xOHminbulk -xHplusbulk) *vsalt ! NaCl+ NaOH   
-   xnegbulk=-xsalt/zneg
-endif
-!!!GGG!!!
+!!GGG!!!
 
 print*,'nst',nst
 do i = 0, adsmax
@@ -403,13 +397,41 @@ xsolbulk=1.0 -xHplusbulk -xOHminbulk - xnegbulk -xposbulk -phibulkpol
 !!GG!!
 ! xh bulk
 !xsolbulk=1.0  - phibulkpol
+
+
 Kbind0 = Kbind ! Intrinsic equilibrium constant from uncharged polymers.
-
-
-!!
 K0A = (KaA*vsol/xsolbulk)*(Na/1.0d24)! intrinstic equilibruim constant 
 K0B = (Kw/KaB*vsol/xsolbulk)*(Na/1.0d24)
 
+
+
+!!!!!!!!! Calculate bulk composition !!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! 1) disociation in bulk  
+  fNchargebulk(1) = 1.0/(1.0+ (K0A*xsolbulk)/(xHplusbulk)) ! negativo
+  fNchargebulk(2) = 1.0/(1.0+ (K0b*xsolbulk)/(XOHminbulk)) ! positivo
+
+! 2) pH counterions
+if(pHbulk.le.7) then  ! pH<= 7
+   xposbulk=xsalt/zpos
+   xnegbulk= -xsalt/zneg +(xHplusbulk -xOHminbulk) *vsalt ! NaCl+ HCl  
+else                  ! pH >7 
+   xposbulk=xsalt/zpos +(xOHminbulk -xHplusbulk) *vsalt ! NaCl+ NaOH   
+   xnegbulk=-xsalt/zneg
+endif
+
+! 3) polymer counterions
+   LT = Tcapas(nads+1) 
+  select case (LT)
+  case (1) ! negativo, sumar cations xposbulk en fraccion de volumen de cation
+     xposbulk = xposbulk + (phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)))*(vsalt*vsol) 
+  case (2) ! positivo, sumar aniones
+     xnegbulk = xnegbulk + (phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(2)))*(vsalt*vsol) 
+  endselect
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!
 expmupos = xposbulk /xsolbulk**vsalt
 expmuneg = xnegbulk /xsolbulk**vsalt
 expmuHplus = xHplusbulk /xsolbulk   ! vsol = vHplus 
@@ -540,7 +562,7 @@ open(unit=323,file=totalfilename)
 open(unit=330,file=denssolfilename)
 
 open(unit=331,file=xposfilename)
-open(unit=332,file=xOHminfilename)
+open(unit=332,file=xnegfilename)
 open(unit=333,file=xHplusfilename)
 open(unit=334,file=xOHminfilename)
 open(unit=335,file=potenfilename)
