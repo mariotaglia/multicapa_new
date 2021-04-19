@@ -26,7 +26,7 @@ real*8 avpol_red(ntot)
 REAL*8 avtotal(ntot)       ! sum over all avpol
 !real*8 xsol(ntot)         ! volume fraction solvent
 
-real*8 x1(ntot),xg1(ntot)   ! density solvent iteration vector
+real*8 x1(2*ntot),xg1(2*ntot)   ! density solvent iteration vector
 real*8 zc(ntot)           ! z-coordinate layer 
 
 REAL*8 sumrhoz, meanz     ! Espesor medio pesado
@@ -54,7 +54,7 @@ real*8 min1               ! variable to determine minimal position of chain
 
 integer il,inda,ncha
 
-REAL*8 xfile(ntot)                        
+REAL*8 xfile(2*ntot)                        
 real*8 algo, algo2                  
 
 
@@ -183,13 +183,21 @@ xg1(i)=1.0d-10
 x1(i)=1.0d-10
 zc(i)= (i-0.5) * delta
 enddo
+do i=n+1,2*n
+xg1(i)=0.0
+x1(i)=0.0
+enddo
+
 
 !     init guess from files fort.100 (solvent) and fort.200 (potential)                      
 
 if (infile.ge.1) then
 do i=1,n
 read(100,*)j,xfile(i)   ! solvent
-enddo   
+enddo
+do i=n+1,2*n
+read(200,*)j,xfile(i)   ! solvent
+enddo     
 endif
 
 if(infile.eq.2) then

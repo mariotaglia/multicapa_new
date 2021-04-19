@@ -47,11 +47,11 @@ real*8, allocatable :: avpol2(:) ! volume fraction polymer in solution
 real*8, allocatable :: avpolall(:)
 real*8, allocatable :: xsol(:) !!!G
 real*8, allocatable :: pro(:)  !!!G
-real*16, allocatable :: psi(:)
-real*16, allocatable :: xpos(:)
-real*16, allocatable :: xneg(:)
-real*16, allocatable :: xHplus(:)
-real*16, allocatable :: xOHmin(:)
+real*8, allocatable :: psi(:)
+real*8, allocatable :: xpos(:)
+real*8, allocatable :: xneg(:)
+real*8, allocatable :: xHplus(:)
+real*8, allocatable :: xOHmin(:)
 real*8, allocatable :: qtot(:)
 
 INTEGER cuantas1, cuantas2
