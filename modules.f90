@@ -101,11 +101,11 @@ endmodule
 module bulk
 REAL*8 expmupol
 real*8 xsolbulk, phibulkpol           ! volume fraction of solvent in bulk
-real*16 expmupos, expmuneg, expmuHplus, expmuOHmin  ! exp(-beta*mu)*(bulk volume fraction), where mu is the chemical potential
+real*8 expmupos, expmuneg, expmuHplus, expmuOHmin  ! exp(-beta*mu)*(bulk volume fraction), where mu is the chemical potential
 real*8 csalt
-real*16 pHbulk
-real*16 xHplusbulk, xOHminbulk ! bulk volume fraction of H+ and OH-
-real*16 xposbulk, xnegbulk  
+real*8 pHbulk
+real*8 xHplusbulk, xOHminbulk ! bulk volume fraction of H+ and OH-
+real*8 xposbulk, xnegbulk  
 endmodule
 
 module seed1
@@ -125,11 +125,11 @@ real*8, parameter :: lb = 0.714   ! bjerrum lenght in water in nm
 real*8 zpos, zneg, zpol(2) 
 real*8 wperm
 real*8, parameter :: pi=dacos(-1.0d0)          ! pi = arccos(-1) 
-real*16 K0A, K0B ,K0ANa,K0BCl, K0Eo!K0
-real*16 pKaA
-real*16 pkaB
-real*16 Kw
-real*16 pKw
+real*8 K0A, K0B ,K0ANa,K0BCl, K0Eo!K0
+real*8 pKaA
+real*8 pkaB
+real*8 Kw
+real*8 pKw
 
 endmodule
 

@@ -12,7 +12,7 @@ implicit none
 integer ier2
 real*8 protemp
 real*8 x(ntot*2),f(ntot*2)
-real*16 psi2(0:ntot+1) ! psipsi plus boundaries at z=0 and dimz+1
+real*8 psi2(0:ntot+1) ! psipsi plus boundaries at z=0 and dimz+1
 real*8 xh(ntot)
 real*8 xpot(2*ntot)
 !real*8 pro(maxcuantas)  !!G
@@ -20,7 +20,7 @@ integer i,j,k1,k2,ii, jj,iz       ! dummy indices
 integer err
 !INTEGER AT
 real*8 beta, gammap, gamman
-real*16 auxB, auxC
+real*8 auxB, auxC
 !REAL*8 avpolpos(ntot), avpolneg(ntot)  !G
 REAL*8 ALGO, ALGO2
 integer n
@@ -174,21 +174,34 @@ enddo
 else
 
 do i=radio,maxpol ! see notes, A = pos = 1, B = neg = 2
+
+  print*, K0A, Kbind0, K0B
+
   auxC = avpolneg(i)/avpolpos(i)
+
   auxB = -1.0 -auxC - (1.0+xOhmin(i)/(K0B*xh(i)))*( 1.0+ xHplus(i)/(K0A*xh(i)))/Kbind0/(avpolpos(i)/vpol/vsol) !!
   !auxB = -1.0 -auxC - 1.0/Kbind0/(avpolpos(i)/vpol/vsol)
+
   fbound(1, i) = (-auxB - SQRT(auxB**2 - 4.0*auxC))/2.0
   fbound(2, i) = avpolpos(i)*fbound(1, i)/avpolneg(i)
+
   fNcharge(1,i) = (1.0 -fbound(1,i))/(1.0+ (K0A*xh(i))/(xHplus(i)))
   fNcharge(2,i) = (1.0 -fbound(2,i))/(1.0+ (K0b*xh(i))/(XOHmin(i)))
-!Check_Kbind= fbound(2,i)/(  (1.0-fbound(1,i)-fNcharge(1,i))*(1.0-fbound(2,i)&
-!-fNcharge(2,i))*avpolpos(i)/vpol/vsol ) -Kbind0
-
-!Check_Kaplus= -log10( (xHplus(i)/xh(i))*((1-fNcharge(1,i) -fbound(1,i))/fNcharge(1,i))*(xsolbulk*1.0d24/(Na*vsol)))-pKaA                         
-!Check_Kbmin=  (xOhmin(i)/xh(i))*(1.0-fbound(2,i)-fNcharge(2,i))/fbound(2,i)-K0B !!
 
 
-!print*,'checkeo',Check_Kbind
+
+
+Check_Kbind= fbound(2,i)/(  (1.0-fbound(1,i)-fNcharge(1,i))*(1.0-fbound(2,i)&
+-fNcharge(2,i))*avpolpos(i)/vpol/vsol ) -Kbind0
+
+Check_Kaplus= -log10( (xHplus(i)/xh(i))*((1-fNcharge(1,i) -fbound(1,i))/fNcharge(1,i))*(xsolbulk*1.0d24/(Na*vsol)))-pKaA                         
+Check_Kbmin=  (xOhmin(i)/xh(i))*(1.0-fbound(2,i)-fNcharge(2,i))/fbound(2,i)-K0B !!
+
+
+print*,'checkeo',Check_Kbind, Check_Kaplus,Check_Kbmin
+print*, fbound(1, i),fbound(2, i),fNcharge(1,i),fNcharge(2,i)
+
+stop
 
 enddo
 

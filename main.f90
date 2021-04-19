@@ -37,10 +37,10 @@ integer n                 ! number of lattice sites
 integer itmax             ! maximum number of iteration allowed for 
 real*8 xsalt
 real*8 fnorm              ! L2 norm of residual vector function fcn
-real*16 cHplus, cOHmin
-real*16 pOHbulk
-real*16 KaA
-real*16 KaB
+real*8 cHplus, cOHmin
+real*8 pOHbulk
+real*8 KaA
+real*8 KaB
 
 external fcnelect         ! function containing the SCMFT eqs for solver
 integer i,j,k,m,ii,flag,c, jj ! dummy indice0s
