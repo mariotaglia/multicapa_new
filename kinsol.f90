@@ -53,21 +53,21 @@ use multicapa
 implicit none
 integer *4 ier ! Kinsol error flag
 integer i
-real*8 x1(ntot), xg1(ntot)
-real*8 x1_old(ntot), xg1_old(ntot)
+real*8 x1(ntot*2), xg1(ntot*2)
+real*8 x1_old(ntot*2), xg1_old(ntot*2)
 integer*8 iout(15) ! Kinsol additional output information
 real*8 rout(2) ! Kinsol additional out information
 integer*8 msbpre
 real*8 fnormtol, scsteptol
-real*8 scale(ntot)
-real*8 constr(ntot)
+real*8 scale(ntot*2)
+real*8 constr(ntot*2)
 integer*4  globalstrat, maxl, maxlrst
 integer neq ! Kinsol number of equations
 integer*4 max_niter
 common /psize/ neq ! Kinsol
 integer ierr
 
-neq=ntot
+neq=ntot*2
 
 ! INICIA KINSOL
 
@@ -99,9 +99,13 @@ call fkinsetrin('FNORM_TOL', fnormtol, ier)
 call fkinsetrin('SSTEP_TOL', scsteptol, ier)
 call fkinsetiin('MAX_NITER', max_niter, ier)
 
-do i = 1, neq  !constraint vector
+do i = 1, ntot  !constraint vector
    constr(i) = 2.0
 enddo
+do i = ntot+1, 2*ntot  !constraint vector
+constr(i) = 0.0        ! cualquier cosa
+enddo
+
 
 call fkinsetvin('CONSTR_VEC', constr, ier) ! constraint vector
 ! CALL FKINSPTFQMR (MAXL, IER)

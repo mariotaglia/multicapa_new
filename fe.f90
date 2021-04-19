@@ -18,14 +18,16 @@ use multicapa
 use volume
 use longs
 use MPI
+use const
 implicit none
 
 integer cc
 integer n
 real*8 Free_energy,Free_energy2, Fmupol
-real*8 F_mix_s,F_mix_avpolA,F_mix_avpolb,F_conf,F_EQ,Fpro
+real*8 F_mix_s,F_mix_avpolA,F_mix_avpolb,F_conf,F_EQ,Fpro,F_mix_pos,F_mix_neg
+real*8 F_mix_OHmin, F_mix_Hplus,F_electro
 integer i,ii,j,jj
-real*8 sumas,sumrho,sumrhopol,sumpi,sum
+real*8 sumas,sumrho,sumrhopol,sumpi,sum,sumel
 real*8 Fact_rhobulk
 integer iz,ir,dimz
 double precision, external :: jacobian
@@ -80,6 +82,63 @@ if(rank.eq.0)print*,'fmixs',F_mix_s
 
 Free_energy= Free_energy +F_mix_s
 
+
+
+! 2. cations entropy
+
+F_Mix_pos = 0.0
+
+do ir = 1, n
+  F_Mix_pos = F_Mix_pos + xpos(ir)*(log(xpos(ir)/vsalt)-1.0 - log(expmupos) + dlog(vsalt))*jacobian(ir)
+  F_Mix_pos = F_Mix_pos - xposbulk*(log(xposbulk/vsalt)-1.0 - log(expmupos) + dlog(vsalt))*jacobian(ir)
+enddo
+
+F_Mix_pos = F_Mix_pos * delta/vsol/vsalt
+Free_Energy = Free_Energy + F_Mix_pos
+
+
+!
+! 3. anions entropy
+
+F_Mix_neg = 0.0
+
+do ir = 1, n
+  F_Mix_neg = F_Mix_neg + xneg(ir)*(log(xneg(ir)/vsalt)-1.0 - log(expmuneg) + dlog(vsalt))*jacobian(ir)
+  F_Mix_neg = F_Mix_neg - xnegbulk*(log(xnegbulk/vsalt)-1.0 - log(expmuneg) + dlog(vsalt))*jacobian(ir)
+enddo
+
+F_Mix_neg = F_Mix_neg * delta/vsol/vsalt
+Free_Energy = Free_Energy + F_Mix_neg
+!
+
+
+! 4. proton entropy
+
+F_Mix_Hplus = 0.0
+
+do ir = 1,n
+  F_Mix_Hplus = F_Mix_Hplus + xHplus(ir)*(log(xHplus(ir))-1.0 - log(expmuHplus))*jacobian(ir)
+  F_Mix_Hplus = F_Mix_Hplus - xHplusbulk*(log(xHplusbulk)-1.0 - log(expmuHplus))*jacobian(ir)
+enddo
+
+F_Mix_Hplus = F_Mix_Hplus * delta/vsol
+Free_Energy = Free_Energy + F_Mix_Hplus
+!
+
+
+! 5. hydroxyl ions entropy
+
+F_Mix_OHmin = 0.0
+
+do ir = 1, n
+  F_Mix_OHmin = F_Mix_OHmin + xOHmin(ir)*(log(xOHmin(ir))-1.0 - log(expmuOHmin))*jacobian(ir)
+  F_Mix_OHmin = F_Mix_OHmin - xOHminbulk*(log(xOHminbulk)-1.0 - log(expmuOHmin))*jacobian(ir)
+enddo
+
+F_Mix_OHmin = F_Mix_OHmin * delta/vsol
+Free_Energy = Free_Energy + F_Mix_OHmin
+
+
 !!!!!!! F mix A !!!!!!!!!!!!!!!
 
 F_mix_avpolA=0.0
@@ -131,8 +190,12 @@ do iR=1, n
 
 F_EQ=F_EQ+avpolpos(iR)*fbound(1,iR)*(-log(Kbind0)) *jacobian(iR)
 !F_EQ=F_EQ+avpolpos(i)*fbound(1,i)*(-log( fbound(2,i)/(1.0-fbound(1,i))/(1.0-fbound(2,i))/(avpolpos(i)/vsol/vpol) )) !chequear signo
-F_EQ=F_EQ+avpolpos(iR)*(1.0-fbound(1,iR))*(log(1.0-fbound(1,iR))) *jacobian(iR)
-
+F_EQ=F_EQ+avpolpos(iR)*(1.0-fbound(1,iR)-fNcharge(1,ir))*(log(1.0-fbound(1,iR)-fNcharge(1,ir))) *jacobian(iR)
+if (fncharge(1,ir)>0.0)then
+F_Eq=F_eq+avpolpos(ir)*fNcharge(1,ir)*log(fNcharge(1,ir))*jacobian(ir)
+endif
+F_Eq=F_eq+avpolpos(ir)*fNcharge(1,ir)*log(K0A)*jacobian(ir)
+F_Eq=F_eq-avpolpos(ir)*(log(expmuHplus))*jacobian(ir)
 if (fbound(1,iR)>0.0)then
   F_eq=F_eq+avpolpos(iR)*(fbound(1,iR))*(log(fbound(1,iR))) *jacobian(iR)
   F_eq=F_eq-avpolpos(iR)*fbound(1,iR)*(log(avpolpos(iR)/vpol/vsol*fbound(1,iR))-1.0)*jacobian(iR) !vab =1 <= no, ojo, aca va vpol
@@ -144,8 +207,13 @@ if(rank.eq.0)print*,'Feq',F_eq*delta/(vpol*vsol)
 do iR = 1,n
 if (fbound(2,iR)>0.)then
  F_eq=F_eq + avpolneg(iR)*fbound(2,iR)*log(fbound(2,iR)) *jacobian(iR)
- F_eq=F_eq + avpolneg(iR)*(1.-fbound(2,iR))*log(1.-fbound(2,iR)) *jacobian(iR) !<= ojo, habia error de parentesis
+ F_eq=F_eq + avpolneg(iR)*(1.-fbound(2,iR)-fNcharge(2,ir))*log(1.-fbound(2,iR)-fNcharge(2,ir)) *jacobian(iR) !<= ojo, habia error de parentesis
 endif
+if (fncharge(2,ir)>0.)then
+ F_eq=F_Eq + avpolneg(ir)*(fncharge(2,ir)*log(fncharge(2,ir)))*jacobian(ir)
+endif
+ F_eq=F_eq + avpolneg(ir)*fNcharge(2,ir)*log(k0B)*jacobian(ir)
+ F_Eq=F_eq - avpolneg(ir)*log(expmuOHmin)*jacobian(ir)
 enddo
 
 if(rank.eq.0)print*,'Feq',F_eq*delta/(vpol*vsol) 
@@ -156,6 +224,22 @@ F_EQ=F_EQ*delta/(vpol*vsol)
 
 Free_energy=Free_energy+F_EQ
 
+
+! 9. Electrostatic ! VER ESTO...
+
+F_electro = 0.0
+
+do ir  = 1, n
+  F_electro = F_electro + delta*psi(ir)*qtot(ir)/2.0/vsol *jacobian(ir)
+enddo
+
+Free_Energy = Free_Energy + F_electro
+if(rank.eq.0)print*,'Felec',F_electro
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Free energy at extrema 
+
+
 Free_energy2=0.0
 sumpi=0.0
 sumrho=0.0
@@ -165,9 +249,9 @@ do iR=1, n
 ! if (xsol(i)>0.)then
  sumpi= sumpi + log(xsol(iR))*(1.0-avpolnegcero(iR)-avpolposcero(iR)) *jacobian(iR)
  sumpi= sumpi - log(xsolbulk)*jacobian(iR)
- sumrho= sumrho+(-xsol(iR))*jacobian(iR)
- sumrho= sumrho-(-xsolbulk)*jacobian(iR)
-
+ sumrho= sumrho+(-xsol(iR) -xHplus(ir) -xOHmin(ir)-(xpos(ir)+xneg(ir))/vsalt)*jacobian(iR) !!
+ sumrho= sumrho-(-xsolbulk-xHplusbulk -xOHminbulk-(xposbulk+xnegbulk)/vsalt)*jacobian(iR)!!
+ sumel = sumel - qtot(ir)*psi(ir)/2.0 ! electrostatic part free energy  
  sumrhopol=sumrhopol-(rhopol2(iR)) *jacobian(iR)
  sumrhopol=sumrhopol-(-Fact_rhobulk)*jacobian(iR)
 if (AT.eq.1) then
@@ -176,14 +260,15 @@ if (AT.eq.1) then
  sumas=sumas+avpolposcero(iR)*log(1.-fbound(1,iR))*jacobian(iR)
 else
  sumas=sumas+avpolneg(iR)*fbound(2,iR)*jacobian(iR)
- sumas=sumas+avpolpos(iR)*log(1.-fbound(1,iR))*jacobian(iR)
- sumas=sumas+avpolnegcero(iR)*log(1.-fbound(2,iR))*jacobian(iR)
+ sumas=sumas+avpolpos(iR)*log(1.-fbound(1,iR)-fNcharge(1,ir))*jacobian(iR)
+ sumas=sumas+avpolnegcero(iR)*log(1.-fbound(2,iR)-fncharge(2,ir))*jacobian(iR)
 endif
 enddo
 
 sumpi=sumpi*delta/vsol!
 sumrho=sumrho*delta/vsol!
 sumrhopol=sumrhopol*delta!
+sumel = sumel*delta/vsol  
 sumas=sumas*delta/(vpol*vsol)!
 
 
@@ -193,7 +278,7 @@ if(rank.eq.0)print*,'sumrho',sumrho
 if(rank.eq.0)print*,'sumrhopol',sumrhopol
 if(rank.eq.0)print*,'sumas',sumas
 
-sum=sumpi+sumrho+sumrhopol+sumas
+sum=sumpi+sumrho+sumrhopol+sumel+sumas
 
 Free_energy2=sum
 

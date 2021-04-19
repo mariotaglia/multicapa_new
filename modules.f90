@@ -12,6 +12,7 @@ integer, parameter :: ncha_max = 700
 real*8, allocatable :: weight(:,:,:)
 real*8 sumweight(2)
 real*8 lseg
+real*8  vsalt
 integer kaitype
 real*8, allocatable :: Xu(:,:,:)
 real*8 sumXu11, sumXu12
@@ -46,6 +47,13 @@ real*8, allocatable :: avpol2(:) ! volume fraction polymer in solution
 real*8, allocatable :: avpolall(:)
 real*8, allocatable :: xsol(:) !!!G
 real*8, allocatable :: pro(:)  !!!G
+real*16, allocatable :: psi(:)
+real*16, allocatable :: xpos(:)
+real*16, allocatable :: xneg(:)
+real*16, allocatable :: xHplus(:)
+real*16, allocatable :: xOHmin(:)
+real*8, allocatable :: qtot(:)
+
 INTEGER cuantas1, cuantas2
 INTEGER maxcuantas
 
@@ -70,6 +78,7 @@ integer pegado
 
 REAL*8 Kbind, Kbind0
 REAL*8,allocatable :: fbound(:,:)
+real*8, allocatable ::  fNcharge(:,:)
 integer maxpol
 
 endmodule
@@ -92,6 +101,11 @@ endmodule
 module bulk
 REAL*8 expmupol
 real*8 xsolbulk, phibulkpol           ! volume fraction of solvent in bulk
+real*16 expmupos, expmuneg, expmuHplus, expmuOHmin  ! exp(-beta*mu)*(bulk volume fraction), where mu is the chemical potential
+real*8 csalt
+real*16 pHbulk
+real*16 xHplusbulk, xOHminbulk ! bulk volume fraction of H+ and OH-
+real*16 xposbulk, xnegbulk  
 endmodule
 
 module seed1
@@ -106,11 +120,18 @@ INTEGER long1,long2,maxlong
 endmodule
 
 module const
-real*8 pi
 real*8, parameter :: Na = 6.02d23 ! Avogadro's number
 real*8, parameter :: lb = 0.714   ! bjerrum lenght in water in nm
+real*8 zpos, zneg, zpol(2) 
 real*8 constq
-real*8 pKw
+real*8 wperm
+real*8, parameter :: pi=dacos(-1.0d0)          ! pi = arccos(-1) 
+real*16 K0A, K0B ,K0ANa,K0BCl, K0Eo!K0
+real*16 pKaA
+real*16 pkaB
+real*16 Kw
+real*16 pKw
+
 endmodule
 
 module matrices

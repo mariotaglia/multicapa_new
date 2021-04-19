@@ -6,11 +6,13 @@ use volume
 use bulk
 use longs
 use MPI
+use const
 implicit none
 
 integer ier2
 real*8 protemp
-real*8 x(ntot),f(ntot)
+real*8 x(ntot*2),f(ntot*2)
+real*16 psi2(0:ntot+1) ! psipsi plus boundaries at z=0 and dimz+1
 real*8 xh(ntot)
 real*8 xpot(2*ntot)
 !real*8 pro(maxcuantas)  !!G
@@ -30,7 +32,7 @@ real*8 rhopol2_tmp(ntot) !Nuevo
 integer k
 real*8 q_tosend(ntot), splp_tosend(ntot)
 real*8 q0(ntot), splp0(ntot)
-
+real*8  Check_kbind,check_Kaplus,check_kbmin
 double precision, external :: factorcurv
 
 ! Jefe
@@ -65,11 +67,28 @@ xh(i)=(exp(-x(i)))*(1.0-avpolall(i))             ! solvent density=volume fracti
 enddo
 fbound = 0.0
 
+do i=1,n
+psi(i)=x(i+n)
+enddo
+! Electrostatic potential boundary conditions
+psi2(1:n) = psi(1:n)
+psi2(n+1) = 0.0 ! wall, no charge
+psi2(0) = psi2(1)  ! wall, no charge
+
+
+do i=1,n
+   xpos(i) = expmupos*(xh(i)**vsalt)*exp(-psi2(i)*zpos) ! ion plus volume fraction
+   xneg(i) = expmuneg*(xh(i)**vsalt)*exp(-psi2(i)*zneg) ! ion neg volume fraction
+   xHplus(i) = expmuHplus*(xh(i))*exp(-psi2(i))         ! H+ volume fraction
+   xOHmin(i) = expmuOHmin*(xh(i))*exp(+psi2(i))         ! OH-  volume fraction
+enddo
+
+
 ! calculo de xtotal
 xtotal = 0.0
 
 do i = 1,ntot
-xtotal(i) = 1.0 - xh(i)
+xtotal(i) = 1.0 - xh(i) -xpos(i)-xneg(i)-xHplus(i)-xOHmin(i)
 enddo
 ! stoichoimetry
 
@@ -130,19 +149,49 @@ if (curvature.lt.0) then
 
 do i=maxpol, ntot ! see notes, A = pos = 1, B = neg = 2, maxpol < radio
   auxC = avpolneg(i)/avpolpos(i)
-  auxB = -1.0 -auxC - 1.0/Kbind0/(avpolpos(i)/vpol/vsol)
+  auxB = -1.0 -auxC - (1.0+xOhmin(i)/(K0B*xh(i)))*( 1.0+ xHplus(i)/(K0A*xh(i)))/Kbind0/(avpolpos(i)/vpol/vsol) !!
   fbound(1, i) = (-auxB - SQRT(auxB**2 - 4.0*auxC))/2.0
   fbound(2, i) = avpolpos(i)*fbound(1, i)/avpolneg(i)
+  fNcharge(1,i) = (1.0 -fbound(1,i))/(1.0+ (K0A*xh(i))/(xHplus(i)))
+  fNcharge(2,i) = (1.0 -fbound(2,i))/(1.0+ (K0b*xh(i))/(XOHmin(i)))
+!Check_Kbind= fbound(2,i)/(  (1.0-fbound(1,i)-fNcharge(1,i))*(1.0-fbound(2,i)&
+!-fNcharge(2,i))*avpolpos(i)/vpol/vsol )-Kbind0
+
+!Check_Kaplus= -log10( (xHplus(i)/xh(i))*((1-fNcharge(1,i) -fbound(1,i))/fNcharge(1,i))*(xsolbulk*1.0d24/(Na*vsol)))-pKaA
+!Check_Kbmin=  (xOhmin(i)/xh(i))*(1.0-fbound(2,i)-fNcharge(2,i))/fbound(2,i)-K0B !!
+
+!print*,'checkeo',Check_Kbind
+
 enddo
 
 else
 
 do i=radio,maxpol ! see notes, A = pos = 1, B = neg = 2
   auxC = avpolneg(i)/avpolpos(i)
-  auxB = -1.0 -auxC - 1.0/Kbind0/(avpolpos(i)/vpol/vsol)
+  auxB = -1.0 -auxC - (1.0+xOhmin(i)/(K0B*xh(i)))*( 1.0+ xHplus(i)/(K0A*xh(i)))/Kbind0/(avpolpos(i)/vpol/vsol) !!
+  !auxB = -1.0 -auxC - 1.0/Kbind0/(avpolpos(i)/vpol/vsol)
   fbound(1, i) = (-auxB - SQRT(auxB**2 - 4.0*auxC))/2.0
   fbound(2, i) = avpolpos(i)*fbound(1, i)/avpolneg(i)
+  fNcharge(1,i) = (1.0 -fbound(1,i))/(1.0+ (K0A*xh(i))/(xHplus(i)))
+  fNcharge(2,i) = (1.0 -fbound(2,i))/(1.0+ (K0b*xh(i))/(XOHmin(i)))
+!Check_Kbind= fbound(2,i)/(  (1.0-fbound(1,i)-fNcharge(1,i))*(1.0-fbound(2,i)&
+!-fNcharge(2,i))*avpolpos(i)/vpol/vsol ) -Kbind0
+
+!Check_Kaplus= -log10( (xHplus(i)/xh(i))*((1-fNcharge(1,i) -fbound(1,i))/fNcharge(1,i))*(xsolbulk*1.0d24/(Na*vsol)))-pKaA                         
+!Check_Kbmin=  (xOhmin(i)/xh(i))*(1.0-fbound(2,i)-fNcharge(2,i))/fbound(2,i)-K0B !!
+
+
+!print*,'checkeo',Check_Kbind
+
 enddo
+
+!Check_Kbind(i)=-log10( (Na/1.0d24)*fbound(1,i)/(  (1.0-fbound(1,i)-fNcharge(1,i)*(1.0-fbound(2,i)-fNcharge(2,i))*xna(iz) ) )/Kbind0
+      ! KKaAcheckplus(iz)= -log10( (xHplus(iz)/xh(iz))*((1-fdisANC(iz)-fdisANa(iz)&             !! 
+      ! -fdisAas(iz))/fdisANC(iz))*(xsolbulk*1.0d24/(Na*vsol)))-pKaA                            !! esto era para chequear pkaA
+      ! kkaBcheckmin(iz)=        (xOhmin(iz)/xh(iz))*(1.0-fdisBas(iz)-fdisBCl(iz)-fdisBNC(iz))/fdisBNC(iz)-K0B !!
+
+
+
 
 endif
 
@@ -163,8 +212,8 @@ AT = Tcapas(nads+1) ! type of layer to add
 do i = 1, ntot
 
 protemp = dlog(xh(i)**(vpol))
-protemp = protemp-dlog(1.0-fbound(AT, i))
-
+protemp = protemp-dlog(1.0-fbound(AT, i)-fNcharge(AT,i))
+protemp = protemp -psi2(i)*zpol(AT)
 !do iz = -Xulimit, Xulimit
 !if((iz+i).ge.1) then
 !if(AT.eq.1) then ! pos
@@ -293,17 +342,49 @@ avpol(nads+1,:) = avpol_red(:)
 
 
 do i=1,n
- f(i)=xh(i)-1.0d0
+ f(i)=xh(i)+ xneg(i) + xpos(i) + xHplus(i) + xOHmin(i) -1.0d0
 do jj = 0, nads
  f(i) = f(i) + avpol(jj, i)
 end do
  f(i) = f(i) + avpol2(i)
 enddo
 
+do i=1,n
+ qtot(i) = (zpos*xpos(i)+zneg*xneg(i))/vsalt + avpolpos(i)*zpol(1)/vpol*(1.0-fbound(1,i)-fNcharge(1,i))& !!
++ avpolneg(i)*zpol(2)/vpol*(1.0-fbound(2,i)-fNcharge(2,i)) + xHplus(i)-xOHmin(i)                        !!
+enddo
+
+constq=delta*delta*4.0*pi*lb/vsol   ! multiplicative factor in poisson eq  
+!!
+do i = 1,n 
+   
+    select case (abs(curvature))
+
+    case (0)
+     f(n+i)=qtot(i) &
+     +constq*(psi2(i+1)-2.0*psi2(i)+psi2(i-1)) 
+
+    case(1)
+     f(n+i)=qtot(i) &
+     + constq*(psi2(i+1)-psi2(i))*delta**(-2)/(float(i)-0.5) &
+     + constq*(psi2(i+1)-2.0*psi2(i)+psi2(i-1))*delta**(-2) 
+
+    case(2)
+     f(n+i)=qtot(i) &
+     + 2.0*constq*(psi2(i+1)-psi2(i))*delta**(-2)/(float(i)-0.5) &
+     +constq*(psi2(i+1)-2.0*psi2(i)+psi2(i-1))*delta**(-2) 
+    end select
+
+   f(n+i)=f(n+i)/(-2.0)
+
+enddo
+
+
+
 iter=iter+1
 
 algo = 0.0
-do i = 1, n
+do i = 1, n*2
  algo = algo + f(i)**2
 end do
 

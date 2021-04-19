@@ -2,6 +2,7 @@ subroutine read
 use longs
 use multicapa
 use bulk
+use const
 use MPI
 implicit none
 integer i
@@ -36,6 +37,18 @@ read(8,*)minn
 
 READ(8,*),nada
 READ(8,*),phibulkpol
+
+read(8, *), nada
+read(8, *), pKaA    ! pKaA of weak polyacid segments
+
+read(8, *), nada
+read(8, *), pKaB    ! pKaB of weak polyacid segments
+
+read(8, *), nada
+read(8, *), csalt  ! salt concentration in bulk (Molar)
+
+read(8, *), nada
+read(8, *), pHbulk ! bulk pH
 
 READ(8,*),nada
 read(8,*),nst

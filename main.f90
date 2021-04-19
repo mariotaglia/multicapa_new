@@ -15,12 +15,11 @@ use bulk
 use seed1
 use longs
 use MPI
-
+use const
 implicit none
 integer *4 ier ! Kinsol error flag
-real*8 pi
-real*8 Na               
-parameter (Na=6.02d23)
+!real*8 Na               
+!parameter (Na=6.02d23)
 
 real*8 avpol_red(ntot)
 
@@ -36,7 +35,12 @@ REAL*8 sumrhoz, meanz     ! Espesor medio pesado
 
 integer n                 ! number of lattice sites
 integer itmax             ! maximum number of iteration allowed for 
+real*8 xsalt
 real*8 fnorm              ! L2 norm of residual vector function fcn
+real*16 cHplus, cOHmin
+real*16 pOHbulk
+real*16 KaA
+real*16 KaB
 
 external fcnelect         ! function containing the SCMFT eqs for solver
 integer i,j,k,m,ii,flag,c, jj ! dummy indice0s
@@ -115,13 +119,43 @@ cuantas(1) = cuantas1/size
 cuantas(2) = cuantas2/size
 
 !     initializations of variables 
-pi=dacos(-1.0d0)          ! pi = arccos(-1) 
+!pi=dacos(-1.0d0)          ! pi = arccos(-1) 
 itmax=200                 ! maximum number of iterations       
 n=ntot                    ! size of lattice
 conf=0                    ! counter for conformations
 
 vsol=0.030                ! volume solvent molecule in (nm)^3
 vpol= ((4.0/3.0)*pi*(0.3)**3)/vsol  ! volume polymer segment in units of vsol
+!!!!!GGG!!
+zpos = 1.0      ! charge of cation
+zneg = -1.0     ! charge of anion
+zpol(1) = -1.0      ! charge of polyelectrolyte segment A
+zpol(2) = 1.0      ! charge of polyelectrolyte segment B
+vsalt=((4.0/3.0)*pi*(0.27)**3)/vsol  ! volume salt in units of vsol 0.27=radius salt  
+
+pKw = 14.0 ! -log10(Kw)
+kW=10**(-pKw)
+KaA=10**(-pKaA)
+KaB=10**(-pKaB)
+
+
+cHplus = 10**(-pHbulk)    ! concentration H+ in bulk
+xHplusbulk = (cHplus*Na/(1.0d24))*(vsol)  ! volume fraction H+ in bulk vH+=vsol
+pOHbulk= pKw -pHbulk
+cOHmin = 10**(-pOHbulk)   ! concentration OH- in bulk
+xOHminbulk = (cOHmin*Na/(1.0d24))*(vsol)  ! volume fraction H+ in bulk vH+=vsol  
+
+xsalt=(csalt*Na/(1.0d24))*(vsalt*vsol)   ! volume fraction salt,csalt in mol/l 
+
+if(pHbulk.le.7) then  ! pH<= 7
+   xposbulk=xsalt/zpos
+   xnegbulk= -xsalt/zneg +(xHplusbulk -xOHminbulk) *vsalt ! NaCl+ HCl  
+else                  ! pH >7 
+   xposbulk=xsalt/zpos +(xOHminbulk -xHplusbulk) *vsalt ! NaCl+ NaOH   
+   xnegbulk=-xsalt/zneg
+endif
+!!!GGG!!!
+
 print*,'nst',nst
 do i = 0, adsmax
 algo = MOD(i,2)
@@ -350,10 +384,23 @@ write(meanzfilename,'(A6,BZ,I5.5,A4)')'meanz.',countfile,'.dat'
 write(sigmafilename,'(A6,BZ,I5.5,A4)')'sigma.',countfile,'.dat'
 write(sigmaadfilename,'(A8,BZ,I5.5,A4)')'sigmaad.',countfile,'.dat'
 
-
+!!GG!!
+xsolbulk=1.0 -xHplusbulk -xOHminbulk - xnegbulk -xposbulk -phibulkpol
+!!GG!!
 ! xh bulk
-xsolbulk=1.0  - phibulkpol
+!xsolbulk=1.0  - phibulkpol
 Kbind0 = Kbind ! Intrinsic equilibrium constant from uncharged polymers.
+
+
+!!
+K0A = (KaA*vsol/xsolbulk)*(Na/1.0d24)! intrinstic equilibruim constant 
+K0B = (Kw/KaB*vsol/xsolbulk)*(Na/1.0d24)
+
+expmupos = xposbulk /xsolbulk**vsalt
+expmuneg = xnegbulk /xsolbulk**vsalt
+expmuHplus = xHplusbulk /xsolbulk   ! vsol = vHplus 
+expmuOHmin = xOHminbulk /xsolbulk   ! vsol = vOHmin 
+!!!
 
 expmupol= (phibulkpol*vsol)/(vpol*vsol*long(LT)*xsolbulk**(long(LT)*vpol))        ! exp of bulk value of pol. chem. pot.
 expmupol = expmupol/sumweight(LT)
