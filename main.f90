@@ -429,6 +429,23 @@ endif
      xnegbulk = xnegbulk + (phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(2)))*(vsalt*vsol) 
   endselect
 
+!!!!!!!! Charge in bulk !!!!!!!!!!!!!!!!!!!
+
+!  print*, 'Charge in bulk in q/nm^3'
+!  print*, xposbulk/(vsol*vsalt)
+!  print*, xnegbulk/(vsol*vsalt)
+!  if(LT.eq.1)print*, phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)))
+!  if(LT.eq.2)print*, phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(2)))
+  
+
+
+
+
+
+
+
+
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !!

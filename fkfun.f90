@@ -356,10 +356,25 @@ end do
  f(i) = f(i) + avpol2(i)
 enddo
 
+
+
 do i=1,n
- qtot(i) = (zpos*xpos(i)+zneg*xneg(i))/vsalt + avpolpos(i)*zpol(1)/vpol*(1.0-fbound(1,i)-fNcharge(1,i))& !!
-+ avpolneg(i)*zpol(2)/vpol*(1.0-fbound(2,i)-fNcharge(2,i)) + xHplus(i)-xOHmin(i)                        !!
+ qtot(i) = (zpos*xpos(i)+zneg*xneg(i))/vsalt + avpolneg(i)*zpol(1)/vpol*(1.0-fbound(1,i)-fNcharge(1,i))& !!
++ avpolpos(i)*zpol(2)/vpol*(1.0-fbound(2,i)-fNcharge(2,i)) + xHplus(i)-xOHmin(i)                        !!
 enddo
+
+i = 1
+print*, 'salt', (zpos*xpos(1)+zneg*xneg(1))/vsalt
+print*, 'polneg', avpolneg(i)*zpol(1)/vpol*(1.0-fbound(1,i)-fNcharge(1,i))
+print*, 'polpos', avpolpos(i)*zpol(2)/vpol*(1.0-fbound(2,i)-fNcharge(2,i))
+print*, 'others', xHplus(i)-xOHmin(i)
+
+print*,'avpolpos', avpolpos(i)
+print*,'zpol(2)', zpol(2)
+print*,'fractionb', fbound(2,i)
+print*,'fractionN',fNcharge(2,i)
+
+stop
 
 
 wperm = 0.114 !water permitivity in units of e^2/kT.nm
