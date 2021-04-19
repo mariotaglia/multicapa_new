@@ -67,14 +67,21 @@ xh(i)=(exp(-x(i)))*(1.0-avpolall(i))             ! solvent density=volume fracti
 enddo
 fbound = 0.0
 
+
 do i=1,n
 psi(i)=x(i+n)
 enddo
+
 ! Electrostatic potential boundary conditions
 psi2(1:n) = psi(1:n)
-psi2(n+1) = 0.0 ! wall, no charge
-psi2(0) = psi2(1)  ! wall, no charge
 
+if (curvature.ge.0) then
+  psi2(n+1) = 0.0 ! wall, no charge
+  psi2(0) = psi2(1)  ! wall, no charge
+else
+  psi2(n+1) = psi(n) ! wall, no charge
+  psi2(0) = psi2(1)  ! symmetry at channel center dpsi/dr = 0
+endif
 
 do i=1,n
    xpos(i) = expmupos*(xh(i)**vsalt)*exp(-psi2(i)*zpos) ! ion plus volume fraction
@@ -354,28 +361,29 @@ do i=1,n
 + avpolneg(i)*zpol(2)/vpol*(1.0-fbound(2,i)-fNcharge(2,i)) + xHplus(i)-xOHmin(i)                        !!
 enddo
 
-constq=delta*delta*4.0*pi*lb/vsol   ! multiplicative factor in poisson eq  
-!!
+
+wperm = 0.114 !water permitivity in units of e^2/kT.nm
+
 do i = 1,n 
-   
-    select case (abs(curvature))
+   select case (abs(curvature))
 
     case (0)
-     f(n+i)=qtot(i) &
-     +constq*(psi2(i+1)-2.0*psi2(i)+psi2(i-1)) 
+     f(i + n)=qtot(i)/vsol &
+     +wperm*(psi2(i+1)-2.0*psi2(i)+psi2(i-1))*delta**(-2)
 
     case(1)
-     f(n+i)=qtot(i) &
-     + constq*(psi2(i+1)-psi2(i))*delta**(-2)/(float(i)-0.5) &
-     + constq*(psi2(i+1)-2.0*psi2(i)+psi2(i-1))*delta**(-2) 
+     f(i + n)=qtot(i)/vsol &
+     + wperm*(psi2(i+1)-psi2(i))*delta**(-2)/(float(i)-0.5) &
+     +wperm*(psi2(i+1)-2.0*psi2(i)+psi2(i-1))*delta**(-2) 
 
     case(2)
-     f(n+i)=qtot(i) &
-     + 2.0*constq*(psi2(i+1)-psi2(i))*delta**(-2)/(float(i)-0.5) &
-     +constq*(psi2(i+1)-2.0*psi2(i)+psi2(i-1))*delta**(-2) 
+     f(i + n)=qtot(i)/vsol &
+     + 2.00*wperm*(psi2(i+1)-psi2(i))*delta**(-2)/(float(i)-0.5) &
+     + wperm*(psi2(i+1)-2.0*psi2(i)+psi2(i-1))*delta**(-2) 
+
     end select
 
-   f(n+i)=f(n+i)/(-2.0)
+f(n+i)=f(n+i)/(-2.0)
 
 enddo
 

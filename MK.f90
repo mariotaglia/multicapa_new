@@ -19,7 +19,6 @@ subroutine cadenas_mk(chains,chainsw,ncha,LT)
 
 use longs
 use seed1
-use pis
 use matrices
 use senos
 use multicapa
@@ -72,7 +71,6 @@ end
 recursive subroutine walk(N,x,chains,chainsw)
 use longs
 use seed1
-use pis
 use matrices
 use senos
 use multicapa

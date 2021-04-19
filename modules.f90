@@ -123,7 +123,6 @@ module const
 real*8, parameter :: Na = 6.02d23 ! Avogadro's number
 real*8, parameter :: lb = 0.714   ! bjerrum lenght in water in nm
 real*8 zpos, zneg, zpol(2) 
-real*8 constq
 real*8 wperm
 real*8, parameter :: pi=dacos(-1.0d0)          ! pi = arccos(-1) 
 real*16 K0A, K0B ,K0ANa,K0BCl, K0Eo!K0
