@@ -26,7 +26,7 @@ real*8 avpol_red(ntot)
 REAL*8 avtotal(ntot)       ! sum over all avpol
 !real*8 xsol(ntot)         ! volume fraction solvent
 
-real*8 x1(2*ntot),xg1(2*ntot)   ! density solvent iteration vector
+real*8 x1(3*ntot),xg1(3*ntot)   ! density solvent iteration vector
 real*8 zc(ntot)           ! z-coordinate layer 
 
 REAL*8 sumrhoz, meanz     ! Espesor medio pesado
@@ -54,7 +54,7 @@ real*8 min1               ! variable to determine minimal position of chain
 
 integer il,inda,ncha
 
-REAL*8 xfile(2*ntot)                        
+REAL*8 xfile(3*ntot)                        
 real*8 algo, algo2                  
 
 
@@ -394,11 +394,17 @@ xsolbulk=1.0 -xHplusbulk -xOHminbulk - xnegbulk -xposbulk -phibulkpol
 
 !!!!!!!! Charge in bulk !!!!!!!!!!!!!!!!!!!
 
-!  print*, 'Charge in bulk in q/nm^3'
-!  print*, xposbulk/(vsol*vsalt)
-!  print*, xnegbulk/(vsol*vsalt)
-!  if(LT.eq.1)print*, phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)))
-!  if(LT.eq.2)print*, phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(2)))
+  print*, 'Charge in bulk in q/nm^3'
+  print*, '+',xposbulk/(vsol*vsalt)
+  print*, '-', xnegbulk/(vsol*vsalt)
+  if(LT.eq.1)print*, 'pol-',phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1))
+  if(LT.eq.1)print*, 'f pol-',(1.0-fNchargebulk(1))
+  if(LT.eq.2)print*, 'pol+',phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(2))
+  if(LT.eq.2)print*, 'f pol+',(1.0-fNchargebulk(2))
+
+
+
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !!
@@ -423,7 +429,7 @@ expmupol=expmupol/dexp(sumXu11*st/(vpol*vsol)*(phibulkpol)*long(LT))
 
 if (infile.eq.0) then
 do i=1,n
-xg1(i)= -log(xsolbulk)
+xg1(i)= xsolbulk
 x1(i)=xg1(i)
 zc(i)= (i-0.5) * delta
 enddo
@@ -432,6 +438,12 @@ do i=n+1,2*n
 xg1(i)=0.0
 x1(i)=0.0
 enddo
+
+do i=2*n+1,3*n
+xg1(i)=phibulkpol
+x1(i)=phibulkpol
+enddo
+
 endif
 
 !     init guess from files fort.100 (solvent) and fort.200 (potential)                      
@@ -441,7 +453,10 @@ do i=1,n
 read(100,*)j,xfile(i)   ! solvent
 enddo
 do i=n+1,2*n
-read(200,*)j,xfile(i)   ! solvent
+read(200,*)j,xfile(i)   ! potencial
+enddo     
+do i=2*n+1,3*n
+read(300,*)j,xfile(i)   ! polimero
 enddo     
 endif
 
@@ -454,7 +469,7 @@ enddo
 enddo
 endif
 
-do i=1,n             ! initial gues for x1
+do i=1,3*n             ! initial gues for x1
 xg1(i)=x1(i)
 enddo
 
@@ -492,9 +507,10 @@ if(rank.ne.0) then
 endif
 
 do i=1,n
-xsol(i)=(exp(-x1(i)))*(1.0-avpolall(i))       ! solvent density=volume fraction
+xsol(i)=x1(i)
 enddo
 
+if(norma.gt.error)stop
 
 if(norma.gt.error) then
 if(ccc.eq.1) then

@@ -41,9 +41,20 @@ double precision vtemp1(*), vtemp2(*)
 
 common /psize/ neq
 
-do i = 1, neq
+do i = 1, ntot
+   pp(i) = 0.1 / (1.0+exp(-udata(i)))
+enddo
+do i = ntot+1, ntot*2
    pp(i) = 1.0 !0.1 / (1.0+exp(-udata(i)))
 enddo
+
+do i = 2*ntot+1, ntot*3
+   pp(i) = 0.1 / (1.0+exp(-udata(i)))
+enddo
+
+
+
+
    ier = 0
 return
 end
@@ -53,21 +64,21 @@ use multicapa
 implicit none
 integer *4 ier ! Kinsol error flag
 integer i
-real*8 x1(ntot*2), xg1(ntot*2)
-real*8 x1_old(ntot*2), xg1_old(ntot*2)
+real*8 x1(ntot*3), xg1(ntot*3)
+real*8 x1_old(ntot*3), xg1_old(ntot*3)
 integer*8 iout(15) ! Kinsol additional output information
 real*8 rout(2) ! Kinsol additional out information
 integer*8 msbpre
 real*8 fnormtol, scsteptol
-real*8 scale(ntot*2)
-real*8 constr(ntot*2)
+real*8 scale(ntot*3)
+real*8 constr(ntot*3)
 integer*4  globalstrat, maxl, maxlrst
 integer neq ! Kinsol number of equations
 integer*4 max_niter
 common /psize/ neq ! Kinsol
 integer ierr
 
-neq=ntot*2
+neq=ntot*3
 
 ! INICIA KINSOL
 
@@ -105,7 +116,9 @@ enddo
 do i = ntot+1, 2*ntot  !constraint vector
 constr(i) = 0.0        ! cualquier cosa
 enddo
-
+do i = 2*ntot+1, 3*ntot  
+   constr(i) = 2.0
+enddo
 
 call fkinsetvin('CONSTR_VEC', constr, ier) ! constraint vector
 ! CALL FKINSPTFQMR (MAXL, IER)
@@ -161,9 +174,9 @@ use MPI
 
 integer i
 
-real*8 x1_old(ntot)
-real*8 x1(ntot)
-real*8 f(ntot)
+real*8 x1_old(3*ntot)
+real*8 x1(3*ntot)
+real*8 f(3*ntot)
 
 ! MPI
 
@@ -172,11 +185,11 @@ parameter(tag = 0)
 integer err
 
 x1 = 0.0
-do i = 1,ntot
+do i = 1,3*ntot
   x1(i) = x1_old(i)
 enddo
 
-CALL MPI_BCAST(x1, ntot , MPI_DOUBLE_PRECISION,0, MPI_COMM_WORLD,err)
+CALL MPI_BCAST(x1, 3*ntot , MPI_DOUBLE_PRECISION,0, MPI_COMM_WORLD,err)
 
 call fkfun(x1,f, ier) ! todavia no hay solucion => fkfun 
 end

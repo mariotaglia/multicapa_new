@@ -11,7 +11,7 @@ implicit none
 
 integer ier2
 real*8 protemp
-real*8 x(ntot*2),f(ntot*2)
+real*8 x(ntot*3),f(ntot*3)
 real*8 psi2(0:ntot+1) ! psipsi plus boundaries at z=0 and dimz+1
 real*8 xh(ntot)
 real*8 xpot(2*ntot)
@@ -35,11 +35,12 @@ real*8 q0(ntot), splp0(ntot)
 real*8  Check_kbind,check_Kaplus,check_kbmin
 double precision, external :: factorcurv
 
+
 ! Jefe
 if(rank.eq.0) then ! llama a subordinados y pasa vector x
    flagsolver = 1
    CALL MPI_BCAST(flagsolver, 1, MPI_INTEGER, 0, MPI_COMM_WORLD,err)
-   CALL MPI_BCAST(x, ntot , MPI_DOUBLE_PRECISION,0, MPI_COMM_WORLD,err)
+   CALL MPI_BCAST(x, 3*ntot , MPI_DOUBLE_PRECISION,0, MPI_COMM_WORLD,err)
 endif
 
 n = ntot
@@ -62,15 +63,16 @@ cuantas(1) = cuantas1
 cuantas(2) = cuantas2
 
 do i=1,n                 
-if(x(i).lt.0.0)x(i)=1d-30
-xh(i)=(exp(-x(i)))*(1.0-avpolall(i))             ! solvent density=volume fraction   
+xh(i)=x(i)
 enddo
 fbound = 0.0
 
-
-
 do i=1,n
 psi(i)=x(i+n)
+enddo
+
+do i=1,n
+xtotal(i)=x(i+2*n) ! xtotal = volume fraction of adsorbed layer from input
 enddo
 
 ! Electrostatic potential boundary conditions
@@ -91,14 +93,6 @@ do i=1,n
    xOHmin(i) = expmuOHmin*(xh(i))*exp(+psi2(i))         ! OH-  volume fraction
 enddo
 
-
-
-! calculo de xtotal
-xtotal = 0.0
-
-do i = 1,ntot
-xtotal(i) = 1.0 - xh(i) -xpos(i)-xneg(i)-xHplus(i)-xOHmin(i)
-enddo
 ! stoichoimetry
 
 avpolpos = 0.0
@@ -109,31 +103,27 @@ do j = 0, nads ! loop over adsorbed layers
 
  if (Tcapas(j).eq.1) THEN
   do i = 1, n
-   avpolpos(i) = avpolpos(i) + avpol(j, i)
-   avpolposcero(i)= avpolposcero(i) +avpol(j,i)
+   avpolneg(i) = avpolneg(i) + avpol(j, i)
+   avpolnegcero(i)= avpolnegcero(i) +avpol(j,i)
   end do
  else
   do i = 1, n
-   avpolneg(i) = avpolneg(i) + avpol(j, i)
-   avpolnegcero(i)=avpolnegcero(i) + avpol(j,i)
+   avpolpos(i) = avpolpos(i) + avpol(j, i)
+   avpolposcero(i)=avpolposcero(i) + avpol(j,i)
   end do
  endif
 enddo
 
 ! not adsobed
-
-if (Tcapas(nads+1).eq.1) THEN ! adsorbs positive
+if (Tcapas(nads+1).eq.1) THEN ! adsorbs negative
 do i = 1, n
-  avpolpos(i) = xtotal(i) - avpolneg(i)
-!  avpolnegcero(i)=avpolneg(i)
+  avpolneg(i) = avpolneg(i) + xtotal(i) 
 enddo
-else  ! adsorbs negative
+else  ! adsorbs positive
 do i = 1, n
-  avpolneg(i) = xtotal(i) - avpolpos(i)
-!  avpolposcero(i)=avpolpos(i)
+  avpolpos(i) = avpolpos(i) + xtotal(i)
 end do
 endif
-
 
 ! maxpol : position of the last layer with complementary polymer
 maxpol = radio
@@ -361,6 +351,15 @@ do i=1,n
 enddo
 
 !i = 1
+!print*, '!', (1.0-fbound(1,1)-fNcharge(1,1)),qtot(1)
+!print*, zpos*xpos(i)/vsalt
+!print*, zneg*xneg(i)/vsalt 
+!print*, avpolneg(i)*zpol(1)/vpol*(1.0-fbound(1,i)-fNcharge(1,i))
+!print*, avpolpos(i)*zpol(2)/vpol*(1.0-fbound(2,i)-fNcharge(2,i))
+!print*, xHplus(i)
+!print*, xOHmin(i)
+
+!i = 1
 !print*, 'salt', (zpos*xpos(1)+zneg*xneg(1))/vsalt
 !print*, 'polneg', avpolneg(i)*zpol(1)/vpol*(1.0-fbound(1,i)-fNcharge(1,i))
 !print*, 'polpos', avpolpos(i)*zpol(2)/vpol*(1.0-fbound(2,i)-fNcharge(2,i))
@@ -397,17 +396,21 @@ f(n+i)=f(n+i)/(-2.0)
 
 enddo
 
+do i = 1,n
+f(i+2*n) = -avpol2(i)+xtotal(i) 
+enddo
 
 
 iter=iter+1
 
 algo = 0.0
-do i = 1, n*2
+do i = 1, n*3
  algo = algo + f(i)**2
 end do
 
-if(rank.eq.0)PRINT*, iter, algo, xh(1), avpolpos(1), avpolneg(1)
+if(rank.eq.0)PRINT*, iter, algo, xh(1), xtotal(1), avpolpos(1), avpolneg(1)
 norma=algo
+
 
 3333 continue
 
