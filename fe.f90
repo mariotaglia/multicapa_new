@@ -198,8 +198,8 @@ F_Eq=F_eq+avpolpos(ir)*fNcharge(1,ir)*log(K0A)*jacobian(ir)
 F_Eq=F_eq-avpolpos(ir)*(log(expmuHplus))*jacobian(ir)
 if (fbound(1,iR)>0.0)then
   F_eq=F_eq+avpolpos(iR)*(fbound(1,iR))*(log(fbound(1,iR))) *jacobian(iR)
-  F_eq=F_eq-avpolpos(iR)*fbound(1,iR)*(log(avpolpos(iR)/vpol/vsol*fbound(1,iR))-1.0)*jacobian(iR) !vab =1 <= no, ojo, aca va vpol
 endif
+  F_eq=F_eq-avpolpos(iR)*fbound(1,iR)*(log(avpolpos(iR)/vpol/vsol*fbound(1,iR))-1.0)*jacobian(iR) !vab =1 <= no, ojo, aca va vpol
 enddo
 
 if(rank.eq.0)print*,'Feq',F_eq*delta/(vpol*vsol) 
@@ -207,8 +207,8 @@ if(rank.eq.0)print*,'Feq',F_eq*delta/(vpol*vsol)
 do iR = 1,n
 if (fbound(2,iR)>0.)then
  F_eq=F_eq + avpolneg(iR)*fbound(2,iR)*log(fbound(2,iR)) *jacobian(iR)
- F_eq=F_eq + avpolneg(iR)*(1.-fbound(2,iR)-fNcharge(2,ir))*log(1.-fbound(2,iR)-fNcharge(2,ir)) *jacobian(iR) !<= ojo, habia error de parentesis
 endif
+ F_eq=F_eq + avpolneg(iR)*(1.-fbound(2,iR)-fNcharge(2,ir))*log(1.-fbound(2,iR)-fNcharge(2,ir)) *jacobian(iR) !<= ojo, habia error de parentesis
 if (fncharge(2,ir)>0.)then
  F_eq=F_Eq + avpolneg(ir)*(fncharge(2,ir)*log(fncharge(2,ir)))*jacobian(ir)
 endif
@@ -256,8 +256,8 @@ do iR=1, n
  sumrhopol=sumrhopol-(-Fact_rhobulk)*jacobian(iR)
 if (AT.eq.1) then
  sumas=sumas+avpolpos(iR)*fbound(1,iR)*jacobian(iR)
- sumas=sumas+avpolneg(iR)*log(1.-fbound(2,iR))*jacobian(iR)
- sumas=sumas+avpolposcero(iR)*log(1.-fbound(1,iR))*jacobian(iR)
+ sumas=sumas+avpolneg(iR)*log(1.-fbound(2,iR) -fNcharge(2,ir))*jacobian(iR)
+ sumas=sumas+avpolposcero(iR)*log(1.-fbound(1,iR)-Fncharge(1,ir))*jacobian(iR)
 else
  sumas=sumas+avpolneg(iR)*fbound(2,iR)*jacobian(iR)
  sumas=sumas+avpolpos(iR)*log(1.-fbound(1,iR)-fNcharge(1,ir))*jacobian(iR)

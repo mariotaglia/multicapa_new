@@ -136,8 +136,8 @@ vpol= ((4.0/3.0)*pi*(0.3)**3)/vsol  ! volume polymer segment in units of vsol
 !!!!!GGG!!
 zpos = 1.0      ! charge of cation
 zneg = -1.0     ! charge of anion
-zpol(1) = -1.0      ! charge of polyelectrolyte segment A
-zpol(2) = 1.0      ! charge of polyelectrolyte segment B
+zpol(1) = 1.0      ! charge of polyelectrolyte segment A
+zpol(2) = -1.0      ! charge of polyelectrolyte segment B
 vsalt=((4.0/3.0)*pi*(0.27)**3)/vsol  ! volume salt in units of vsol 0.27=radius salt  
 
 pKw = 14.0 ! -log10(Kw)
