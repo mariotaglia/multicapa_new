@@ -171,44 +171,6 @@ do i=1,ntot-1
 eps(i)=0
 enddo
 
-!!!!
-! solver
-!!!!
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!     init guess all 1.0 
-
-do i=1,n
-xg1(i)=1.0d-10
-x1(i)=1.0d-10
-zc(i)= (i-0.5) * delta
-enddo
-do i=n+1,2*n
-xg1(i)=0.0
-x1(i)=0.0
-enddo
-
-
-!     init guess from files fort.100 (solvent) and fort.200 (potential)                      
-
-if (infile.ge.1) then
-do i=1,n
-read(100,*)j,xfile(i)   ! solvent
-enddo
-do i=n+1,2*n
-read(200,*)j,xfile(i)   ! solvent
-enddo     
-endif
-
-if(infile.eq.2) then
-do ii=1, preads ! preadsorbed layers
-do i = 1, ntot
-read(300+ii, *)j, avpol(ii,i)
-print*, i, ii, avpol(ii, i)
-enddo
-enddo
-endif
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! CHAIN GENERATION
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -393,23 +355,22 @@ write(sigmafilename,'(A6,BZ,I5.5,A4)')'sigma.',countfile,'.dat'
 write(sigmaadfilename,'(A8,BZ,I5.5,A4)')'sigmaad.',countfile,'.dat'
 
 !!GG!!
-xsolbulk=1.0 -xHplusbulk -xOHminbulk - xnegbulk -xposbulk -phibulkpol
 !!GG!!
 ! xh bulk
 !xsolbulk=1.0  - phibulkpol
 
 
 Kbind0 = Kbind ! Intrinsic equilibrium constant from uncharged polymers.
-K0A = (KaA*vsol/xsolbulk)*(Na/1.0d24)! intrinstic equilibruim constant 
-K0B = (Kw/KaB*vsol/xsolbulk)*(Na/1.0d24)
+K0A = (KaA*vsol)*(Na/1.0d24)! intrinstic equilibruim constant 
+K0B = (Kw/KaB*vsol)*(Na/1.0d24)
 
 
 
 !!!!!!!!! Calculate bulk composition !!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ! 1) disociation in bulk  
-  fNchargebulk(1) = 1.0/(1.0+ (K0A*xsolbulk)/(xHplusbulk)) ! negativo
-  fNchargebulk(2) = 1.0/(1.0+ (K0b*xsolbulk)/(XOHminbulk)) ! positivo
+  fNchargebulk(1) = 1.0/(1.0+ (K0A)/(xHplusbulk)) ! negativo
+  fNchargebulk(2) = 1.0/(1.0+ (K0b)/(XOHminbulk)) ! positivo
 
 ! 2) pH counterions
 if(pHbulk.le.7) then  ! pH<= 7
@@ -429,6 +390,8 @@ endif
      xnegbulk = xnegbulk + (phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(2)))*(vsalt*vsol) 
   endselect
 
+xsolbulk=1.0 -xHplusbulk -xOHminbulk - xnegbulk -xposbulk -phibulkpol
+
 !!!!!!!! Charge in bulk !!!!!!!!!!!!!!!!!!!
 
 !  print*, 'Charge in bulk in q/nm^3'
@@ -436,16 +399,6 @@ endif
 !  print*, xnegbulk/(vsol*vsalt)
 !  if(LT.eq.1)print*, phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)))
 !  if(LT.eq.2)print*, phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(2)))
-  
-
-
-
-
-
-
-
-
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !!
@@ -458,6 +411,48 @@ expmuOHmin = xOHminbulk /xsolbulk   ! vsol = vOHmin
 expmupol= (phibulkpol*vsol)/(vpol*vsol*long(LT)*xsolbulk**(long(LT)*vpol))        ! exp of bulk value of pol. chem. pot.
 expmupol = expmupol/sumweight(LT)
 expmupol=expmupol/dexp(sumXu11*st/(vpol*vsol)*(phibulkpol)*long(LT))
+
+!!!!
+! solver
+!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     init guess all 1.0 
+
+
+
+if (infile.eq.0) then
+do i=1,n
+xg1(i)= -log(xsolbulk)
+x1(i)=xg1(i)
+zc(i)= (i-0.5) * delta
+enddo
+
+do i=n+1,2*n
+xg1(i)=0.0
+x1(i)=0.0
+enddo
+endif
+
+!     init guess from files fort.100 (solvent) and fort.200 (potential)                      
+
+if (infile.ge.1) then
+do i=1,n
+read(100,*)j,xfile(i)   ! solvent
+enddo
+do i=n+1,2*n
+read(200,*)j,xfile(i)   ! solvent
+enddo     
+endif
+
+if(infile.eq.2) then
+do ii=1, preads ! preadsorbed layers
+do i = 1, ntot
+read(300+ii, *)j, avpol(ii,i)
+print*, i, ii, avpol(ii, i)
+enddo
+enddo
+endif
 
 do i=1,n             ! initial gues for x1
 xg1(i)=x1(i)
@@ -496,7 +491,6 @@ if(rank.ne.0) then
   avpol(nads+1,:) = avpol_red(:)
 endif
 
-
 do i=1,n
 xsol(i)=(exp(-x1(i)))*(1.0-avpolall(i))       ! solvent density=volume fraction
 enddo
@@ -513,6 +507,9 @@ if(rank.eq.0)print*, 'Try', Kbind
 kbinds(ccc-1) = Kbind
 goto 123
 endif
+
+
+infile=-1
 
 if(kbinds(ccc).ne.Kbind) then
 Kbind = kbinds(ccc)

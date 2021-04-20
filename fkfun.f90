@@ -68,6 +68,7 @@ enddo
 fbound = 0.0
 
 
+
 do i=1,n
 psi(i)=x(i+n)
 enddo
@@ -89,6 +90,7 @@ do i=1,n
    xHplus(i) = expmuHplus*(xh(i))*exp(-psi2(i))         ! H+ volume fraction
    xOHmin(i) = expmuOHmin*(xh(i))*exp(+psi2(i))         ! OH-  volume fraction
 enddo
+
 
 
 ! calculo de xtotal
@@ -132,6 +134,7 @@ do i = 1, n
 end do
 endif
 
+
 ! maxpol : position of the last layer with complementary polymer
 maxpol = radio
 if (nads.gt.0) then
@@ -154,54 +157,35 @@ endif
 
 if (curvature.lt.0) then
 
-do i=maxpol, ntot ! see notes, A = pos = 1, B = neg = 2, maxpol < radio
+do i=maxpol, ntot ! see notes, A = pos = 2, B = neg = 1, maxpol < radio
   auxC = avpolneg(i)/avpolpos(i)
-  auxB = -1.0 -auxC - (1.0+xOhmin(i)/(K0B*xh(i)))*( 1.0+ xHplus(i)/(K0A*xh(i)))/Kbind0/(avpolpos(i)/vpol/vsol) !!
-  fbound(1, i) = (-auxB - SQRT(auxB**2 - 4.0*auxC))/2.0
-  fbound(2, i) = avpolpos(i)*fbound(1, i)/avpolneg(i)
-  fNcharge(1,i) = (1.0 -fbound(1,i))/(1.0+ (K0A*xh(i))/(xHplus(i)))
-  fNcharge(2,i) = (1.0 -fbound(2,i))/(1.0+ (K0b*xh(i))/(XOHmin(i)))
-!Check_Kbind= fbound(2,i)/(  (1.0-fbound(1,i)-fNcharge(1,i))*(1.0-fbound(2,i)&
-!-fNcharge(2,i))*avpolpos(i)/vpol/vsol )-Kbind0
-
-!Check_Kaplus= -log10( (xHplus(i)/xh(i))*((1-fNcharge(1,i) -fbound(1,i))/fNcharge(1,i))*(xsolbulk*1.0d24/(Na*vsol)))-pKaA
-!Check_Kbmin=  (xOhmin(i)/xh(i))*(1.0-fbound(2,i)-fNcharge(2,i))/fbound(2,i)-K0B !!
-
-!print*,'checkeo',Check_Kbind
-
+  auxB = -1.0 -auxC - (1.0+(xOhmin(i)/xh(i))/(K0B/xsolbulk))*(1.0+ &
+  (xHplus(i)/xh(i))/(K0A/xsolbulk))/Kbind0/(avpolpos(i)/vpol/vsol) !!
+  !auxB = -1.0 -auxC - 1.0/Kbind0/(avpolpos(i)/vpol/vsol)
+  fbound(2, i) = (-auxB - SQRT(auxB**2 - 4.0*auxC))/2.0
+  fbound(1, i) = avpolpos(i)*fbound(2,i)/avpolneg(i)
+  fNcharge(1,i) = (1.0 -fbound(1,i))/(1.0+ (K0A/xsolbulk)/(xHplus(i)/xh(i)))
+  fNcharge(2,i) = (1.0 -fbound(2,i))/(1.0+ (K0b/xsolbulk)/(XOHmin(i)/xh(i)))
 enddo
 
 else
 
-do i=radio,maxpol ! see notes, A = pos = 1, B = neg = 2
-
-  print*, K0A, Kbind0, K0B
-
+do i=radio,maxpol ! see notes, A = pos = 2, B = neg = 1
   auxC = avpolneg(i)/avpolpos(i)
-
-  auxB = -1.0 -auxC - (1.0+xOhmin(i)/(K0B*xh(i)))*( 1.0+ xHplus(i)/(K0A*xh(i)))/Kbind0/(avpolpos(i)/vpol/vsol) !!
+  auxB = -1.0 -auxC - (1.0+(xOhmin(i)/xh(i))/(K0B/xsolbulk))*(1.0+ &
+  (xHplus(i)/xh(i))/(K0A/xsolbulk))/Kbind0/(avpolpos(i)/vpol/vsol) !!
   !auxB = -1.0 -auxC - 1.0/Kbind0/(avpolpos(i)/vpol/vsol)
+  fbound(2, i) = (-auxB - SQRT(auxB**2 - 4.0*auxC))/2.0
+  fbound(1, i) = avpolpos(i)*fbound(2,i)/avpolneg(i)
+  fNcharge(1,i) = (1.0 -fbound(1,i))/(1.0+ (K0A/xsolbulk)/(xHplus(i)/xh(i)))
+  fNcharge(2,i) = (1.0 -fbound(2,i))/(1.0+ (K0b/xsolbulk)/(XOHmin(i)/xh(i)))
 
-  fbound(1, i) = (-auxB - SQRT(auxB**2 - 4.0*auxC))/2.0
-  fbound(2, i) = avpolpos(i)*fbound(1, i)/avpolneg(i)
-
-  fNcharge(1,i) = (1.0 -fbound(1,i))/(1.0+ (K0A*xh(i))/(xHplus(i)))
-  fNcharge(2,i) = (1.0 -fbound(2,i))/(1.0+ (K0b*xh(i))/(XOHmin(i)))
-
-
-
-
-Check_Kbind= fbound(2,i)/(  (1.0-fbound(1,i)-fNcharge(1,i))*(1.0-fbound(2,i)&
--fNcharge(2,i))*avpolpos(i)/vpol/vsol ) -Kbind0
-
-Check_Kaplus= -log10( (xHplus(i)/xh(i))*((1-fNcharge(1,i) -fbound(1,i))/fNcharge(1,i))*(xsolbulk*1.0d24/(Na*vsol)))-pKaA                         
-Check_Kbmin=  (xOhmin(i)/xh(i))*(1.0-fbound(2,i)-fNcharge(2,i))/fbound(2,i)-K0B !!
-
-
-print*,'checkeo',Check_Kbind, Check_Kaplus,Check_Kbmin
-print*, fbound(1, i),fbound(2, i),fNcharge(1,i),fNcharge(2,i)
-
-stop
+!Check_Kbind= fbound(2,i)/((1.0-fbound(1,i)-fNcharge(1,i))*(1.0-fbound(2,i)&
+!-fNcharge(2,i))*avpolneg(i)/vpol/vsol ) -Kbind0
+!Check_Kbmin=  (xOhmin(i)/xh(i))*(1.0-fbound(2,i)-fNcharge(2,i))/fNcharge(2,i)-K0B/xsolbulk !!
+!Check_Kaplus= (xHplus(i)/xh(i))*(1.0-fbound(1,i)-fNcharge(1,i))/fNcharge(1,i)-K0A/xsolbulk !!
+!print*,'checkeo',Check_Kbind, Check_Kaplus,Check_Kbmin, Kbind0
+!print*, fbound(1, i),fbound(2, i),fNcharge(1,i),fNcharge(2,i)
 
 enddo
 
@@ -376,18 +360,16 @@ do i=1,n
 + avpolpos(i)*zpol(2)/vpol*(1.0-fbound(2,i)-fNcharge(2,i)) + xHplus(i)-xOHmin(i)                        !!
 enddo
 
-i = 1
-print*, 'salt', (zpos*xpos(1)+zneg*xneg(1))/vsalt
-print*, 'polneg', avpolneg(i)*zpol(1)/vpol*(1.0-fbound(1,i)-fNcharge(1,i))
-print*, 'polpos', avpolpos(i)*zpol(2)/vpol*(1.0-fbound(2,i)-fNcharge(2,i))
-print*, 'others', xHplus(i)-xOHmin(i)
-
-print*,'avpolpos', avpolpos(i)
-print*,'zpol(2)', zpol(2)
-print*,'fractionb', fbound(2,i)
-print*,'fractionN',fNcharge(2,i)
-
-stop
+!i = 1
+!print*, 'salt', (zpos*xpos(1)+zneg*xneg(1))/vsalt
+!print*, 'polneg', avpolneg(i)*zpol(1)/vpol*(1.0-fbound(1,i)-fNcharge(1,i))
+!print*, 'polpos', avpolpos(i)*zpol(2)/vpol*(1.0-fbound(2,i)-fNcharge(2,i))
+!print*, 'others', xHplus(i)-xOHmin(i)
+!print*,'avpolpos', avpolpos(i)
+!print*,'zpol(2)', zpol(2)
+!print*,'fractionb', fbound(2,i)
+!print*,'fractionN',fNcharge(2,i)
+!stop
 
 
 wperm = 0.114 !water permitivity in units of e^2/kT.nm
@@ -424,7 +406,7 @@ do i = 1, n*2
  algo = algo + f(i)**2
 end do
 
-if(rank.eq.0)PRINT*, iter, algo
+if(rank.eq.0)PRINT*, iter, algo, xh(1), avpolpos(1), avpolneg(1)
 norma=algo
 
 3333 continue
