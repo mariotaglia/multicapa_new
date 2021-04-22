@@ -69,8 +69,6 @@ real*8 sumpi,sumrho,sumrhopol, sumrho2, sumrho2mol !suma de la fraccion de polim
 INTEGER LT ! layer type being adsorbed
 integer ini,fin,step
 
-real*8 fNchargebulk(2)
-
 
 ! global running files
 character*15 meanzfilename

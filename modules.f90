@@ -79,6 +79,9 @@ integer pegado
 REAL*8 Kbind, Kbind0
 REAL*8,allocatable :: fbound(:,:)
 real*8, allocatable ::  fNcharge(:,:)
+real*8 fNchargebulk(2)
+
+
 integer maxpol
 
 endmodule
