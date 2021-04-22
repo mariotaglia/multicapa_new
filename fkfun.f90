@@ -143,6 +143,7 @@ if (nads.gt.0) then
 
 endif
 
+
 !!! calculation of fbound 
 
 if (curvature.lt.0) then
@@ -154,9 +155,18 @@ do i=maxpol, ntot ! see notes, A = pos = 2, B = neg = 1, maxpol < radio
   !auxB = -1.0 -auxC - 1.0/Kbind0/(avpolpos(i)/vpol/vsol)
   fbound(2, i) = (-auxB - SQRT(auxB**2 - 4.0*auxC))/2.0
   fbound(1, i) = avpolpos(i)*fbound(2,i)/avpolneg(i)
+
   fNcharge(1,i) = (1.0 -fbound(1,i))/(1.0+ (K0A/xsolbulk)/(xHplus(i)/xh(i)))
   fNcharge(2,i) = (1.0 -fbound(2,i))/(1.0+ (K0b/xsolbulk)/(XOHmin(i)/xh(i)))
 enddo
+
+do i=1,maxpol-1
+  fNcharge(1,i) = 1.0/(1.0+ (K0A/xsolbulk)/(xHplus(i)/xh(i)))
+  fNcharge(2,i) = 1.0/(1.0+ (K0b/xsolbulk)/(XOHmin(i)/xh(i)))
+enddo
+
+
+
 
 else
 
@@ -167,8 +177,11 @@ do i=radio,maxpol ! see notes, A = pos = 2, B = neg = 1
   !auxB = -1.0 -auxC - 1.0/Kbind0/(avpolpos(i)/vpol/vsol)
   fbound(2, i) = (-auxB - SQRT(auxB**2 - 4.0*auxC))/2.0
   fbound(1, i) = avpolpos(i)*fbound(2,i)/avpolneg(i)
+
   fNcharge(1,i) = (1.0 -fbound(1,i))/(1.0+ (K0A/xsolbulk)/(xHplus(i)/xh(i)))
   fNcharge(2,i) = (1.0 -fbound(2,i))/(1.0+ (K0b/xsolbulk)/(XOHmin(i)/xh(i)))
+
+!  print*, i, fNcharge(1,i),(1.0 -fbound(1,i))/(1.0+ (K0A/xsolbulk)/(xHplus(i)/xh(i)))
 
 !Check_Kbind= fbound(2,i)/((1.0-fbound(1,i)-fNcharge(1,i))*(1.0-fbound(2,i)&
 !-fNcharge(2,i))*avpolneg(i)/vpol/vsol ) -Kbind0
@@ -178,6 +191,12 @@ do i=radio,maxpol ! see notes, A = pos = 2, B = neg = 1
 !print*, fbound(1, i),fbound(2, i),fNcharge(1,i),fNcharge(2,i)
 
 enddo
+
+do i=maxpol+1, ntot
+  fNcharge(1,i) = 1.0/(1.0+ (K0A/xsolbulk)/(xHplus(i)/xh(i)))
+  fNcharge(2,i) = 1.0/(1.0+ (K0b/xsolbulk)/(XOHmin(i)/xh(i)))
+enddo
+
 
 !Check_Kbind(i)=-log10( (Na/1.0d24)*fbound(1,i)/(  (1.0-fbound(1,i)-fNcharge(1,i)*(1.0-fbound(2,i)-fNcharge(2,i))*xna(iz) ) )/Kbind0
       ! KKaAcheckplus(iz)= -log10( (xHplus(iz)/xh(iz))*((1-fdisANC(iz)-fdisANa(iz)&             !! 
@@ -207,7 +226,10 @@ do i = 1, ntot
 
 protemp = dlog(xh(i)**(vpol))
 protemp = protemp-dlog(1.0-fbound(AT, i)-fNcharge(AT,i))
-protemp = protemp -psi2(i)*zpol(AT)
+protemp = protemp-psi2(i)*zpol(AT)
+
+
+
 !do iz = -Xulimit, Xulimit
 !if((iz+i).ge.1) then
 !if(AT.eq.1) then ! pos
@@ -348,6 +370,8 @@ enddo
 do i=1,n
  qtot(i) = (zpos*xpos(i)+zneg*xneg(i))/vsalt + avpolneg(i)*zpol(1)/vpol*(1.0-fbound(1,i)-fNcharge(1,i))& !!
 + avpolpos(i)*zpol(2)/vpol*(1.0-fbound(2,i)-fNcharge(2,i)) + xHplus(i)-xOHmin(i)                        !!
+
+
 enddo
 
 !i = 1

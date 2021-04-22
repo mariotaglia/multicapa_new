@@ -81,6 +81,7 @@ character*26 denssolfilename  ! contains the denisty of the solvent
 character*29 denspolfilename(adsmax)
 character*28 densendfilename
 character*26 densbindfilename(2)
+character*26 denschargefilename(2)
 CHARACTER*24 totalfilename
 character*27 denspol2filename
 
@@ -395,11 +396,18 @@ xsolbulk=1.0 -xHplusbulk -xOHminbulk - xnegbulk -xposbulk -phibulkpol
   print*, 'Charge in bulk in q/nm^3'
   print*, '+',xposbulk/(vsol*vsalt)
   print*, '-', xnegbulk/(vsol*vsalt)
+  print*, 'H+', xHplusbulk/vsol
+  print*, 'OH-', xOHminbulk/vsol
+ 
   if(LT.eq.1)print*, 'pol-',phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1))
   if(LT.eq.1)print*, 'f pol-',(1.0-fNchargebulk(1))
   if(LT.eq.2)print*, 'pol+',phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(2))
   if(LT.eq.2)print*, 'f pol+',(1.0-fNchargebulk(2))
 
+  print*, 'sum:', xposbulk/(vsol*vsalt)+xHplusbulk/vsol-xnegbulk/(vsol*vsalt)- & 
+  xOHminbulk/vsol-phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1))
+
+!stop
 
 
 
@@ -412,9 +420,11 @@ expmuHplus = xHplusbulk /xsolbulk   ! vsol = vHplus
 expmuOHmin = xOHminbulk /xsolbulk   ! vsol = vOHmin 
 !!!
 
-expmupol= (phibulkpol*vsol)/(vpol*vsol*long(LT)*xsolbulk**(long(LT)*vpol))        ! exp of bulk value of pol. chem. pot.
+expmupol = (phibulkpol*vsol)/(vpol*vsol*long(LT)*xsolbulk**(long(LT)*vpol))        ! exp of bulk value of pol. chem. pot.
 expmupol = expmupol/sumweight(LT)
-expmupol=expmupol/dexp(sumXu11*st/(vpol*vsol)*(phibulkpol)*long(LT))
+expmupol = expmupol*(1.0-fNchargebulk(LT))**long(LT)
+
+!expmupol=expmupol/dexp(sumXu11*st/(vpol*vsol)*(phibulkpol)*long(LT))
 
 !!!!
 ! solver
@@ -583,6 +593,10 @@ end do
 do ii = 1, 2
 write(densbindfilename(ii),'(A12,BZ,I2.2, A1, I3.3,A1,I3.3,A4)')'densitybind',ii,'.', countfileuno,'.',countfile,'.dat'
 end do
+do ii = 1, 2
+write(denschargefilename(ii),'(A12,BZ,I2.2, A1, I3.3,A1,I3.3,A4)')'densitycharge',ii,'.', countfileuno,'.',countfile,'.dat'
+end do
+
 
 open(unit=310,file=sysfilename)
 open(unit=321,file=denspol2filename)
@@ -598,6 +612,7 @@ open(unit=335,file=potenfilename)
 
 do ii = 1,2
 open(unit=500+ii+5,file=densbindfilename(ii))
+open(unit=700+ii+5,file=denschargefilename(ii))
 end do
 
 do jj = 1, nads+1
@@ -610,6 +625,8 @@ write(330,*)zc(i),xsol(i)
 
 do ii = 1,2
 write(500+ii+5,*)zc(i),fbound(ii, i)
+write(700+ii+5,*)zc(i),1.-fNcharge(ii, i)-fbound(ii,i)
+
 end do
 
 do jj = 1, nads+1

@@ -225,7 +225,7 @@ if(rank.eq.0)print*,'Feq',F_eq*delta/(vpol*vsol)
 if (AT.eq.1) then 
   do iR=1, n ! Negativo
      F_EQ=F_EQ-phibulkpol*(1.0-fNchargebulk(AT))*(log(1.0-fNchargebulk(AT))) *jacobian(iR)
-     F_Eq=F_eq-phibulkpol*fNchargebulk(AT)*log(fNchargebulk(AT)*jacobian(iR)
+     F_Eq=F_eq-phibulkpol*fNchargebulk(AT)*log(fNchargebulk(AT))*jacobian(iR)
      F_Eq=F_eq-phibulkpol*fNchargebulk(AT)*log(K0A/xsolbulk)*jacobian(iR)
      F_Eq=F_eq+phibulkpol*(log(expmuHplus))*jacobian(iR)
  enddo
@@ -234,7 +234,7 @@ else if (AT.eq.2) then
 
    do iR = 1,n ! Positivo
      F_EQ=F_EQ-phibulkpol*(1.0-fNchargebulk(AT))*(log(1.0-fNchargebulk(AT))) *jacobian(iR)
-     F_Eq=F_eq-phibulkpol*fNchargebulk(AT)*log(fNchargebulk(AT)*jacobian(iR)
+     F_Eq=F_eq-phibulkpol*fNchargebulk(AT)*log(fNchargebulk(AT))*jacobian(iR)
      F_eq=F_eq-phibulkpol*fNchargebulk(AT)*log(k0B/xsolbulk)*jacobian(iR)
      F_Eq=F_eq+phibulkpol*log(expmuOHmin)*jacobian(iR)
   enddo
