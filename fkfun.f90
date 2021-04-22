@@ -274,6 +274,10 @@ q_tosend(ii)=0.0d0                   ! init q to zero (para c/layer)
  pro(i) = 1.0
  nnn = 0.0
 
+
+! print*, ii, i, minpos(AT,i,ii), maxpos(AT, i, ii)
+
+
     do j=minpos(AT,i,ii), maxpos(AT,i,ii) ! posicion dentro del poro
 
 ! reflecting boundary condition
@@ -319,6 +323,7 @@ q_tosend(ii)=0.0d0                   ! init q to zero (para c/layer)
  
  enddo ! i
 
+
 enddo   ! ii
 
 avpol_tosend=avpol_tmp
@@ -363,6 +368,7 @@ do jj = 0, nads
  f(i) = f(i) + avpol(jj, i)
 end do
  f(i) = f(i) + avpol2(i)
+
 enddo
 
 
@@ -370,8 +376,6 @@ enddo
 do i=1,n
  qtot(i) = (zpos*xpos(i)+zneg*xneg(i))/vsalt + avpolneg(i)*zpol(1)/vpol*(1.0-fbound(1,i)-fNcharge(1,i))& !!
 + avpolpos(i)*zpol(2)/vpol*(1.0-fbound(2,i)-fNcharge(2,i)) + xHplus(i)-xOHmin(i)                        !!
-
-
 enddo
 
 !i = 1
@@ -430,6 +434,7 @@ iter=iter+1
 algo = 0.0
 do i = 1, n*3
  algo = algo + f(i)**2
+
 end do
 
 if(rank.eq.0)PRINT*, iter, algo, xh(1), xtotal(1), avpolpos(1), avpolneg(1)
@@ -437,6 +442,8 @@ norma=algo
 
 
 3333 continue
+
+
 
 
 ier2 = 0
