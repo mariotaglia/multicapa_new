@@ -275,7 +275,8 @@ do iR=1, n
  sumpi= sumpi - log(xsolbulk)*jacobian(iR)
  sumrho= sumrho+(-xsol(iR) -xHplus(ir) -xOHmin(ir)-(xpos(ir)+xneg(ir))/vsalt)*jacobian(iR) !!
  sumrho= sumrho-(-xsolbulk-xHplusbulk -xOHminbulk-(xposbulk+xnegbulk)/vsalt)*jacobian(iR)!!
- sumel = sumel - qtot(ir)*psi(ir)/2.0 ! electrostatic part free energy  
+ sumel = sumel - qtot(ir)*psi(ir)/2.0 * jacobian(iR)
+ sumel = sumel + (avpolnegcero(iR)*zpol(1)+avpolposcero(iR)*zpol(2))/vpol*psi(iR)/2.0*jacobian(iR)    ! electrostatic part free energy  
  sumrhopol=sumrhopol-(rhopol2(iR)) *jacobian(iR)
  sumrhopol=sumrhopol-(-Fact_rhobulk)*jacobian(iR)
 
@@ -311,6 +312,7 @@ sumas=sumas*delta/(vpol*vsol)!
 
 
 
+if(rank.eq.0)print*,'sumel',sumel
 if(rank.eq.0)print*,'sumpi',sumpi
 if(rank.eq.0)print*,'sumrho',sumrho
 if(rank.eq.0)print*,'sumrhopol',sumrhopol
