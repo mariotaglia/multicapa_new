@@ -83,6 +83,7 @@ character*28 densendfilename
 character*26 densbindfilename(2)
 character*26 denschargefilename(2)
 CHARACTER*24 totalfilename
+CHARACTER*24 qtotfilename
 character*27 denspol2filename
 
 
@@ -584,6 +585,7 @@ write(xnegfilename,'(A10,BZ,I3.3,A1,I3.3,A4)')'xnegtotal.',countfileuno,'.',coun
 write(xHplusfilename,'(A12,BZ,I3.3,A1,I3.3,A4)')'xHplustotal.',countfileuno,'.',countfile,'.dat'
 write(xOHminfilename,'(A12,BZ,I3.3,A1,I3.3,A4)')'xOHmintotal.',countfileuno,'.',countfile,'.dat'
 write(potenfilename,'(A6,BZ,I3.3,A1,I3.3,A4)')'poten.',countfileuno,'.',countfile,'.dat'
+write(qtotfilename,'(A6,BZ,I3.3,A1,I3.3,A4)')'q_tot.',countfileuno,'.',countfile,'.dat'
 
 
 do jj = 1, nads+1
@@ -591,7 +593,7 @@ write(denspolfilename(jj),'(A14,BZ,I2.2,A1,I3.3,A1,I3.3,A4)')'densitypolymer',jj
 end do
 
 do ii = 1, 2
-write(densbindfilename(ii),'(A12,BZ,I2.2, A1, I3.3,A1,I3.3,A4)')'densitybind',ii,'.', countfileuno,'.',countfile,'.dat'
+write(densbindfilename(ii),'(A11,BZ,I2.2, A1, I3.3,A1,I3.3,A4)')'densitybind',ii,'.', countfileuno,'.',countfile,'.dat'
 end do
 do ii = 1, 2
 write(denschargefilename(ii),'(A12,BZ,I2.2, A1, I3.3,A1,I3.3,A4)')'densitycharge',ii,'.', countfileuno,'.',countfile,'.dat'
@@ -608,6 +610,7 @@ open(unit=332,file=xnegfilename)
 open(unit=333,file=xHplusfilename)
 open(unit=334,file=xOHminfilename)
 open(unit=335,file=potenfilename)
+open(unit=336,file=qtotfilename)
 
 
 do ii = 1,2
@@ -644,6 +647,7 @@ write(332,*)zc(i),xneg(i)
 write(333,*)zc(i),xHplus(i)
 write(334,*)zc(i),xOHmin(i)
 write(335,*)zc(i),psi(i)
+write(336,*)zc(i),qtot(i)
 end do
 
 
