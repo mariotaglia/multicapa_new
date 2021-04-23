@@ -35,6 +35,9 @@ integer sumnewcuantas
 integer err
 
 
+Free_energy=0.0
+Free_energy2=0.0
+
 if(rank.eq.0) then
 print*, 'Starting free energy calculation...'
 ! open files
@@ -192,12 +195,12 @@ F_EQ=0.
 !!!!   avpolpos==<na> y avpolneg == <nb> 
 
 do iR=1, n ! Negativo
+
 F_EQ=F_EQ+avpolneg(iR)*fbound(1,iR)*(-log(Kbind0)) *jacobian(iR)
-!F_EQ=F_EQ+avpolpos(i)*fbound(1,i)*(-log( fbound(2,i)/(1.0-fbound(1,i))/(1.0-fbound(2,i))/(avpolpos(i)/vsol/vpol) )) !chequear signo
 F_EQ=F_EQ+avpolneg(iR)*(1.0-fbound(1,iR)-fNcharge(1,ir))*(log(1.0-fbound(1,iR)-fNcharge(1,ir))) *jacobian(iR)
 F_Eq=F_eq+avpolneg(iR)*fNcharge(1,iR)*log(fNcharge(1,iR))*jacobian(iR)
 F_Eq=F_eq+avpolneg(iR)*fNcharge(1,iR)*log(K0A/xsolbulk)*jacobian(iR)
-F_Eq=F_eq-avpolneg(iR)*(log(expmuHplus))*jacobian(iR)
+F_Eq=F_eq-avpolneg(iR)*fNcharge(1,iR)*(log(expmuHplus))*jacobian(iR)
 
 if (fbound(1,iR).gt.0.0)then
   F_eq=F_eq+avpolpos(iR)*(fbound(1,iR))*(log(fbound(1,iR))) *jacobian(iR)
@@ -215,7 +218,7 @@ endif
  F_eq=F_eq + avpolpos(iR)*(1.-fbound(2,iR)-fNcharge(2,ir))*log(1.-fbound(2,iR)-fNcharge(2,ir)) *jacobian(iR) !<= ojo, habia error de parentesis
  F_eq=F_Eq + avpolpos(iR)*(fncharge(2,iR)*log(fncharge(2,iR)))*jacobian(iR)
  F_eq=F_eq + avpolpos(iR)*fNcharge(2,iR)*log(k0B/xsolbulk)*jacobian(iR)
- F_Eq=F_eq - avpolpos(iR)*log(expmuOHmin)*jacobian(iR)
+ F_Eq=F_eq - avpolpos(iR)*fNcharge(2,iR)*log(expmuOHmin)*jacobian(iR)
 enddo
 
 if(rank.eq.0)print*,'Feq',F_eq*delta/(vpol*vsol) 
@@ -227,7 +230,7 @@ if (AT.eq.1) then
      F_EQ=F_EQ-phibulkpol*(1.0-fNchargebulk(AT))*(log(1.0-fNchargebulk(AT))) *jacobian(iR)
      F_Eq=F_eq-phibulkpol*fNchargebulk(AT)*log(fNchargebulk(AT))*jacobian(iR)
      F_Eq=F_eq-phibulkpol*fNchargebulk(AT)*log(K0A/xsolbulk)*jacobian(iR)
-     F_Eq=F_eq+phibulkpol*(log(expmuHplus))*jacobian(iR)
+     F_Eq=F_eq+phibulkpol*fNchargebulk(AT)*(log(expmuHplus))*jacobian(iR)
  enddo
 
 else if (AT.eq.2) then
@@ -236,7 +239,7 @@ else if (AT.eq.2) then
      F_EQ=F_EQ-phibulkpol*(1.0-fNchargebulk(AT))*(log(1.0-fNchargebulk(AT))) *jacobian(iR)
      F_Eq=F_eq-phibulkpol*fNchargebulk(AT)*log(fNchargebulk(AT))*jacobian(iR)
      F_eq=F_eq-phibulkpol*fNchargebulk(AT)*log(k0B/xsolbulk)*jacobian(iR)
-     F_Eq=F_eq+phibulkpol*log(expmuOHmin)*jacobian(iR)
+     F_Eq=F_eq+phibulkpol*fNchargebulk(AT)*log(expmuOHmin)*jacobian(iR)
   enddo
 endif
 
@@ -282,10 +285,21 @@ if (AT.eq.1) then
  sumas=sumas+avpolneg(iR)*fbound(1,iR)*jacobian(iR)
  sumas=sumas+avpolpos(iR)*log(1.-fbound(2,iR)-fncharge(2,iR))*jacobian(iR)
  sumas=sumas+avpolnegcero(iR)*log(1.-fbound(1,iR)-fncharge(1,iR))*jacobian(iR)
+
+ sumas=sumas+avpolnegcero(iR)*fNcharge(1,iR)*log(fNcharge(1,iR))*jacobian(iR)
+ sumas=sumas+avpolnegcero(iR)*fNcharge(1,iR)*log(K0A/xsolbulk)*jacobian(iR)
+ sumas=sumas-avpolnegcero(iR)*fNcharge(1,iR)*(log(expmuHplus))*jacobian(iR)
+
+
 else
  sumas=sumas+avpolpos(iR)*fbound(2,iR)*jacobian(iR)
  sumas=sumas+avpolneg(iR)*log(1.-fbound(1,iR)-fNcharge(1,iR))*jacobian(iR)
  sumas=sumas+avpolposcero(iR)*log(1.-fbound(2,iR)-fncharge(2,iR))*jacobian(iR)
+
+ sumas=sumas+avpolposcero(iR)*(fncharge(2,iR)*log(fncharge(2,iR)))*jacobian(iR)
+ sumas=sumas+avpolposcero(iR)*fNcharge(2,iR)*log(k0B/xsolbulk)*jacobian(iR)
+ sumas=sumas-avpolposcero(iR)*fNcharge(2,iR)*log(expmuOHmin)*jacobian(iR)
+
 endif
 enddo
 
