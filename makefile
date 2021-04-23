@@ -12,7 +12,7 @@ LFLAGS = -lm /usr/lib/x86_64-linux-gnu/librt.so  -L/usr/local/lib  -lsundials_fk
 
 # some definitions
 SHELL = /bin/bash
-FFLAGS=  -fbacktrace -fbounds-check # -O3
+FFLAGS= -O3# -fbacktrace -fbounds-check # -O3
 
 ifeq ($(HOST),master) 
 

@@ -277,6 +277,7 @@ sumpi=0.0
 sumrho=0.0
 sumrhopol=0.0
 sumas=0.0
+sumel=0.0
 do iR=minR, maxR
 ! if (xsol(i)>0.)then
  sumpi= sumpi + log(xsol(iR))*(1.0-avpolnegcero(iR)-avpolposcero(iR)) *jacobian(iR)
@@ -285,7 +286,7 @@ do iR=minR, maxR
  sumrho= sumrho+(-xsol(iR) -xHplus(ir) -xOHmin(ir)-(xpos(ir)+xneg(ir))/vsalt)*jacobian(iR) !!
  sumrho= sumrho-(-xsolbulk-xHplusbulk -xOHminbulk-(xposbulk+xnegbulk)/vsalt)*jacobian(iR)!!
 
- sumel = sumel - qtot(ir)*psi(ir)/2.0 * jacobian(iR)
+ sumel = sumel - qtot(iR)*psi(iR)/2.0 * jacobian(iR)
  sumel = sumel + avpolnegcero(iR)*zpol(1)/vpol*psi(iR)*jacobian(iR)    ! electrostatic part free en
  sumel = sumel + avpolposcero(iR)*zpol(2)/vpol*psi(iR)*jacobian(iR)    ! electrostatic part free energy  
 
