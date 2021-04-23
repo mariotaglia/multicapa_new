@@ -327,7 +327,7 @@ endif
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-
+avpol = 0.0
 ! surface layer 
 if (curvature.lt.0) then ! pore
 avpol(0,n) = avpol(0,n) + sigma
