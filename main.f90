@@ -92,6 +92,7 @@ character*27 xnegfilename
 character*27 xHplusfilename
 character*27 xOHminfilename
 character*27 potenfilename
+character*27 rho2filename
 
 integer countfile         ! enumerates the outputfiles 
 integer countfileuno     ! enumerates the outputfiles para una corrida
@@ -408,10 +409,6 @@ xsolbulk=1.0 -xHplusbulk -xOHminbulk - xnegbulk -xposbulk -phibulkpol
   print*, 'sum:', xposbulk/(vsol*vsalt)+xHplusbulk/vsol-xnegbulk/(vsol*vsalt)- & 
   xOHminbulk/vsol-phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1))
 
-!stop
-
-
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !!
@@ -586,6 +583,7 @@ write(xHplusfilename,'(A12,BZ,I3.3,A1,I3.3,A4)')'xHplustotal.',countfileuno,'.',
 write(xOHminfilename,'(A12,BZ,I3.3,A1,I3.3,A4)')'xOHmintotal.',countfileuno,'.',countfile,'.dat'
 write(potenfilename,'(A6,BZ,I3.3,A1,I3.3,A4)')'poten.',countfileuno,'.',countfile,'.dat'
 write(qtotfilename,'(A6,BZ,I3.3,A1,I3.3,A4)')'q_tot.',countfileuno,'.',countfile,'.dat'
+write(rho2filename,'(A5,BZ,I3.3,A1,I3.3,A4)')'rho2.',countfileuno,'.',countfile,'.dat'
 
 
 do jj = 1, nads+1
@@ -611,6 +609,7 @@ open(unit=333,file=xHplusfilename)
 open(unit=334,file=xOHminfilename)
 open(unit=335,file=potenfilename)
 open(unit=336,file=qtotfilename)
+open(unit=337,file=rho2filename)
 
 
 do ii = 1,2
@@ -648,6 +647,7 @@ write(333,*)zc(i),xHplus(i)
 write(334,*)zc(i),xOHmin(i)
 write(335,*)zc(i),psi(i)
 write(336,*)zc(i),qtot(i)
+write(337,*)zc(i),rhopol2(i)
 end do
 
 

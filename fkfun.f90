@@ -323,7 +323,6 @@ q_tosend(ii)=0.0d0                   ! init q to zero (para c/layer)
  
  enddo ! i
 
-
 enddo   ! ii
 
 avpol_tosend=avpol_tmp
@@ -377,6 +376,7 @@ do i=1,n
  qtot(i) = (zpos*xpos(i)+zneg*xneg(i))/vsalt + avpolneg(i)*zpol(1)/vpol*(1.0-fbound(1,i)-fNcharge(1,i))& !!
 + avpolpos(i)*zpol(2)/vpol*(1.0-fbound(2,i)-fNcharge(2,i)) + xHplus(i)-xOHmin(i)                        !!
 enddo
+
 
 !i = 1
 !print*, '!', (1.0-fbound(1,1)-fNcharge(1,1)),qtot(1)
