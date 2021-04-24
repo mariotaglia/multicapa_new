@@ -211,8 +211,8 @@ F_Eq=F_eq+avpolneg(iR)*fNcharge(1,iR)*log(K0A/xsolbulk)*jacobian(iR)
 F_Eq=F_eq-avpolneg(iR)*fNcharge(1,iR)*(log(expmuHplus))*jacobian(iR)
 
 if (fbound(1,iR).gt.0.0)then
-  F_eq=F_eq+avpolpos(iR)*(fbound(1,iR))*(log(fbound(1,iR))) *jacobian(iR)
-  F_eq=F_eq-avpolpos(iR)*fbound(1,iR)*(log(avpolpos(iR)/vpol/vsol*fbound(1,iR))-1.0)*jacobian(iR) !vab =1 <= no, ojo, aca va vpol
+  F_eq=F_eq+avpolneg(iR)*(fbound(1,iR))*(log(fbound(1,iR))) *jacobian(iR)
+  F_eq=F_eq-avpolneg(iR)*fbound(1,iR)*(log(avpolneg(iR)/vpol/vsol*fbound(1,iR))-1.0)*jacobian(iR) !vab =1 <= no, ojo, aca va vpol
 endif
 enddo
 
