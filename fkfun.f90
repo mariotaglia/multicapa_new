@@ -437,7 +437,7 @@ do i = 1, n*3
 
 end do
 
-if(rank.eq.0)PRINT*, iter, algo, xh(1)
+if(rank.eq.0)PRINT*, iter, algo
 norma=algo
 
 
