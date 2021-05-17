@@ -516,7 +516,7 @@ do i=1,n
 xsol(i)=x1(i)
 enddo
 
-if(norma.gt.error)stop
+!if(norma.gt.error)stop
 
 if(norma.gt.error) then
 if(ccc.eq.1) then
@@ -542,6 +542,11 @@ endif
 ! Determination of adsorbed polymer
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+
+! only for last Kbind
+
+if (ccc.eq.nKbind) then
+
 if(rank.eq.0) then
 sumrho2 = 0.0
 do i=1,n
@@ -561,14 +566,16 @@ meanz=0.0
 sumrhoz=0.0
 
 do i=1,n
-do jj = 1, nads
+do jj = 1, nads+1
 meanz=meanz+(avpol(jj,i))*zc(i)
 sumrhoz=sumrhoz+avpol(jj,i)
 end do
-meanz=meanz+(avpol2(i))*zc(i) 
-sumrhoz=sumrhoz+avpol2(i)
+!meanz=meanz+(avpol2(i))*zc(i) 
+!sumrhoz=sumrhoz+avpol2(i)
 enddo
 meanz=meanz/sumrhoz
+
+endif ! only for last Kbind
 
 
 write(535,*)(nads+1), meanz

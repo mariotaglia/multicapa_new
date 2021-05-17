@@ -42,7 +42,7 @@ double precision vtemp1(*), vtemp2(*)
 common /psize/ neq
 
 do i = 1, ntot
-   pp(i) = 0.1 / (1.0+exp(-udata(i)))
+   pp(i) = 0.1  / (1.0+exp(-udata(i)))
 enddo
 do i = ntot+1, ntot*2
    pp(i) = 1.0 !0.1 / (1.0+exp(-udata(i)))
@@ -83,10 +83,10 @@ neq=ntot*3
 ! INICIA KINSOL
 
 msbpre  = 10 ! maximum number of iterations without prec. setup (?)
-fnormtol = 1.0d-6 ! Function-norm stopping tolerance
-scsteptol = 1.0d-6 ! Function-norm stopping tolerance
+fnormtol = 1.0d-8 ! Function-norm stopping tolerance
+scsteptol = 1.0d-8 ! Function-norm stopping tolerance
 
-maxl = 1000 ! maximum Krylov subspace dimesion (?!?!?!) ! Esto se usa para el preconditioner
+maxl = 4000 ! maximum Krylov subspace dimesion (?!?!?!) ! Esto se usa para el preconditioner
 maxlrst = 5 ! maximum number of restarts
 max_niter = 5000
 globalstrat = 0
@@ -150,7 +150,6 @@ print*, 'IER:', ier
 if (ier .lt. 0) then
       print*, 'call_kinsol: SUNDIALS_ERROR: FKINSOL returned IER = ', ier
       print*, 'call_kinsol: Linear Solver returned IER = ', iout(9)
-      call fkinfree
       stop
 endif
 
