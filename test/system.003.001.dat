@@ -1,5 +1,5 @@
  system      = neutral polymer
- fnorm       =    4.0878435573124127E-017
+ fnorm       =    4.9048991279600132E-018
  error       =    9.9999999999999995E-007
  q           =    0.0000000000000000     
  length seg  =   0.500000000    
@@ -14,5 +14,5 @@
  sigma       =    1.0000000000000000E-003
  cuantas(1)     =       100000
  cuantas(2)     =       100000
- iterations  =          462
+ iterations  =          449
  Tipo de capa=           1
