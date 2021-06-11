@@ -32,7 +32,7 @@ real*8 rhopol2_tmp(ntot) !Nuevo
 integer k
 real*8 q_tosend(ntot), splp_tosend(ntot)
 real*8 q0(ntot), splp0(ntot)
-real*8  Check_kbind,check_Kaplus,check_kbmin
+real*8  Check_kbind,check_Kaplus,check_kbmin,check_KANA,check_KBCL
 double precision, external :: factorcurv
 
 
@@ -93,6 +93,9 @@ do i=1,n
    xOHmin(i) = expmuOHmin*(xh(i))*exp(+psi2(i))         ! OH-  volume fraction
 enddo
 
+print*,'xpos,xneg,xhplus,xohmin',xpos(10),xneg(10),xhplus(10),xohmin(10)
+!stop
+
 ! stoichoimetry
 
 avpolpos = 0.0
@@ -150,19 +153,57 @@ if (curvature.lt.0) then
 
 do i=maxpol, ntot ! see notes, A = pos = 2, B = neg = 1, maxpol < radio
   auxC = avpolneg(i)/avpolpos(i)
-  auxB = -1.0 -auxC - (1.0+(xOhmin(i)/xh(i))/(K0B/xsolbulk))*(1.0+ &
-  (xHplus(i)/xh(i))/(K0A/xsolbulk))/Kbind0/(avpolpos(i)/vpol/vsol) !!
+  auxB = -1.0 -auxC - (1.0+(xOhmin(i)/xh(i))/(K0B/xsolbulk)+(xneg(i)/((K0BCl/(vsalt*xsolbulk))*xh(i)**vsalt)))*(1.0+ &
+  (xHplus(i)/xh(i))/(K0A/xsolbulk)+ xpos(i)/((K0ANa/(xsolbulk*vsalt))*xh(i)**vsalt))/Kbind0/(avpolpos(i)/vpol/vsol) !!
   !auxB = -1.0 -auxC - 1.0/Kbind0/(avpolpos(i)/vpol/vsol)
   fbound(2, i) = (-auxB - SQRT(auxB**2 - 4.0*auxC))/2.0
   fbound(1, i) = avpolpos(i)*fbound(2,i)/avpolneg(i)
 
-  fNcharge(1,i) = (1.0 -fbound(1,i))/(1.0+ (K0A/xsolbulk)/(xHplus(i)/xh(i)))
-  fNcharge(2,i) = (1.0 -fbound(2,i))/(1.0+ (K0b/xsolbulk)/(XOHmin(i)/xh(i)))
+  fNcharge(1,i) = (1.0 -fbound(1,i))/(1.0+ (K0A/xsolbulk)/(xHplus(i)/xh(i)) &
+ +( (K0A/xsolbulk)*xpos(i)*(xh(i)**(1.-vsalt)))/((K0Ana/(vsalt*xsolbulk))*xHplus(i) )  )
+  fNcharge(2,i) = (1.0 -fbound(2,i))/(1.0+ (K0b/xsolbulk)/(XOHmin(i)/xh(i))&
+ +( (K0B/xsolbulk)*xneg(i)*(xh(i)**(1.-vsalt)))/((K0BCl/(vsalt*xsolbulk))*xOHmin(i) )  )
+
+  fioncharge(1,i) = (fNcharge(1,i))*(K0a/xsolbulk)*xpos(i)* (xh(i)**(1.0-vsalt) )/(xHplus(i)*K0Ana/(vsalt*xsolbulk) )
+  fioncharge(2,i) = (fNcharge(2,i))*(K0b/xsolbulk)*xneg(i)*(xh(i)**(1.0-vsalt))/(xOHmin(i)*K0BCl/(vsalt*xsolbulk))
+
+Check_Kbind= fbound(2,i)/((1.0-fbound(1,i)-fNcharge(1,i))*(1.0-fbound(2,i)&
+             -fNcharge(2,i))*avpolneg(i)/vpol/vsol ) -Kbind0
+Check_Kbmin=  (xOhmin(i)/xh(i))*(1.0-fbound(2,i)-fNcharge(2,i))/fNcharge(2,i)-K0B/xsolbulk !!
+Check_Kaplus= (xHplus(i)/xh(i))*(1.0-fbound(1,i)-fNcharge(1,i))/fNcharge(1,i)-K0A/xsolbulk !!
+
+
+print*,'checkeo',Check_Kbind, Check_Kaplus,Check_Kbmin, Kbind0
+print*,'f asociado', fbound(1, i),fbound(2, i)
+print*,'f nc' ,fNcharge(1,i),fNcharge(2,i)
+print*,'f ioncharge',fioncharge(1,i),fioncharge(2,i)
+if (abs (Check_Kbind+Check_Kbmin+Check_Kaplus) >1.d-1)then
+stop
+endif
+
 enddo
 
 do i=1,maxpol-1
-  fNcharge(1,i) = 1.0/(1.0+ (K0A/xsolbulk)/(xHplus(i)/xh(i)))
-  fNcharge(2,i) = 1.0/(1.0+ (K0b/xsolbulk)/(XOHmin(i)/xh(i)))
+  fNcharge(1,i) = 1.0/(1.0+ (K0A/xsolbulk)/(xHplus(i)/xh(i))) &
+ +( (K0A/xsolbulk)*xpos(i)*(xh(i)**(1.-vsalt)))/((K0Ana/(vsalt*xsolbulk))*xHplus(i) )  
+
+  fNcharge(2,i) = 1.0/(1.0+ (K0b/xsolbulk)/(XOHmin(i)/xh(i))&
+ +( (K0B/xsolbulk)*xneg(i)*(xh(i)**(1.-vsalt)))/((K0BCl/(vsalt*xsolbulk))*xOHmin(i) ) )
+
+  fioncharge(1,i) = (fNcharge(1,i))*(K0a/xsolbulk)*xpos(i)* (xh(i)**(1.0-vsalt) )/(xHplus(i)*K0Ana/(vsalt*xsolbulk) )
+  fioncharge(2,i) = (fNcharge(2,i))*(K0b/xsolbulk)*xneg(i)*(xh(i)**(1.0-vsalt))/(xOHmin(i)*K0BCl/(vsalt*xsolbulk))
+
+!Check_Kbind= fbound(2,i)/((1.0-fbound(1,i)-fNcharge(1,i))*(1.0-fbound(2,i)&
+!-fNcharge(2,i))*avpolneg(i)/vpol/vsol ) -Kbind0
+!Check_Kbmin=  (xOhmin(i)/xh(i))*(1.0-fbound(2,i)-fNcharge(2,i))/fNcharge(2,i)-K0B/xsolbulk !!
+!Check_Kaplus= (xHplus(i)/xh(i))*(1.0-fbound(1,i)-fNcharge(1,i))/fNcharge(1,i)-K0A/xsolbulk !!
+!print*,'checkeo',Check_Kbind, Check_Kaplus,Check_Kbmin, Kbind0
+!print*, fbound(1, i),fbound(2, i),fNcharge(1,i),fNcharge(2,i),fioncharge(1,i),fioncharge(2,i)
+!if (abs (Check_Kbind+Check_Kbmin+Check_Kaplus) >1.d-1)then
+!stop
+!endif
+
+
 enddo
 
 
@@ -171,36 +212,80 @@ enddo
 else
 
 do i=radio,maxpol ! see notes, A = pos = 2, B = neg = 1
+
   auxC = avpolneg(i)/avpolpos(i)
-  auxB = -1.0 -auxC - (1.0+(xOhmin(i)/xh(i))/(K0B/xsolbulk))*(1.0+ &
-  (xHplus(i)/xh(i))/(K0A/xsolbulk))/Kbind0/(avpolpos(i)/vpol/vsol) !!
+!  auxB = -1.0 -auxC - (1.0+(xOhmin(i)/xh(i))/(K0B/xsolbulk))*(1.0+ &
+!  (xHplus(i)/xh(i))/(K0A/xsolbulk))/Kbind0/(avpolpos(i)/vpol/vsol) !!
+  auxB = -1.0 -auxC - (1.0+(xOhmin(i)/xh(i))/(K0B/xsolbulk)+(xneg(i)/((K0BCl/(vsalt*xsolbulk**vsalt))*xh(i)**vsalt)))*(1.0+ &
+  (xHplus(i)/xh(i))/(K0A/xsolbulk)+ xpos(i)/((K0ANa/(vsalt*xsolbulk**vsalt))*xh(i)**vsalt))/Kbind0/(avpolpos(i)/vpol/vsol) !!
   !auxB = -1.0 -auxC - 1.0/Kbind0/(avpolpos(i)/vpol/vsol)
   fbound(2, i) = (-auxB - SQRT(auxB**2 - 4.0*auxC))/2.0
   fbound(1, i) = avpolpos(i)*fbound(2,i)/avpolneg(i)
 
-  fNcharge(1,i) = (1.0 -fbound(1,i))/(1.0+ (K0A/xsolbulk)/(xHplus(i)/xh(i)))
-  fNcharge(2,i) = (1.0 -fbound(2,i))/(1.0+ (K0b/xsolbulk)/(XOHmin(i)/xh(i)))
+  fNcharge(1,i) = (1.0 -fbound(1,i))/(1.0+ (K0A/xsolbulk)/(xHplus(i)/xh(i)) &
+ +( (K0A/xsolbulk)*xpos(i)*(xh(i)**(1.-vsalt)))/((K0Ana/(vsalt*xsolbulk**vsalt))*xHplus(i) )  )
+  fNcharge(2,i) = (1.0 -fbound(2,i))/(1.0+ (K0b/xsolbulk)/(XOHmin(i)/xh(i))&
+ +( (K0B/xsolbulk)*xneg(i)*(xh(i)**(1.-vsalt)))/((K0BCl/(vsalt*xsolbulk**vsalt))*xOHmin(i) ) )
 
-!  print*, i, fNcharge(1,i),(1.0 -fbound(1,i))/(1.0+ (K0A/xsolbulk)/(xHplus(i)/xh(i)))
+  fioncharge(1,i) = (fNcharge(1,i))*(K0a/xsolbulk)*xpos(i)* (xh(i)**(1.0-vsalt) )/(xHplus(i)*K0Ana/(vsalt*xsolbulk**vsalt) )
+  fioncharge(2,i) = (fNcharge(2,i))*(K0b/xsolbulk)*xneg(i)*(xh(i)**(1.0-vsalt))/(xOHmin(i)*K0BCl/(vsalt*xsolbulk**vsalt))
 
-!Check_Kbind= fbound(2,i)/((1.0-fbound(1,i)-fNcharge(1,i))*(1.0-fbound(2,i)&
-!-fNcharge(2,i))*avpolneg(i)/vpol/vsol ) -Kbind0
-!Check_Kbmin=  (xOhmin(i)/xh(i))*(1.0-fbound(2,i)-fNcharge(2,i))/fNcharge(2,i)-K0B/xsolbulk !!
-!Check_Kaplus= (xHplus(i)/xh(i))*(1.0-fbound(1,i)-fNcharge(1,i))/fNcharge(1,i)-K0A/xsolbulk !!
-!print*,'checkeo',Check_Kbind, Check_Kaplus,Check_Kbmin, Kbind0
-!print*, fbound(1, i),fbound(2, i),fNcharge(1,i),fNcharge(2,i)
+if (fbound(2,i).gt.0.)then
+Check_Kbind= fbound(2,i)/((1.0-fbound(1,i)-fNcharge(1,i)-fioncharge(1,i))*(1.0-fbound(2,i)&
+-fNcharge(2,i)-fioncharge(2,i))*avpolneg(i)/vpol/vsol ) -Kbind0
+else
+Check_Kbind=0.
+endif
+
+Check_Kbmin=  (xOhmin(i)/xh(i))*(1.0-fbound(2,i)-fNcharge(2,i)-fioncharge(2,i))/fNcharge(2,i)-K0B/xsolbulk !!
+Check_Kaplus= (xHplus(i)/xh(i))*(1.0-fbound(1,i)-fNcharge(1,i)-fioncharge(1,i))/fNcharge(1,i)-K0A/xsolbulk !!
+
+check_KANa=(1.0-fbound(1,i)-fNcharge(1,i)-fioncharge(1,i))*xpos(i)*vsalt/(fioncharge(1,i)*(xh(i)**vsalt))-K0ANA/xsolbulk**vsalt
+check_KbcL=(1.0-fbound(2,i)-fNcharge(2,i)-fioncharge(2,i))*xneg(i)*vsalt/(fioncharge(2,i)*(xh(i)**vsalt))-K0BCl/xsolbulk**Vsalt
+
+print*,'check',check_KANA,check_KBCL
+print*,'checkeo',Check_Kbind, Check_Kaplus,Check_Kbmin, Kbind0
+print*,'FRAC aso', fbound(1, i),fbound(2, i)
+print*,'FRAC nc' ,fNcharge(1,i),fNcharge(2,i)
+print*,'FRAC ion',fioncharge(1,i),fioncharge(2,i)
+!stop
+
+
+if (abs(Check_Kbind+Check_Kbmin+Check_Kaplus)+abs(check_KBCl+check_KaNA) >1.d-1)then
+stop
+endif
 
 enddo
 
 do i=maxpol+1, ntot
-  fNcharge(1,i) = 1.0/(1.0+ (K0A/xsolbulk)/(xHplus(i)/xh(i)))
-  fNcharge(2,i) = 1.0/(1.0+ (K0b/xsolbulk)/(XOHmin(i)/xh(i)))
+  fNcharge(1,i) = 1.0/(1.0+ (K0A/xsolbulk)/(xHplus(i)/xh(i))&
+ +( (K0A/xsolbulk)*xpos(i)*(xh(i)**(1.-vsalt)))/((K0Ana/(vsalt*xsolbulk))*xHplus(i) )  )
+
+  fNcharge(2,i) = 1.0/(1.0+ (K0b/xsolbulk)/(XOHmin(i)/xh(i))&
+ +( (K0B/xsolbulk)*xneg(i)*(xh(i)**(1.-vsalt)))/((K0BCl/(vsalt*xsolbulk))*xOHmin(i) ) )
+
+  fioncharge(1,i) = (fNcharge(1,i))*(K0a/xsolbulk)*xpos(i)* (xh(i)**(1.0-vsalt) )/(xHplus(i)*K0Ana/(vsalt*xsolbulk**vsalt) )
+
+  fioncharge(2,i) = (fNcharge(2,i))*(K0b/xsolbulk)*xneg(i)*(xh(i)**(1.0-vsalt))/(xOHmin(i)*K0BCl/(vsalt*xsolbulk**vsalt))
+
+!Check_Kbind= fbound(2,i)/((1.0-fbound(1,i)-fNcharge(1,i)-fioncharge(1,i))*(1.0-fbound(2,i)&
+!-fNcharge(2,i)-fioncharge(2,i))*avpolneg(i)/vpol/vsol ) -Kbind0
+Check_Kbmin=  (xOhmin(i)/xh(i))*(1.0-fbound(2,i)-fNcharge(2,i)-fioncharge(2,i))/fNcharge(2,i)-K0B/xsolbulk !!
+Check_Kaplus= (xHplus(i)/xh(i))*(1.0-fbound(1,i)-fNcharge(1,i)-fioncharge(1,i))/fNcharge(1,i)-K0A/xsolbulk !!
+print*,'checkeo',Check_Kbind, Check_Kaplus,Check_Kbmin, Kbind0
+print*, 'FRAC asociado',fbound(1, i),fbound(2, i)
+print*,'FRAC nc' ,fNcharge(1,i),fNcharge(2,i)
+print*,'FRAC  ioncharge',fioncharge(1,i),fioncharge(2,i)
+!if (abs(Check_Kbind+Check_Kbmin+Check_Kaplus) >1.d-1)then
+!stop
+!endif
+
+
+
 enddo
-
-
 !Check_Kbind(i)=-log10( (Na/1.0d24)*fbound(1,i)/(  (1.0-fbound(1,i)-fNcharge(1,i)*(1.0-fbound(2,i)-fNcharge(2,i))*xna(iz) ) )/Kbind0
       ! KKaAcheckplus(iz)= -log10( (xHplus(iz)/xh(iz))*((1-fdisANC(iz)-fdisANa(iz)&             !! 
-      ! -fdisAas(iz))/fdisANC(iz))*(xsolbulk*1.0d24/(Na*vsol)))-pKaA                            !! esto era para chequear pkaA
+       !-fdisAas(iz))/fdisANC(iz))*(xsolbulk*1.0d24/(Na*vsol)))-pKaA                            !! esto era para chequear pkaA
       ! kkaBcheckmin(iz)=        (xOhmin(iz)/xh(iz))*(1.0-fdisBas(iz)-fdisBCl(iz)-fdisBNC(iz))/fdisBNC(iz)-K0B !!
 
 
@@ -225,9 +310,8 @@ AT = Tcapas(nads+1) ! type of layer to add
 do i = 1, ntot
 
 protemp = dlog(xh(i)**(vpol))
-protemp = protemp-dlog(1.0-fbound(AT, i)-fNcharge(AT,i))
+protemp = protemp-dlog(1.0-fbound(AT, i)-fNcharge(AT,i)-fioncharge(AT,i))
 protemp = protemp-psi2(i)*zpol(AT)
-
 
 
 !do iz = -Xulimit, Xulimit
@@ -243,6 +327,8 @@ protemp = protemp-psi2(i)*zpol(AT)
 !enddo
 
 xpot(i) = dexp(protemp)
+
+
 enddo
 
 do i = n+1, 2*n
@@ -370,13 +456,24 @@ end do
 
 enddo
 
+print*,'test',xh(10),xneg(10),xpos(10),xhplus(10),xohmin(10)
+!stop
 
 
 do i=1,n
- qtot(i) = (zpos*xpos(i)+zneg*xneg(i))/vsalt + avpolneg(i)*zpol(1)/vpol*(1.0-fbound(1,i)-fNcharge(1,i))& !!
-+ avpolpos(i)*zpol(2)/vpol*(1.0-fbound(2,i)-fNcharge(2,i)) + xHplus(i)-xOHmin(i)                        !!
+ qtot(i) = (zpos*xpos(i)+zneg*xneg(i))/vsalt + avpolneg(i)*zpol(1)/vpol*(1.0-fbound(1,i)-fNcharge(1,i)-fioncharge(1,i))& !!
++ avpolpos(i)*zpol(2)/vpol*(1.0-fbound(2,i)-fNcharge(2,i)-fioncharge(2,i)) + xHplus(i)-xOHmin(i)                       !
 enddo
-
+!do i=1,n
+! qtot(i) = (zpos*xpos(i)+zneg*xneg(i))/vsalt + avpolneg(i)*zpol(1)/vpol*(1.0-fbound(1,i)-fNcharge(1,i))& !!
+!+ avpolpos(i)*zpol(2)/vpol*(1.0-fbound(2,i)-fNcharge(2,i)) + xHplus(i)-xOHmin(i)                       !
+!enddo
+!print*,'1est', (zpos*xpos(5)+zneg*xneg(5))/vsalt
+!print*,'charg', avpolneg(5)*zpol(1)/vpol*(1.0-fbound(1,5)-fNcharge(1,5)-fioncharge(1,5))
+!print*,'qtot',qtot(5),avpolneg(5),fbound(1,5),fncharge(1,5),fioncharge(1,5),avpolpos(5)
+!print*,'test',fncharge(2,5),fbound(2,5)
+!print*,'qtto',qtot(5)
+!stop
 
 !i = 1
 !print*, '!', (1.0-fbound(1,1)-fNcharge(1,1)),qtot(1)
@@ -428,7 +525,8 @@ do i = 1,n
 f(i+2*n) = -avpol2(i)+xtotal(i) 
 enddo
 
-
+!print*,'psi2 avpol2', psi2(10),avpol2(10)
+!stop
 iter=iter+1
 
 algo = 0.0

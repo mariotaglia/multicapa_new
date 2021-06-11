@@ -45,6 +45,12 @@ read(8, *), nada
 read(8, *), pKaB    ! pKaB of weak polyacid segments
 
 read(8, *), nada
+read(8, *), pKaANa    ! pKaA of weak polyacid segments
+
+read(8, *), nada
+read(8, *), pKaBCl   ! pKaB of weak polyacid segments
+
+read(8, *), nada
 read(8, *), csalt  ! salt concentration in bulk (Molar)
 
 read(8, *), nada

@@ -79,8 +79,9 @@ integer pegado
 REAL*8 Kbind, Kbind0
 REAL*8,allocatable :: fbound(:,:)
 real*8, allocatable ::  fNcharge(:,:)
+real*8, allocatable :: fioncharge(:,:)
 real*8 fNchargebulk(2)
-
+real*8 fionchargebulk(2)
 
 integer maxpol
 
@@ -131,6 +132,8 @@ real*8, parameter :: pi=dacos(-1.0d0)          ! pi = arccos(-1)
 real*8 K0A, K0B ,K0ANa,K0BCl, K0Eo!K0
 real*8 pKaA
 real*8 pkaB
+real*8 pKaANa
+real*8 pKaBCl
 real*8 Kw
 real*8 pKw
 

@@ -32,6 +32,7 @@ real*8 zc(ntot)           ! z-coordinate layer
 REAL*8 sumrhoz, meanz     ! Espesor medio pesado
 !real*8 pro                ! probability distribution function 
 
+real*8 check_KANa,check_KBCl,check_KAplus,check_Kbminbulk
 
 integer n                 ! number of lattice sites
 integer itmax             ! maximum number of iteration allowed for 
@@ -57,6 +58,8 @@ integer il,inda,ncha
 REAL*8 xfile(3*ntot)                        
 real*8 algo, algo2                  
 
+real*8 KaANa!!nw
+real*8 KaBCl!!nW
 
 integer*1 in1(maxlong)
 real*8 chains(3,maxlong,ncha_max) ! chains(x,i,l)= coordinate x of segement i ,x=2 y=3,z=1
@@ -145,6 +148,8 @@ pKw = 14.0 ! -log10(Kw)
 kW=10**(-pKw)
 KaA=10**(-pKaA)
 KaB=10**(-pKaB)
+KaANa=10**(-pKaANa)!!NW
+KaBCl=10**(-pKaBCl)!!NW
 
 
 cHplus = 10**(-pHbulk)    ! concentration H+ in bulk
@@ -364,14 +369,15 @@ write(sigmaadfilename,'(A8,BZ,I5.5,A4)')'sigmaad.',countfile,'.dat'
 Kbind0 = Kbind ! Intrinsic equilibrium constant from uncharged polymers.
 K0A = (KaA*vsol)*(Na/1.0d24)! intrinstic equilibruim constant 
 K0B = (Kw/KaB*vsol)*(Na/1.0d24)
-
+K0ANa = (KaANa*vsol)*(Na/1.0d24)! intrinstic equilibruim constant 
+K0BCl = (KaBCl*vsol)*(Na/1.0d24)! intrinstic equilibruim constant 
 
 
 !!!!!!!!! Calculate bulk composition !!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ! 1) disociation in bulk  
-  fNchargebulk(1) = 1.0/(1.0+ (K0A)/(xHplusbulk)) ! negativo
-  fNchargebulk(2) = 1.0/(1.0+ (K0b)/(XOHminbulk)) ! positivo
+!  fNchargebulk(1) = 1.0/(1.0+ (K0A)/(xHplusbulk)) ! negativo
+!  fNchargebulk(2) = 1.0/(1.0+ (K0b)/(XOHminbulk)) ! positivo
 
 ! 2) pH counterions
 if(pHbulk.le.7) then  ! pH<= 7
@@ -382,17 +388,34 @@ else                  ! pH >7
    xnegbulk=-xsalt/zneg
 endif
 
+!problema iterar como opcion
+xsolbulk=1.0 -xHplusbulk -xOHminbulk - xnegbulk -xposbulk -phibulkpol
+
+! 1) disociation in bulk  
+  fNchargebulk(1) = 1.0/(1.0+ (K0A/xHplusbulk)*(1.0+(xposbulk/K0ana ))) ! negativo
+  fNchargebulk(2) = 1.0/(1.0+ (K0b/XOHminbulk)*(1.0+(xnegbulk/K0BCl ))) ! positivo
+  fionchargebulk(1)= (1.0 -fnchargebulk(1))/(1.+(K0ANA/xposbulk))
+  fionchargebulk(2)= (1.0 -fnchargebulk(2))/(1.+(K0BCl/xnegbulk)) 
 ! 3) polymer counterions
    LT = Tcapas(nads+1) 
   select case (LT)
   case (1) ! negativo, sumar cations xposbulk en fraccion de volumen de cation
-     xposbulk = xposbulk + (phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)))*(vsalt*vsol) 
+     xposbulk = xposbulk + (phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)-fionchargebulk(1)))*(vsalt*vsol) 
   case (2) ! positivo, sumar aniones
-     xnegbulk = xnegbulk + (phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(2)))*(vsalt*vsol) 
+     xnegbulk = xnegbulk + (phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(2)-fionchargebulk(2)))*(vsalt*vsol) 
   endselect
 
-xsolbulk=1.0 -xHplusbulk -xOHminbulk - xnegbulk -xposbulk -phibulkpol
 
+Check_Kbminbulk=  (xOhminbulk/xsolbulk)*(1.0-fNchargebulk(2)-fionchargebulk(2))/fNchargebulk(2)-K0B/xsolbulk !!
+Check_Kaplus= (xHplusbulk/xsolbulk)*(1.0-fNchargebulk(1)-fionchargebulk(1))/fNchargebulk(1)-K0A/xsolbulk !!
+
+check_KANa=(1.0-fNchargebulk(1)-fionchargebulk(1))*xposbulk/(fionchargebulk(1)*(xsolbulk**vsalt))-K0ANA/xsolbulk**vsalt
+check_KbcL=(1.0-fNchargebulk(2)-fionchargebulk(2))*xnegbulk/(fionchargebulk(2)*(xsolbulk**vsalt))-K0BCl/xsolbulk**vsalt
+
+xsolbulk=1.0 -xHplusbulk -xOHminbulk - xnegbulk -xposbulk -phibulkpol
+print*,'xsol',xsolbulk
+print*,'checke',Check_Kbminbulk,Check_Kaplus,Check_KANA,Check_Kbcl
+!stop
 !!!!!!!! Charge in bulk !!!!!!!!!!!!!!!!!!!
 
   print*, 'Charge in bulk in q/nm^3'
@@ -401,16 +424,15 @@ xsolbulk=1.0 -xHplusbulk -xOHminbulk - xnegbulk -xposbulk -phibulkpol
   print*, 'H+', xHplusbulk/vsol
   print*, 'OH-', xOHminbulk/vsol
  
-  if(LT.eq.1)print*, 'pol-',phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1))
-  if(LT.eq.1)print*, 'f pol-',(1.0-fNchargebulk(1))
-  if(LT.eq.2)print*, 'pol+',phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(2))
-  if(LT.eq.2)print*, 'f pol+',(1.0-fNchargebulk(2))
-
+  if(LT.eq.1)print*, 'pol-',phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)-fionchargebulk(1))
+  if(LT.eq.1)print*, 'f pol-',(1.0-fNchargebulk(1)-fionchargebulk(1))
+  if(LT.eq.2)print*, 'pol+',phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(2)-fionchargebulk(2))
+  if(LT.eq.2)print*, 'f pol+',(1.0-fNchargebulk(2)-fionchargebulk(2))
+  
   print*, 'sum:', xposbulk/(vsol*vsalt)+xHplusbulk/vsol-xnegbulk/(vsol*vsalt)- & 
-  xOHminbulk/vsol-phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1))
+  xOHminbulk/vsol-phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)-fionchargebulk(1))
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 !!
 expmupos = xposbulk /xsolbulk**vsalt
 expmuneg = xnegbulk /xsolbulk**vsalt
@@ -420,7 +442,11 @@ expmuOHmin = xOHminbulk /xsolbulk   ! vsol = vOHmin
 
 expmupol = (phibulkpol*vsol)/(vpol*vsol*long(LT)*xsolbulk**(long(LT)*vpol))        ! exp of bulk value of pol. chem. pot.
 expmupol = expmupol/sumweight(LT)
-expmupol = expmupol*(1.0-fNchargebulk(LT))**long(LT)
+expmupol = expmupol*(1.0-fNchargebulk(LT)-fionchargebulk(LT))**long(LT)
+
+
+!print*,'expmu',expmupos,expmuneg,expmuhplus,expmuohmin,expmupol
+!stop
 
 !expmupol=expmupol/dexp(sumXu11*st/(vpol*vsol)*(phibulkpol)*long(LT))
 

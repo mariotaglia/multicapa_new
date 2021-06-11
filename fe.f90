@@ -205,10 +205,19 @@ F_EQ=0.
 do iR=minR, maxR ! Negativo
 
 F_EQ=F_EQ+avpolneg(iR)*fbound(1,iR)*(-log(Kbind0)) *jacobian(iR)
-F_EQ=F_EQ+avpolneg(iR)*(1.0-fbound(1,iR)-fNcharge(1,ir))*(log(1.0-fbound(1,iR)-fNcharge(1,ir))) *jacobian(iR)
+F_EQ=F_EQ+avpolneg(iR)*(1.0-fbound(1,iR)-fNcharge(1,ir)-fioncharge(1,ir))*(log(1.0-fbound(1,iR)-fNcharge(1,ir)-fioncharge(1,ir))) &
+     *jacobian(iR)
 F_Eq=F_eq+avpolneg(iR)*fNcharge(1,iR)*log(fNcharge(1,iR))*jacobian(iR)
+
+F_Eq=F_eq+avpolneg(iR)*fioncharge(1,iR)*log(fioncharge(1,iR))*jacobian(iR)
+
 F_Eq=F_eq+avpolneg(iR)*fNcharge(1,iR)*log(K0A/xsolbulk)*jacobian(iR)
 F_Eq=F_eq-avpolneg(iR)*fNcharge(1,iR)*(log(expmuHplus))*jacobian(iR)
+
+
+F_Eq=F_eq+avpolneg(iR)*fioncharge(1,iR)*log(K0Ana/(vsalt*xsolbulk**vsalt))*jacobian(iR)
+F_Eq=F_eq-avpolneg(iR)*fioncharge(1,iR)*(log(expmupos))*jacobian(iR)
+
 
 if (fbound(1,iR).gt.0.0)then
   F_eq=F_eq+avpolneg(iR)*(fbound(1,iR))*(log(fbound(1,iR))) *jacobian(iR)
@@ -216,17 +225,22 @@ if (fbound(1,iR).gt.0.0)then
 endif
 enddo
 
-if(rank.eq.0)print*,'Feq',F_eq*delta/(vpol*vsol) 
 
 do iR = minR,maxR ! Positivo
 
 if (fbound(2,iR).gt.0.0) then
  F_eq=F_eq + avpolpos(iR)*fbound(2,iR)*log(fbound(2,iR)) *jacobian(iR)
 endif
- F_eq=F_eq + avpolpos(iR)*(1.-fbound(2,iR)-fNcharge(2,ir))*log(1.-fbound(2,iR)-fNcharge(2,ir)) *jacobian(iR) !<= ojo, habia error de parentesis
+ F_eq=F_eq + avpolpos(iR)*(1.-fbound(2,iR)-fNcharge(2,ir)-fioncharge(2,ir))*log(1.-fbound(2,iR)-fNcharge(2,ir)-fioncharge(2,ir))&
+     *jacobian(iR) !<= ojo, habia error de parentesis
  F_eq=F_Eq + avpolpos(iR)*(fncharge(2,iR)*log(fncharge(2,iR)))*jacobian(iR)
  F_eq=F_eq + avpolpos(iR)*fNcharge(2,iR)*log(k0B/xsolbulk)*jacobian(iR)
  F_Eq=F_eq - avpolpos(iR)*fNcharge(2,iR)*log(expmuOHmin)*jacobian(iR)
+
+ F_eq=F_Eq + avpolpos(iR)*(fioncharge(2,iR)*log(fioncharge(2,iR)))*jacobian(iR)
+ F_eq=F_eq + avpolpos(iR)*fioNcharge(2,iR)*log(k0BCl/(vsalt*xsolbulk**vsalt))*jacobian(iR)
+ F_eq=F_eq - avpolpos(iR)*fioNcharge(2,iR)*log(expmuneg)*jacobian(iR)
+
 enddo
 
 if(rank.eq.0)print*,'Feq',F_eq*delta/(vpol*vsol) 
@@ -235,19 +249,29 @@ if(rank.eq.0)print*,'Feq',F_eq*delta/(vpol*vsol)
 
 if (AT.eq.1) then 
   do iR=minR, maxR ! Negativo
-     F_EQ=F_EQ-phibulkpol*(1.0-fNchargebulk(AT))*(log(1.0-fNchargebulk(AT))) *jacobian(iR)
+     F_EQ=F_EQ-phibulkpol*(1.0-fNchargebulk(AT)-fionchargebulk(AT))*(log(1.0-fNchargebulk(AT)-fionchargebulk(AT)))&
+           *jacobian(iR)
      F_Eq=F_eq-phibulkpol*fNchargebulk(AT)*log(fNchargebulk(AT))*jacobian(iR)
      F_Eq=F_eq-phibulkpol*fNchargebulk(AT)*log(K0A/xsolbulk)*jacobian(iR)
      F_Eq=F_eq+phibulkpol*fNchargebulk(AT)*(log(expmuHplus))*jacobian(iR)
+
+          F_Eq=F_eq-phibulkpol*fioNchargebulk(AT)*log(fioNchargebulk(AT))*jacobian(iR)
+          F_Eq=F_eq-phibulkpol*fioNchargebulk(AT)*log(K0ANa/(vsalt*xsolbulk**vsalt))*jacobian(iR)
+          F_Eq=F_eq+phibulkpol*fioNchargebulk(AT)*(log(expmupos))*jacobian(iR)
  enddo
 
 else if (AT.eq.2) then
 
    do iR = minR,maxR ! Positivo
-     F_EQ=F_EQ-phibulkpol*(1.0-fNchargebulk(AT))*(log(1.0-fNchargebulk(AT))) *jacobian(iR)
+     F_EQ=F_EQ-phibulkpol*(1.0-fNchargebulk(AT)-fionchargebulk(AT))*(log(1.0-fNchargebulk(AT)-fionchargebulk(AT))) &
+*jacobian(iR)
      F_Eq=F_eq-phibulkpol*fNchargebulk(AT)*log(fNchargebulk(AT))*jacobian(iR)
      F_eq=F_eq-phibulkpol*fNchargebulk(AT)*log(k0B/xsolbulk)*jacobian(iR)
      F_Eq=F_eq+phibulkpol*fNchargebulk(AT)*log(expmuOHmin)*jacobian(iR)
+
+         F_Eq=F_eq-phibulkpol*fioNchargebulk(AT)*log(fioNchargebulk(AT))*jacobian(iR)
+         F_Eq=F_eq-phibulkpol*fioNchargebulk(AT)*log(K0BCl/(vsalt*xsolbulk**vsalt))*jacobian(iR)
+         F_Eq=F_eq+phibulkpol*fioNchargebulk(AT)*(log(expmuneg))*jacobian(iR)
   enddo
 endif
 
@@ -300,13 +324,13 @@ do iR=minR, maxR
 if (AT.eq.1) then
  sumas=sumas+avpolneg(iR)*fbound(1,iR)*jacobian(iR)
 
- sumas=sumas+avpolnegcero(iR)*log(1.-fbound(1,iR)-fncharge(1,iR))*jacobian(iR)
+ sumas=sumas+avpolnegcero(iR)*log(1.-fbound(1,iR)-fncharge(1,iR)-fioncharge(1,ir))*jacobian(iR)
 
 ! sumas=sumas+avpolnegcero(iR)*fNcharge(1,iR)*log(fNcharge(1,iR))*jacobian(iR)
 ! sumas=sumas+avpolnegcero(iR)*fNcharge(1,iR)*log(K0A/xsolbulk)*jacobian(iR)
 ! sumas=sumas-avpolnegcero(iR)*fNcharge(1,iR)*(log(expmuHplus))*jacobian(iR)
 
- sumas=sumas+avpolposcero(iR)*log(1.-fbound(2,iR)-fncharge(2,iR))*jacobian(iR)
+ sumas=sumas+avpolposcero(iR)*log(1.-fbound(2,iR)-fncharge(2,iR)-fioncharge(2,ir))*jacobian(iR)
 
 ! sumas=sumas+avpolposcero(iR)*(fncharge(2,iR)*log(fncharge(2,iR)))*jacobian(iR)
 ! sumas=sumas+avpolposcero(iR)*fNcharge(2,iR)*log(k0B/xsolbulk)*jacobian(iR)
@@ -316,13 +340,13 @@ else
 
  sumas=sumas+avpolpos(iR)*fbound(2,iR)*jacobian(iR)
 
- sumas=sumas+avpolposcero(iR)*log(1.-fbound(2,iR)-fncharge(2,iR))*jacobian(iR)
+ sumas=sumas+avpolposcero(iR)*log(1.-fbound(2,iR)-fncharge(2,iR)-fioncharge(2,ir))*jacobian(iR)
 
 ! sumas=sumas+avpolposcero(iR)*(fncharge(2,iR)*log(fncharge(2,iR)))*jacobian(iR)
 ! sumas=sumas+avpolposcero(iR)*fNcharge(2,iR)*log(k0B/xsolbulk)*jacobian(iR)
 ! sumas=sumas-avpolposcero(iR)*fNcharge(2,iR)*log(expmuOHmin)*jacobian(iR)
 
- sumas=sumas+avpolnegcero(iR)*log(1.-fbound(1,iR)-fNcharge(1,iR))*jacobian(iR)
+ sumas=sumas+avpolnegcero(iR)*log(1.-fbound(1,iR)-fNcharge(1,iR)-fioncharge(1,ir))*jacobian(iR)
 
 ! sumas=sumas+avpolnegcero(iR)*fNcharge(1,iR)*log(fNcharge(1,iR))*jacobian(iR)
 ! sumas=sumas+avpolnegcero(iR)*fNcharge(1,iR)*log(K0A/xsolbulk)*jacobian(iR)
@@ -350,7 +374,7 @@ sum=sumpi+sumrho+sumrhopol+sumel+sumas
 Free_energy2=sum
 
 if(rank.eq.0)print*, 'FREE_energy :', Free_energy, Free_energy2
-
+!stop
 !if ((abs(Free_energy-Free_energy2)>1.).and.(rank.eq.0))then
 !stop
 !endif
@@ -377,7 +401,6 @@ if(rank.eq.0) then
 endif
 
 return
-
 
 
 end subroutine
