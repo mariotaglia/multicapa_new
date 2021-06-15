@@ -364,11 +364,12 @@ write(meanzfilename,'(A6,BZ,I5.5,A4)')'meanz.',countfile,'.dat'
 write(sigmafilename,'(A6,BZ,I5.5,A4)')'sigma.',countfile,'.dat'
 write(sigmaadfilename,'(A8,BZ,I5.5,A4)')'sigmaad.',countfile,'.dat'
 
-Kbind0 = Kbind ! Intrinsic equilibrium constant from uncharged polymers.
+Kbind0 = Kbind/(Na/1.0d24) ! Intrinsic equilibrium constant from uncharged polymers. Definida igual que en el paper JCP
+
 K0A = (KaA*vsol)*(Na/1.0d24)! intrinstic equilibruim constant 
 K0B = (Kw/KaB*vsol)*(Na/1.0d24)
-K0ANa = (KaANa*vsol)*(Na/1.0d24)! Esta definida al reves que en el paper JCP
-K0BCl = (KaBCl*vsol)*(Na/1.0d24)! Esta definida al reves que en el paper JCP
+K0ANa = (KaANa/vsol)/(Na/1.0d24)! Esta definida igual que en el paper JCP
+K0BCl = (KaBCl/vsol)/(Na/1.0d24)! Esta definida igual que en el paper JCP
 
 
 ! Iteration to calculate bulk composition
@@ -399,7 +400,7 @@ select case (LT) !
 case(1) ! polimero negativo
 
 ! variables auxiliares
-  alfa=xposbulk/vsalt/K0ANa/(xsolbulk**vsalt)
+  alfa=xposbulk/vsalt*K0ANa/(xsolbulk**vsalt)
   beta = K0A*xsolbulk/xHplusbulk
 
 ! calculo primero fs en bulk con los cationes
@@ -411,7 +412,7 @@ case(1) ! polimero negativo
 
 ! finalmente, calculo el f bulk del polimero positivo con los aniones
 
-  alfa=xnegbulk/vsalt/K0BCl/(xsolbulk**vsalt)
+  alfa=xnegbulk/vsalt*K0BCl/(xsolbulk**vsalt)
   beta = K0B*xsolbulk/xOHminbulk
 
   fNchargebulk(2) = 1.0/(1.0+beta*(1.0+alfa))
@@ -420,7 +421,7 @@ case(1) ! polimero negativo
 case(2) ! polimero positivo
 
 ! variables auxiliares
-  alfa=xnegbulk/vsalt/K0BCl/(xsolbulk**vsalt)
+  alfa=xnegbulk/vsalt*K0BCl/(xsolbulk**vsalt)
   beta = K0B*xsolbulk/xOHminbulk
 
 ! calculo primero fs en bulk con los aniones
@@ -431,7 +432,7 @@ case(2) ! polimero positivo
   xposbulk = xposbulk - (phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(2)-fionchargebulk(2)))*(vsalt*vsol)
 
 ! finalmente, calculo el f bulk del polimero negativo con los cationes
-  alfa=xposbulk/vsalt/K0ANa/(xsolbulk**vsalt)
+  alfa=xposbulk/vsalt*K0ANa/(xsolbulk**vsalt)
   beta = K0A*xsolbulk/xHplusbulk
 
   fNchargebulk(1) = 1.0/(1.0+beta*(1.0+alfa))
@@ -451,8 +452,8 @@ enddo ! iter xsoliter
 Check_Kbminbulk=xOhminbulk/xsolbulk*(1.0-fNchargebulk(2)-fionchargebulk(2))/fNchargebulk(2)-K0B !!
 Check_Kaplus= xHplusbulk/xsolbulk*(1.0-fNchargebulk(1)-fionchargebulk(1))/fNchargebulk(1)-K0A !!
 
-check_KANa=(1.0-fNchargebulk(1)-fionchargebulk(1))*(xposbulk/vsalt)/(fionchargebulk(1)*(xsolbulk**vsalt))-K0ANA
-check_KbcL=(1.0-fNchargebulk(2)-fionchargebulk(2))*(xnegbulk/vsalt)/(fionchargebulk(2)*(xsolbulk**vsalt))-K0BCl
+check_KANa=(1.0-fNchargebulk(1)-fionchargebulk(1))*(xposbulk/vsalt)/(fionchargebulk(1)*(xsolbulk**vsalt))-1./K0ANA
+check_KBCl=(1.0-fNchargebulk(2)-fionchargebulk(2))*(xnegbulk/vsalt)/(fionchargebulk(2)*(xsolbulk**vsalt))-1./K0BCl
 
 print*,'Chequeos Equilibrios (Kb,Ka,KbCl,KaNa) ',Check_Kbminbulk,Check_Kaplus,Check_KBCl,Check_KANa
 
@@ -473,8 +474,6 @@ print*, 'Xsolbulk', xsolbulk
   
   print*, 'sum:', xposbulk/(vsol*vsalt)+xHplusbulk/vsol-xnegbulk/(vsol*vsalt)- & 
   xOHminbulk/vsol-phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)-fionchargebulk(1))
-
-stop
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

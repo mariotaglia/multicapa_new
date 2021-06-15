@@ -1,5 +1,5 @@
  system      = neutral polymer
- fnorm       =    4.9048991279600132E-018
+ fnorm       =    7.7674155713320770E-021
  error       =    9.9999999999999995E-007
  q           =    0.0000000000000000     
  length seg  =   0.500000000    
@@ -7,12 +7,12 @@
  vsol        =    2.9999999329447746E-002
  vpol        =   0.11309734963566426     
  Kbind       =    1000.0000000000000     
- Kbind0      =    1000.0000000000000     
+ Kbind0      =    1661.1295681063123     
  long1       =           30
  long2       =           30
  radio       =            1
  sigma       =    1.0000000000000000E-003
- cuantas(1)     =       100000
- cuantas(2)     =       100000
- iterations  =          449
+ cuantas(1)     =           10
+ cuantas(2)     =           10
+ iterations  =           49
  Tipo de capa=           1
