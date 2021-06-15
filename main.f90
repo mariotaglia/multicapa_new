@@ -455,7 +455,9 @@ check_KANa=(1.0-fNchargebulk(1)-fionchargebulk(1))*(xposbulk/vsalt)/(fionchargeb
 check_KbcL=(1.0-fNchargebulk(2)-fionchargebulk(2))*(xnegbulk/vsalt)/(fionchargebulk(2)*(xsolbulk**vsalt))-K0BCl
 
 print*,'Chequeos Equilibrios (Kb,Ka,KbCl,KaNa) ',Check_Kbminbulk,Check_Kaplus,Check_KBCl,Check_KANa
-!stop
+
+print*, 'Xsolbulk', xsolbulk
+
 !!!!!!!! Charge in bulk !!!!!!!!!!!!!!!!!!!
 
   print*, 'Charge in bulk in q/nm^3'
@@ -464,7 +466,7 @@ print*,'Chequeos Equilibrios (Kb,Ka,KbCl,KaNa) ',Check_Kbminbulk,Check_Kaplus,Ch
   print*, 'H+', xHplusbulk/vsol
   print*, 'OH-', xOHminbulk/vsol
  
-  if(LT.eq.1)print*, 'pol-',phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)-fionchargebulk(1))
+  if(LT.eq.1)print*, 'pol-',-phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)-fionchargebulk(1))
   if(LT.eq.1)print*, 'f pol-',(1.0-fNchargebulk(1)-fionchargebulk(1))
   if(LT.eq.2)print*, 'pol+',phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(2)-fionchargebulk(2))
   if(LT.eq.2)print*, 'f pol+',(1.0-fNchargebulk(2)-fionchargebulk(2))
