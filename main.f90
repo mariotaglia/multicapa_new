@@ -21,6 +21,8 @@ integer *4 ier ! Kinsol error flag
 !real*8 Na               
 !parameter (Na=6.02d23)
 
+real*8 alfa, beta
+
 real*8 avpol_red(ntot)
 
 REAL*8 avtotal(ntot)       ! sum over all avpol
@@ -113,7 +115,9 @@ integer err
 integer ier_tosend
 double  precision norma_tosend
 
+! iteration xsolbulk
 
+real*8 xsoliter, xsolerror, xsolnorm
 
 !
 seed=435+ 3232*rank               ! seed for random number generator
@@ -360,26 +364,27 @@ write(meanzfilename,'(A6,BZ,I5.5,A4)')'meanz.',countfile,'.dat'
 write(sigmafilename,'(A6,BZ,I5.5,A4)')'sigma.',countfile,'.dat'
 write(sigmaadfilename,'(A8,BZ,I5.5,A4)')'sigmaad.',countfile,'.dat'
 
-!!GG!!
-!!GG!!
-! xh bulk
-!xsolbulk=1.0  - phibulkpol
-
-
 Kbind0 = Kbind ! Intrinsic equilibrium constant from uncharged polymers.
 K0A = (KaA*vsol)*(Na/1.0d24)! intrinstic equilibruim constant 
 K0B = (Kw/KaB*vsol)*(Na/1.0d24)
-K0ANa = (KaANa*vsol)*(Na/1.0d24)! intrinstic equilibruim constant 
-K0BCl = (KaBCl*vsol)*(Na/1.0d24)! intrinstic equilibruim constant 
+K0ANa = (KaANa*vsol)*(Na/1.0d24)! Esta definida al reves que en el paper JCP
+K0BCl = (KaBCl*vsol)*(Na/1.0d24)! Esta definida al reves que en el paper JCP
 
+
+! Iteration to calculate bulk composition
+
+xsolerror = 1e-6 ! maximum error in xsolbulk
+xsoliter = 1.0   ! current iterate
+xsolbulk = 100.0
+
+
+do while (abs(xsoliter-xsolbulk).gt.xsolerror)
+
+xsolbulk = xsoliter
 
 !!!!!!!!! Calculate bulk composition !!!!!!!!!!!!!!!!!!!!!!!!!!
 
-! 1) disociation in bulk  
-!  fNchargebulk(1) = 1.0/(1.0+ (K0A)/(xHplusbulk)) ! negativo
-!  fNchargebulk(2) = 1.0/(1.0+ (K0b)/(XOHminbulk)) ! positivo
-
-! 2) pH counterions
+! 1) pH counterions
 if(pHbulk.le.7) then  ! pH<= 7
    xposbulk=xsalt/zpos
    xnegbulk= -xsalt/zneg +(xHplusbulk -xOHminbulk) *vsalt ! NaCl+ HCl  
@@ -388,33 +393,68 @@ else                  ! pH >7
    xnegbulk=-xsalt/zneg
 endif
 
-!problema iterar como opcion
-xsolbulk=1.0 -xHplusbulk -xOHminbulk - xnegbulk -xposbulk -phibulkpol
+! 2) disociation in bulk  
+select case (LT) ! 
 
-! 1) disociation in bulk  
-  fNchargebulk(1) = 1.0/(1.0+ (K0A/xHplusbulk)*(1.0+(xposbulk/K0ana ))) ! negativo
-  fNchargebulk(2) = 1.0/(1.0+ (K0b/XOHminbulk)*(1.0+(xnegbulk/K0BCl ))) ! positivo
-  fionchargebulk(1)= (1.0 -fnchargebulk(1))/(1.+(K0ANA/xposbulk))
-  fionchargebulk(2)= (1.0 -fnchargebulk(2))/(1.+(K0BCl/xnegbulk)) 
-! 3) polymer counterions
-   LT = Tcapas(nads+1) 
-  select case (LT)
-  case (1) ! negativo, sumar cations xposbulk en fraccion de volumen de cation
-     xposbulk = xposbulk + (phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)-fionchargebulk(1)))*(vsalt*vsol) 
-  case (2) ! positivo, sumar aniones
-     xnegbulk = xnegbulk + (phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(2)-fionchargebulk(2)))*(vsalt*vsol) 
-  endselect
+case(1) ! polimero negativo
+
+! variables auxiliares
+  alfa=xposbulk/vsalt/K0ANa/(xsolbulk**vsalt)
+  beta = K0A*xsolbulk/xHplusbulk
+
+! calculo primero fs en bulk con los cationes
+  fNchargebulk(1) = 1.0/(1.0+beta*(1.0+alfa))
+  fionchargebulk(1)= alfa*beta*fNchargebulk(1)
+
+! ahora, le resto el polimeri a los aniones
+  xnegbulk = xnegbulk - (phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)-fionchargebulk(1)))*(vsalt*vsol)
+
+! finalmente, calculo el f bulk del polimero positivo con los aniones
+
+  alfa=xnegbulk/vsalt/K0BCl/(xsolbulk**vsalt)
+  beta = K0B*xsolbulk/xOHminbulk
+
+  fNchargebulk(2) = 1.0/(1.0+beta*(1.0+alfa))
+  fionchargebulk(2)= alfa*beta*fNchargebulk(2)
+
+case(2) ! polimero positivo
+
+! variables auxiliares
+  alfa=xnegbulk/vsalt/K0BCl/(xsolbulk**vsalt)
+  beta = K0B*xsolbulk/xOHminbulk
+
+! calculo primero fs en bulk con los aniones
+  fNchargebulk(2) = 1.0/(1.0+beta*(1.0+alfa))
+  fionchargebulk(2)= alfa*beta*fNchargebulk(2)
+
+! ahora, le resto el polimero a los cationes
+  xposbulk = xposbulk - (phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(2)-fionchargebulk(2)))*(vsalt*vsol)
+
+! finalmente, calculo el f bulk del polimero negativo con los cationes
+  alfa=xposbulk/vsalt/K0ANa/(xsolbulk**vsalt)
+  beta = K0A*xsolbulk/xHplusbulk
+
+  fNchargebulk(1) = 1.0/(1.0+beta*(1.0+alfa))
+  fionchargebulk(1)= alfa*beta*fNchargebulk(1)
+
+endselect
+
+  xsoliter=1.0 -xHplusbulk -xOHminbulk - xnegbulk -xposbulk -phibulkpol
+
+  print*,'Error de iteracion', abs(xsoliter-xsolbulk) 
+
+enddo ! iter xsoliter
 
 
-Check_Kbminbulk=  (xOhminbulk/xsolbulk)*(1.0-fNchargebulk(2)-fionchargebulk(2))/fNchargebulk(2)-K0B/xsolbulk !!
-Check_Kaplus= (xHplusbulk/xsolbulk)*(1.0-fNchargebulk(1)-fionchargebulk(1))/fNchargebulk(1)-K0A/xsolbulk !!
+! CHEQUEOS
 
-check_KANa=(1.0-fNchargebulk(1)-fionchargebulk(1))*xposbulk/(fionchargebulk(1)*(xsolbulk**vsalt))-K0ANA/xsolbulk**vsalt
-check_KbcL=(1.0-fNchargebulk(2)-fionchargebulk(2))*xnegbulk/(fionchargebulk(2)*(xsolbulk**vsalt))-K0BCl/xsolbulk**vsalt
+Check_Kbminbulk=xOhminbulk/xsolbulk*(1.0-fNchargebulk(2)-fionchargebulk(2))/fNchargebulk(2)-K0B !!
+Check_Kaplus= xHplusbulk/xsolbulk*(1.0-fNchargebulk(1)-fionchargebulk(1))/fNchargebulk(1)-K0A !!
 
-xsolbulk=1.0 -xHplusbulk -xOHminbulk - xnegbulk -xposbulk -phibulkpol
-print*,'xsol',xsolbulk
-print*,'checke',Check_Kbminbulk,Check_Kaplus,Check_KANA,Check_Kbcl
+check_KANa=(1.0-fNchargebulk(1)-fionchargebulk(1))*(xposbulk/vsalt)/(fionchargebulk(1)*(xsolbulk**vsalt))-K0ANA
+check_KbcL=(1.0-fNchargebulk(2)-fionchargebulk(2))*(xnegbulk/vsalt)/(fionchargebulk(2)*(xsolbulk**vsalt))-K0BCl
+
+print*,'Chequeos Equilibrios (Kb,Ka,KbCl,KaNa) ',Check_Kbminbulk,Check_Kaplus,Check_KBCl,Check_KANa
 !stop
 !!!!!!!! Charge in bulk !!!!!!!!!!!!!!!!!!!
 
@@ -431,6 +471,9 @@ print*,'checke',Check_Kbminbulk,Check_Kaplus,Check_KANA,Check_Kbcl
   
   print*, 'sum:', xposbulk/(vsol*vsalt)+xHplusbulk/vsol-xnegbulk/(vsol*vsalt)- & 
   xOHminbulk/vsol-phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)-fionchargebulk(1))
+
+stop
+
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!
