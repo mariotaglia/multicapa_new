@@ -141,6 +141,8 @@ conf=0                    ! counter for conformations
 
 vsol=0.030                ! volume solvent molecule in (nm)^3
 vpol= ((4.0/3.0)*pi*(0.3)**3)/vsol  ! volume polymer segment in units of vsol
+print*,vpol,0.1/vsol
+
 !!!!!GGG!!
 zpos = 1.0      ! charge of cation
 zneg = -1.0     ! charge of anion
@@ -442,11 +444,11 @@ endselect
 
   xsoliter=1.0 -xHplusbulk -xOHminbulk - xnegbulk -xposbulk -phibulkpol
 
-  print*,'Error de iteracion', abs(xsoliter-xsolbulk) 
+  print*,'Error de iteracion', abs(xsoliter-xsolbulk),xsoliter,xsolbulk 
 
 enddo ! iter xsoliter
 
-
+xsolbulk=xsoliter
 ! CHEQUEOS
 
 Check_Kbminbulk=xOhminbulk/xsolbulk*(1.0-fNchargebulk(2)-fionchargebulk(2))/fNchargebulk(2)-K0B !!
@@ -458,7 +460,7 @@ check_KBCl=(1.0-fNchargebulk(2)-fionchargebulk(2))*(xnegbulk/vsalt)/(fionchargeb
 print*,'Chequeos Equilibrios (Kb,Ka,KbCl,KaNa) ',Check_Kbminbulk,Check_Kaplus,Check_KBCl,Check_KANa
 
 print*, 'Xsolbulk', xsolbulk
-
+!stop
 !!!!!!!! Charge in bulk !!!!!!!!!!!!!!!!!!!
 
   print*, 'Charge in bulk in q/nm^3'
@@ -593,10 +595,10 @@ if(ccc.eq.1) then
 Kbind = Kbind/2.0
 goto 123
 endif
-if(rank.eq.0)print*, 'Fail', Kbind
+if(rank.eq.0)print*, 'Fail', Kbind,ccc
 Kbind=(kbinds(ccc-1)+Kbind)/2.0
-if(rank.eq.0)print*, 'Try', Kbind
-kbinds(ccc-1) = Kbind
+if(rank.eq.0)print*, 'Try', Kbind,ccc
+!kbinds(ccc-1) = Kbind
 goto 123
 endif
 
