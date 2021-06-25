@@ -195,27 +195,27 @@ do i=lim1,lim2
 
 
 
-  Check_Kbind= fbound(1,i)/((1.0-fbound(1,i)-fNcharge(1,i)-fioncharge(1,i))  &
-    *(1.0-fbound(2,i)-fNcharge(2,i)-fioncharge(2,i))*avpolpos(i)/vpol/vsol) -Kbind0
+  !Check_Kbind= fbound(1,i)/((1.0-fbound(1,i)-fNcharge(1,i)-fioncharge(1,i))  &
+  !  *(1.0-fbound(2,i)-fNcharge(2,i)-fioncharge(2,i))*avpolpos(i)/vpol/vsol) -Kbind0
 
 
-  Check_Kbmin=  (xOhmin(i)/xh(i))*(1.0-fbound(2,i)-fNcharge(2,i)-fioncharge(2,i)) & 
-              /fNcharge(2,i)-K0B
+  !Check_Kbmin=  (xOhmin(i)/xh(i))*(1.0-fbound(2,i)-fNcharge(2,i)-fioncharge(2,i)) & 
+  !            /fNcharge(2,i)-K0B
 
-  Check_Kaplus= (xHplus(i)/xh(i))*(1.0-fbound(1,i)-fNcharge(1,i)-fioncharge(1,i)) &
-              /fNcharge(1,i)-K0A
+ ! Check_Kaplus= (xHplus(i)/xh(i))*(1.0-fbound(1,i)-fNcharge(1,i)-fioncharge(1,i)) &
+ !             /fNcharge(1,i)-K0A
 
-  Check_KANa = (xh(i)**vsalt)*fioncharge(1,i)/(1.0-fbound(1,i)-fNcharge(1,i)-fioncharge(1,i)) &
-              /(xpos(i)/vsalt) - K0ANa
+ !! Check_KANa = (xh(i)**vsalt)*fioncharge(1,i)/(1.0-fbound(1,i)-fNcharge(1,i)-fioncharge(1,i)) &
+ !             /(xpos(i)/vsalt) - K0ANa
 
-  Check_KBCl = (xh(i)**vsalt)*fioncharge(2,i)/(1.0-fbound(2,i)-fNcharge(2,i)-fioncharge(2,i)) &
-              /(xneg(i)/vsalt) - K0BCl
+ ! Check_KBCl = (xh(i)**vsalt)*fioncharge(2,i)/(1.0-fbound(2,i)-fNcharge(2,i)-fioncharge(2,i)) &
+  !            /(xneg(i)/vsalt) - K0BCl
 
 !! Chequeos
-print*,'checkeo Kbind, KBmin, KAplus, KBCl, KANa',Check_Kbind, Check_Kaplus,Check_Kbmin,Check_KBCl, Check_KANa
-print*,'f asociado', fbound(1, i),fbound(2, i)
-print*,'f nc' ,fNcharge(1,i),fNcharge(2,i)
-print*,'f ioncharge',fioncharge(1,i),fioncharge(2,i)
+!print*,'checkeo Kbind, KBmin, KAplus, KBCl, KANa',Check_Kbind, Check_Kaplus,Check_Kbmin,Check_KBCl, Check_KANa
+!print*,'f asociado', fbound(1, i),fbound(2, i)
+!print*,'f nc' ,fNcharge(1,i),fNcharge(2,i)
+!print*,'f ioncharge',fioncharge(1,i),fioncharge(2,i)
 
 enddo
 !stop
