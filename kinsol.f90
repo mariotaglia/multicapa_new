@@ -82,13 +82,13 @@ neq=ntot*3
 
 ! INICIA KINSOL
 
-msbpre  = 10 ! maximum number of iterations without prec. setup (?)
+msbpre  = 1 ! maximum number of iterations without prec. setup (?)
 fnormtol = 1.0d-8 ! Function-norm stopping tolerance
 scsteptol = 1.0d-8 ! Function-norm stopping tolerance
 
-maxl = 4000 ! maximum Krylov subspace dimesion (?!?!?!) ! Esto se usa para el preconditioner
+maxl = 5000 ! maximum Krylov subspace dimesion (?!?!?!) ! Esto se usa para el preconditioner
 maxlrst = 5 ! maximum number of restarts
-max_niter = 5000
+max_niter = 2000
 globalstrat = 0
 
 call fnvinits(3, neq, ier) ! fnvinits inits NVECTOR module
@@ -109,6 +109,7 @@ call fkinsetiin('MAX_SETUPS', msbpre, ier)  ! Additional input information
 call fkinsetrin('FNORM_TOL', fnormtol, ier)
 call fkinsetrin('SSTEP_TOL', scsteptol, ier)
 call fkinsetiin('MAX_NITER', max_niter, ier)
+call fkinsetiin('MAX_NITERS', max_niter, ier)
 
 do i = 1, ntot  !constraint vector
    constr(i) = 2.0
@@ -153,10 +154,10 @@ if (ier .lt. 0) then
       stop
 endif
 
-do i = 1, neq ! output
-  x1_old(i) = x1(i)
-  xg1_old(i) = x1(i)
-enddo
+!do i = 1, neq ! output
+!  x1_old(i) = x1(i)
+!  xg1_old(i) = x1(i)
+!enddo
 
 call fkinfree
 return

@@ -141,7 +141,7 @@ conf=0                    ! counter for conformations
 
 vsol=0.030                ! volume solvent molecule in (nm)^3
 vpol= ((4.0/3.0)*pi*(0.3)**3)/vsol  ! volume polymer segment in units of vsol r=0.3
-print*,vpol,0.1/vsol
+!print*,vpol,0.1/vsol
 
 !!!!!GGG!!
 zpos = 1.0      ! charge of cation
@@ -168,7 +168,7 @@ xsalt=(csalt*Na/(1.0d24))*(vsalt*vsol)   ! volume fraction salt,csalt in mol/l
 
 !!GGG!!!
 
-print*,'nst',nst
+if(rank.eq.0)print*,'nst',nst
 do i = 0, adsmax
 algo = MOD(i,2)
 IF(algo.EQ.0)Tcapas(i) = 2 
@@ -444,7 +444,7 @@ endselect
 
   xsoliter=1.0 -xHplusbulk -xOHminbulk - xnegbulk -xposbulk -phibulkpol
 
-  print*,'Error de iteracion', abs(xsoliter-xsolbulk),xsoliter,xsolbulk 
+  if(rank.eq.0)print*,'Error de iteracion', abs(xsoliter-xsolbulk),xsoliter,xsolbulk 
 
 enddo ! iter xsoliter
 
@@ -457,18 +457,19 @@ Check_Kaplus= xHplusbulk/xsolbulk*(1.0-fNchargebulk(1)-fionchargebulk(1))/fNchar
 check_KANa=(1.0-fNchargebulk(1)-fionchargebulk(1))*(xposbulk/vsalt)/(fionchargebulk(1)*(xsolbulk**vsalt))-1./K0ANA
 check_KBCl=(1.0-fNchargebulk(2)-fionchargebulk(2))*(xnegbulk/vsalt)/(fionchargebulk(2)*(xsolbulk**vsalt))-1./K0BCl
 
-print*,'Chequeos Equilibrios (Kb,Ka,KbCl,KaNa) ',Check_Kbminbulk,Check_Kaplus,Check_KBCl,Check_KANa
+if(rank.eq.0)print*,'Chequeos Equilibrios (Kb,Ka,KbCl,KaNa) ',Check_Kbminbulk,Check_Kaplus,Check_KBCl,Check_KANa
 
-print*, 'Xsolbulk', xsolbulk
+if(rank.eq.0)print*, 'Xsolbulk', xsolbulk
 !stop
 !!!!!!!! Charge in bulk !!!!!!!!!!!!!!!!!!!
 
-  print*, 'Charge in bulk in q/nm^3'
-  print*, '+',xposbulk/(vsol*vsalt)
-  print*, '-', xnegbulk/(vsol*vsalt)
-  print*, 'H+', xHplusbulk/vsol
-  print*, 'OH-', xOHminbulk/vsol
+if(rank.eq.0)print*, 'Charge in bulk in q/nm^3'
+if(rank.eq.0)print*, '+',xposbulk/(vsol*vsalt)
+if(rank.eq.0)print*, '-', xnegbulk/(vsol*vsalt)
+if(rank.eq.0)print*, 'H+', xHplusbulk/vsol
+if(rank.eq.0)print*, 'OH-', xOHminbulk/vsol
  
+if(rank.eq.0) then
   if(LT.eq.1)print*, 'pol-',-phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)-fionchargebulk(1))
   if(LT.eq.1)print*, 'f pol-',(1.0-fNchargebulk(1)-fionchargebulk(1))
   if(LT.eq.2)print*, 'pol+',phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(2)-fionchargebulk(2))
@@ -476,7 +477,7 @@ print*, 'Xsolbulk', xsolbulk
   
   print*, 'sum:', xposbulk/(vsol*vsalt)+xHplusbulk/vsol-xnegbulk/(vsol*vsalt)- & 
   xOHminbulk/vsol-phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)-fionchargebulk(1))
-
+endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!
@@ -521,7 +522,6 @@ do i=2*n+1,3*n
 xg1(i)=phibulkpol
 x1(i)=phibulkpol
 enddo
-
 endif
 
 !     init guess from files fort.100 (solvent) and fort.200 (potential)                      
@@ -547,14 +547,15 @@ enddo
 enddo
 endif
 
-do i=1,3*n             ! initial gues for x1
-xg1(i)=x1(i)
-enddo
+!do i=1,3*n             ! initial gues for x1
+!xg1(i)=x1(i)
+!enddo
 
 ! JEFE
 if(rank.eq.0) then ! solo el jefe llama al solver
    iter = 0
    print*, 'solve: Enter solver ', ntot, ' eqs'
+   print*, 'KBIND', Kbind
    call call_kinsol(x1, xg1, ier)
    flagsolver = 0
    CALL MPI_BCAST(flagsolver, 1, MPI_INTEGER, 0, MPI_COMM_WORLD,err)
@@ -571,7 +572,6 @@ if(rank.ne.0) then
      if(flagsolver.eq.0) exit ! Detiene el programa para este nodo
    enddo
 endif
-if(rank.eq.0)print*,"LAYER ", nads+1, " ADSORBED!", st, kbind
 
 if (rank.eq.0) then
   avpol_red(:) = avpol(nads+1,:)
@@ -584,9 +584,12 @@ if(rank.ne.0) then
   avpol(nads+1,:) = avpol_red(:)
 endif
 
+
 do i=1,n
 xsol(i)=x1(i)
 enddo
+
+infile=-1
 
 !if(norma.gt.error)stop
 
@@ -603,12 +606,16 @@ goto 123
 endif
 
 
-infile=-1
+if(rank.eq.0)print*,"LAYER ", nads+1, " ADSORBED!", st, kbind, norma, error
+xg1 = x1 ! work ok, save guess for next iteration
 
 if(kbinds(ccc).ne.Kbind) then
 Kbind = kbinds(ccc)
 goto 123
 endif
+
+infile = 0 ! After the layer is adsorbed, reset initial guess
+
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Determination of adsorbed polymer
