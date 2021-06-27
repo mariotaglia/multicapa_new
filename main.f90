@@ -21,6 +21,8 @@ integer *4 ier ! Kinsol error flag
 !real*8 Na               
 !parameter (Na=6.02d23)
 
+real*8 csaltok
+
 real*8 alfa, beta
 
 real*8 avpol_red(ntot)
@@ -547,9 +549,12 @@ enddo
 enddo
 endif
 
+
 !do i=1,3*n             ! initial gues for x1
 !xg1(i)=x1(i)
 !enddo
+
+
 
 ! JEFE
 if(rank.eq.0) then ! solo el jefe llama al solver
@@ -584,7 +589,6 @@ if(rank.ne.0) then
   avpol(nads+1,:) = avpol_red(:)
 endif
 
-
 do i=1,n
 xsol(i)=x1(i)
 enddo
@@ -599,21 +603,23 @@ csalt = csalt*2.0
 goto 123
 endif
 if(rank.eq.0)print*, 'Fail', csalt,ccc
-csalt=(csalts(ccc-1)+csalt)/2.0
+csalt=(csaltok+csalt)/2.0
 if(rank.eq.0)print*, 'Try', csalt,ccc
 goto 123
 endif
 
 
+
 if(rank.eq.0)print*,"LAYER ", nads+1, " ADSORBED!", st, csalt, norma, error
 xg1 = x1 ! work ok, save guess for next iteration
+
+csaltok = csalt
 
 if(csalts(ccc).ne.csalt) then
 csalt = csalts(ccc)
 goto 123
 endif
 
-infile = 0 ! After the layer is adsorbed, reset initial guess
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -799,6 +805,7 @@ endif ! rank
 call fe(cc)
 
 END do ! loop de kbind
+infile = 0 ! After the last layer is adsorbed, reset initial guess
 end do ! loop de st
 
 countfileuno = countfileuno + 1
