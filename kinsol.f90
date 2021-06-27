@@ -154,10 +154,10 @@ if (ier .lt. 0) then
       stop
 endif
 
-!do i = 1, neq ! output
-!  x1_old(i) = x1(i)
-!  xg1_old(i) = x1(i)
-!enddo
+do i = 1, neq ! output
+  x1_old(i) = x1(i)
+  xg1_old(i) = x1(i)
+enddo
 
 call fkinfree
 return

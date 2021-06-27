@@ -188,9 +188,9 @@ enddo
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
    if (cadenastype.eq.1) then
-   if(rank.eq.1)print*, 'Calling RIS chain generator'
+   if(rank.eq.9)print*, 'Calling RIS chain generator'
    elseif (cadenastype.eq.2) then
-   if(rank.eq.1)print*, 'Calling MK chain generator'
+   if(rank.eq.0)print*, 'Calling MK chain generator'
    else
    stop 'Wrong chain generator'
    endif
@@ -614,7 +614,6 @@ Kbind = kbinds(ccc)
 goto 123
 endif
 
-infile = 0 ! After the layer is adsorbed, reset initial guess
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -800,6 +799,7 @@ endif ! rank
 call fe(cc)
 
 END do ! loop de kbind
+infile = 0 ! After the last layer is adsorbed, reset initial guess
 end do ! loop de st
 
 countfileuno = countfileuno + 1
