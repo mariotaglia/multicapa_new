@@ -51,7 +51,11 @@ read(8, *), nada
 read(8, *), pKaBCl   ! pKaB of weak polyacid segments
 
 read(8, *), nada
-read(8, *), csalt  ! salt concentration in bulk (Molar)
+read(8, *), ncsalt  ! salt concentration in bulk (Molar)
+
+do i =1, ncsalt
+read(8,*),csalts(i)
+end do
 
 read(8, *), nada
 read(8, *), pHbulk ! bulk pH
@@ -75,11 +79,7 @@ READ(8,*),nada
 read(8,*),infile
 
 READ(8,*),nada
-READ(8,*), nkbind
-
-do i =1, nkbind
-read(8,*),kbinds(i)
-end do
+READ(8,*), Kbind
 
 read(8,*)nada
 read(8,*)eps1

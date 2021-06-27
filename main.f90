@@ -164,7 +164,6 @@ pOHbulk= pKw -pHbulk
 cOHmin = 10**(-pOHbulk)   ! concentration OH- in bulk
 xOHminbulk = (cOHmin*Na/(1.0d24))*(vsol)  ! volume fraction H+ in bulk vH+=vsol  
 
-xsalt=(csalt*Na/(1.0d24))*(vsalt*vsol)   ! volume fraction salt,csalt in mol/l 
 
 !!GGG!!!
 
@@ -356,10 +355,11 @@ countfile=1
 do cc = 1, nst !loop st
 st = sts(cc)
 
-do ccc = 1, nkbind !loop kbind
-kbind = kbinds(ccc)
+do ccc = 1, ncsalt !loop csalt
+csalt = csalts(ccc)
 
  123 LT = Tcapas(nads+1) ! type of current layer
+xsalt=(csalt*Na/(1.0d24))*(vsalt*vsol)   ! volume fraction salt,csalt in mol/l 
 
 ! inits output files 
 write(meanzfilename,'(A6,BZ,I5.5,A4)')'meanz.',countfile,'.dat'
@@ -555,7 +555,7 @@ endif
 if(rank.eq.0) then ! solo el jefe llama al solver
    iter = 0
    print*, 'solve: Enter solver ', ntot, ' eqs'
-   print*, 'KBIND', Kbind
+   print*, 'CSALT', csalt
    call call_kinsol(x1, xg1, ier)
    flagsolver = 0
    CALL MPI_BCAST(flagsolver, 1, MPI_INTEGER, 0, MPI_COMM_WORLD,err)
@@ -595,22 +595,21 @@ infile=-1
 
 if(norma.gt.error) then
 if(ccc.eq.1) then
-Kbind = Kbind/2.0
+csalt = csalt*2.0
 goto 123
 endif
-if(rank.eq.0)print*, 'Fail', Kbind,ccc
-Kbind=(kbinds(ccc-1)+Kbind)/2.0
-if(rank.eq.0)print*, 'Try', Kbind,ccc
-!kbinds(ccc-1) = Kbind
+if(rank.eq.0)print*, 'Fail', csalt,ccc
+csalt=(csalts(ccc-1)+csalt)/2.0
+if(rank.eq.0)print*, 'Try', csalt,ccc
 goto 123
 endif
 
 
-if(rank.eq.0)print*,"LAYER ", nads+1, " ADSORBED!", st, kbind, norma, error
+if(rank.eq.0)print*,"LAYER ", nads+1, " ADSORBED!", st, csalt, norma, error
 xg1 = x1 ! work ok, save guess for next iteration
 
-if(kbinds(ccc).ne.Kbind) then
-Kbind = kbinds(ccc)
+if(csalts(ccc).ne.csalt) then
+csalt = csalts(ccc)
 goto 123
 endif
 
@@ -622,9 +621,9 @@ infile = 0 ! After the layer is adsorbed, reset initial guess
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-! only for last Kbind
+! only for last csalt
 
-if (ccc.eq.nKbind) then
+if (ccc.eq.ncsalt) then
 
 if(rank.eq.0) then
 sumrho2 = 0.0
@@ -654,7 +653,7 @@ end do
 enddo
 meanz=meanz/sumrhoz
 
-endif ! only for last Kbind
+endif ! only for last 
 
 
 write(535,*)(nads+1), meanz

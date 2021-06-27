@@ -19,8 +19,8 @@ real*8 sumXu11, sumXu12
 real*8 AA, BA, CA
 integer Xulimit
 real*8 minn
-REAL*8 sts(100), kbinds(100)
-INTEGER nst, nkbind
+REAL*8 sts(100), csalts(100)
+INTEGER nst, ncsalt
 real*8 error              ! error imposed accuaracy
 real*8 infile             ! inputfile control variable for reading input files  value 0,1
 CHARACTER nada
