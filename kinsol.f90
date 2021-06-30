@@ -14,7 +14,7 @@ integer *4 ier ! Kinsol error flag
 
 common /psize/ neq
 
-neq = ntot
+neq = 3*ntot
 
 do  i = 1, neq
    vv(i) = vv(i) * pp(i)
