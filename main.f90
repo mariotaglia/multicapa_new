@@ -73,7 +73,9 @@ real*8 sumpi,sumrho,sumrhopol, sumrho2, sumrho2mol !suma de la fraccion de polim
 
 INTEGER LT ! layer type being adsorbed
 integer ini,fin,step
+real*8 xflag(2,3*ntot)
 
+real*8 posmax, posmaxphi
 
 ! global running files
 character*15 meanzfilename
@@ -330,6 +332,7 @@ if(rank.eq.0) then
 open(unit=533,file='ADS-mol.cm-2.dat')
 open(unit=534,file='ADS-cad.nm-2.dat')
 open(unit=535,file='meanz.dat')
+open(unit=536,file='maxpos.dat')
 endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -591,11 +594,14 @@ enddo
 
 infile=-1
 
+
+
+
 !if(norma.gt.error)stop
 
 if(norma.gt.error) then
 if(ccc.eq.1) then
-Kbind = Kbind/2.0
+stop
 goto 123
 endif
 if(rank.eq.0)print*, 'Fail', Kbind,ccc
@@ -604,6 +610,9 @@ if(rank.eq.0)print*, 'Try', Kbind,ccc
 !kbinds(ccc-1) = Kbind
 goto 123
 endif
+
+
+if(ccc.eq.1)xflag(LT,:)=x1(:) ! save xflag for next iteration!
 
 
 if(rank.eq.0)print*,"LAYER ", nads+1, " ADSORBED!", st, kbind, norma, error
@@ -636,12 +645,24 @@ sumrho2mol = sumrho2/vsol/Na*1.0d21*delta/1.0d7 ! mol.cm-2
 sumrho2 = sumrho2/vsol*delta/long(LT)           ! chains by nm2
 
 WRITE(533,*)(nads+1), sumrho2mol  ! mol.cm-2
+flush(533)
 WRITE(534,*)(nads+1), sumrho2  ! chains by nm2
+flush(534)
 
 ! weighted z
 
 meanz=0.0
 sumrhoz=0.0
+posmax = 0.0
+posmaxphi = -1.0
+
+do i = 1,n
+if(avpol(nads+1,i).gt.posmaxphi) then
+  posmaxphi = avpol(nads+1,i)
+  posmax = zc(i)
+endif
+enddo
+
 
 do i=1,n
 do jj = 1, nads+1
@@ -657,6 +678,10 @@ endif ! only for last Kbind
 
 
 write(535,*)(nads+1), meanz
+flush(535)
+write(536,*)(nads+1), posmax
+flush(536)
+
 write(sysfilename,'(A7,BZ,I3.3,A1,I3.3,A4)')'system.', countfileuno,'.',countfile,'.dat'
 write(denspol2filename,'(A16,BZ,I3.3,A1,I3.3,A4)')'densitypolymerA.',countfileuno,'.',countfile,'.dat'
 write(denssolfilename,'(A15,BZ,I3.3,A1,I3.3,A4)')'densitysolvent.', countfileuno,'.',countfile,'.dat'
@@ -799,7 +824,21 @@ endif ! rank
 call fe(cc)
 
 END do ! loop de kbind
-infile = 0 ! After the last layer is adsorbed, reset initial guess
+
+if(nads.ge.2) then
+x1(:) = xflag(Tcapas(nads+2),:)
+xg1 = x1
+else
+infile = 0
+endif
+
+
+!do i = ntot+1,2*ntot ! after adsortion, invert electrostatic potential
+!x1(i) = -x1(i)
+!xg1(i) = -xg1(i)
+!enddo
+
+!infile = 0 ! After the last layer is adsorbed, reset initial guess
 end do ! loop de st
 
 countfileuno = countfileuno + 1
