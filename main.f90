@@ -359,8 +359,8 @@ countfile=1
 do cc = 1, nst !loop st
 st = sts(cc)
 
-do ccc = 1, nkbind !loop kbind
-kbind = kbinds(ccc)
+do ccc = 1, npbp !loop kbind
+phibulkpol = pbps(ccc)
 
  123 LT = Tcapas(nads+1) ! type of current layer
 
@@ -558,7 +558,7 @@ endif
 if(rank.eq.0) then ! solo el jefe llama al solver
    iter = 0
    print*, 'solve: Enter solver ', ntot, ' eqs'
-   print*, 'KBIND', Kbind
+   print*, 'Phibulkpol', phibulkpol
    call call_kinsol(x1, xg1, ier)
    flagsolver = 0
    CALL MPI_BCAST(flagsolver, 1, MPI_INTEGER, 0, MPI_COMM_WORLD,err)
@@ -601,12 +601,12 @@ infile=-1
 
 if(norma.gt.error) then
 if(ccc.eq.1) then
-stop
+phibulkpol = phibulkpol/2.0
 goto 123
 endif
-if(rank.eq.0)print*, 'Fail', Kbind,ccc
-Kbind=(kbinds(ccc-1)+Kbind)/2.0
-if(rank.eq.0)print*, 'Try', Kbind,ccc
+if(rank.eq.0)print*, 'Fail', phibulkpol,ccc
+phibulkpol=(pbps(ccc-1)+phibulkpol)/2.0
+if(rank.eq.0)print*, 'Try', phibulkpol,ccc
 !kbinds(ccc-1) = Kbind
 goto 123
 endif
@@ -615,11 +615,11 @@ endif
 if(ccc.eq.1)xflag(LT,:)=x1(:) ! save xflag for next iteration!
 
 
-if(rank.eq.0)print*,"LAYER ", nads+1, " ADSORBED!", st, kbind, norma, error
+if(rank.eq.0)print*,"LAYER ", nads+1, " ADSORBED!", st, phibulkpol, norma, error
 xg1 = x1 ! work ok, save guess for next iteration
 
-if(kbinds(ccc).ne.Kbind) then
-Kbind = kbinds(ccc)
+if(pbps(ccc).ne.phibulkpol) then
+phibulkpol = pbps(ccc)
 goto 123
 endif
 
@@ -632,7 +632,7 @@ endif
 
 ! only for last Kbind
 
-if (ccc.eq.nKbind) then
+if (ccc.eq.npbp) then
 
 if(rank.eq.0) then
 sumrho2 = 0.0

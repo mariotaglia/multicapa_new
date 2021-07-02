@@ -35,8 +35,12 @@ maxlong = MAX(long1, long2)
 read(8,*),nada
 read(8,*)minn
 
-READ(8,*),nada
-READ(8,*),phibulkpol
+read(8,*),nada
+read(8,*),npbp
+
+do i =1, npbp
+read(8,*),pbps(i)
+end do
 
 read(8, *), nada
 read(8, *), pKaA    ! pKaA of weak polyacid segments
@@ -75,11 +79,7 @@ READ(8,*),nada
 read(8,*),infile
 
 READ(8,*),nada
-READ(8,*), nkbind
-
-do i =1, nkbind
-read(8,*),kbinds(i)
-end do
+READ(8,*), kbind
 
 read(8,*)nada
 read(8,*)eps1
