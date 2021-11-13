@@ -49,6 +49,7 @@ real*8, allocatable :: xsol(:) !!!G
 real*8, allocatable :: pro(:)  !!!G
 real*8, allocatable :: psi(:)
 real*8, allocatable :: xpos(:)
+real*8, allocatable :: xNaCl(:)
 real*8, allocatable :: xneg(:)
 real*8, allocatable :: xHplus(:)
 real*8, allocatable :: xOHmin(:)
@@ -105,11 +106,11 @@ endmodule
 module bulk
 REAL*8 expmupol
 real*8 xsolbulk, phibulkpol           ! volume fraction of solvent in bulk
-real*8 expmupos, expmuneg, expmuHplus, expmuOHmin  ! exp(-beta*mu)*(bulk volume fraction), where mu is the chemical potential
+real*8 expmuNaCl, expmupos, expmuneg, expmuHplus, expmuOHmin  ! exp(-beta*mu)*(bulk volume fraction), where mu is the chemical potential
 real*8 csalt
 real*8 pHbulk
 real*8 xHplusbulk, xOHminbulk ! bulk volume fraction of H+ and OH-
-real*8 xposbulk, xnegbulk  
+real*8 xposbulk, xnegbulk, xNaClbulk 
 endmodule
 
 module seed1
@@ -136,7 +137,7 @@ real*8 pKaANa
 real*8 pKaBCl
 real*8 Kw
 real*8 pKw
-
+real*8 Ksal
 endmodule
 
 module matrices

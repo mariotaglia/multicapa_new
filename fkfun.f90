@@ -90,6 +90,7 @@ else
 endif
 
 do i=1,n
+   xNaCl(i) = expmuNaCl*(xh(i)**(2.0*vsalt)) ! NaCl
    xpos(i) = expmupos*(xh(i)**vsalt)*exp(-psi2(i)*zpos) ! ion plus volume fraction
    xneg(i) = expmuneg*(xh(i)**vsalt)*exp(-psi2(i)*zneg) ! ion neg volume fraction
    xHplus(i) = expmuHplus*(xh(i))*exp(-psi2(i))         ! H+ volume fraction
@@ -410,7 +411,7 @@ avpol(nads+1,:) = avpol_red(:)
 
 
 do i=1,n
- f(i)=xh(i)+ xneg(i) + xpos(i) + xHplus(i) + xOHmin(i) -1.0d0
+ f(i)=xh(i)+ xNaCl(i) + xneg(i) + xpos(i) + xHplus(i) + xOHmin(i) -1.0d0
 do jj = 0, nads
  f(i) = f(i) + avpol(jj, i)
 end do

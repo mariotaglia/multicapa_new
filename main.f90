@@ -74,7 +74,7 @@ real*8 sumpi,sumrho,sumrhopol, sumrho2, sumrho2mol !suma de la fraccion de polim
 INTEGER LT ! layer type being adsorbed
 integer ini,fin,step
 real*8 xflag(2,3*ntot)
-
+real*8 auxaa,auxbb,auxcc
 real*8 posmax, posmaxphi
 
 ! global running files
@@ -142,7 +142,7 @@ n=ntot                    ! size of lattice
 conf=0                    ! counter for conformations
 
 vsol=0.030                ! volume solvent molecule in (nm)^3
-vpol= ((4.0/3.0)*pi*(0.3)**3)/vsol  ! volume polymer segment in units of vsol r=0.3
+vpol= 0.1/vsol !  ((4.0/3.0)*pi*(0.3)**3)/vsol  ! volume polymer segment in units of vsol r=0.3
 !print*,vpol,0.1/vsol
 
 !!!!!GGG!!
@@ -150,7 +150,7 @@ zpos = 1.0      ! charge of cation
 zneg = -1.0     ! charge of anion
 zpol(1) = -1.0      ! charge of polyelectrolyte segment A
 zpol(2) = 1.0      ! charge of polyelectrolyte segment B
-vsalt=((4.0/3.0)*pi*(0.27)**3)/vsol  ! volume salt in units of vsol 0.27=radius salt  
+vsalt= 1.0 !((4.0/3.0)*pi*(0.27)**3)/vsol  ! volume salt in units of vsol 0.27=radius salt  
 
 pKw = 14.0 ! -log10(Kw)
 kW=10**(-pKw)
@@ -445,7 +445,18 @@ case(2) ! polimero positivo
 
 endselect
 
-  xsoliter=1.0 -xHplusbulk -xOHminbulk - xnegbulk -xposbulk -phibulkpol
+! Concentration of free anf paired Na+ and Cl- in bulk reference
+
+  auxaa = 1.
+  auxbb = -1.*(xposbulk/(vsalt*vsol)+xnegbulk/(vsalt*vsol)+Ksal)
+  auxcc = xposbulk*xnegbulk/(vsol*vsalt)**2
+
+  xNaClbulk = ((-auxbb - sqrt(auxbb**2 - 4.*auxaa*auxcc))/(2.0*auxaa))*2.*vsol*vsalt
+
+  xnegbulk = xnegbulk - xNaClbulk/2.
+  xposbulk = xposbulk - xNaClbulk/2.
+
+  xsoliter=1.0 -xHplusbulk -xOHminbulk - xnegbulk -xposbulk -phibulkpol-xNaClbulk
 
   if(rank.eq.0)print*,'Error de iteracion', abs(xsoliter-xsolbulk),xsoliter,xsolbulk 
 
@@ -484,6 +495,7 @@ endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!
+expmuNaCl = xNaClbulk / xsolbulk**(2.0*vsalt)
 expmupos = xposbulk /xsolbulk**vsalt
 expmuneg = xnegbulk /xsolbulk**vsalt
 expmuHplus = xHplusbulk /xsolbulk   ! vsol = vHplus 

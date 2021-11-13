@@ -34,6 +34,7 @@ ALLOCATE (firstcell(-mcube:mcube,-mcube:mcube,-mcube:mcube))
 
 allocate(psi(ntot))
 allocate(xpos(ntot))
+allocate(xNaCl(ntot))
 allocate(xneg(ntot))
 allocate(xHplus(ntot))
 allocate(xOHmin(ntot))

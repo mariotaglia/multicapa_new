@@ -24,7 +24,7 @@ implicit none
 integer cc
 integer n
 real*8 Free_energy,Free_energy2, Fmupol
-real*8 F_mix_s,F_mix_avpolA,F_mix_avpolb,F_conf,F_EQ,Fpro,F_mix_pos,F_mix_neg
+real*8 F_mix_s, F_mix_NaCl, F_mix_avpolA,F_mix_avpolb,F_conf,F_EQ,Fpro,F_mix_pos,F_mix_neg
 real*8 F_mix_OHmin, F_mix_Hplus,F_electro
 integer i,ii,j,jj
 real*8 sumas,sumrho,sumrhopol,sumpi,sum,sumel
@@ -93,7 +93,20 @@ if(rank.eq.0)print*,'fmixs',F_mix_s
 
 Free_energy= Free_energy +F_mix_s
 
+! 1.5. NaCl entropy
 
+F_Mix_NaCl = 0.0
+
+do iR = minR, maxR
+  F_Mix_NaCl = F_Mix_NaCl + xNaCl(ir)*(log(xNaCl(ir)/(2.0*vsalt))-1.0 - log(expmuNaCl) + dlog(2.*vsalt))*jacobian(ir)
+  F_Mix_NaCl = F_Mix_NaCl - xNaClbulk*(log(xNaClbulk/(2.0*vsalt))-1.0 - log(expmuNaCl) + dlog(2.*vsalt))*jacobian(ir)
+enddo
+
+F_Mix_NaCl = F_Mix_NaCl * delta/vsol/(2.0*vsalt)
+Free_Energy = Free_Energy + F_Mix_NaCl
+
+
+!
 
 ! 2. cations entropy
 
@@ -308,8 +321,8 @@ do iR=minR, maxR
  sumpi= sumpi + log(xsol(iR))*(1.0-avpolnegcero(iR)-avpolposcero(iR)) *jacobian(iR)
  sumpi= sumpi - log(xsolbulk)*jacobian(iR)
 
- sumrho= sumrho+(-xsol(iR) -xHplus(ir) -xOHmin(ir)-(xpos(ir)+xneg(ir))/vsalt)*jacobian(iR) !!
- sumrho= sumrho-(-xsolbulk-xHplusbulk -xOHminbulk-(xposbulk+xnegbulk)/vsalt)*jacobian(iR)!!
+ sumrho= sumrho+(-xsol(iR) -xHplus(ir) -xOHmin(ir)-(xpos(ir)+xneg(ir))/vsalt-xNaCl(ir)/2./vsalt)*jacobian(iR) !!
+ sumrho= sumrho-(-xsolbulk-xHplusbulk -xOHminbulk-(xposbulk+xnegbulk)/vsalt-xNaClbulk/2./vsalt)*jacobian(iR)!!
 
  sumel = sumel - qtot(iR)*psi(iR)/2.0 * jacobian(iR)
  sumel = sumel + avpolnegcero(iR)*zpol(1)/vpol*psi(iR)*jacobian(iR)    ! electrostatic part free en
