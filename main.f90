@@ -34,7 +34,7 @@ real*8 zc(ntot)           ! z-coordinate layer
 REAL*8 sumrhoz, meanz     ! Espesor medio pesado
 !real*8 pro                ! probability distribution function 
 
-real*8 check_KANa,check_KBCl,check_KAplus,check_Kbminbulk
+real*8 check_NaCl, check_KANa,check_KBCl,check_KAplus,check_Kbminbulk
 
 integer n                 ! number of lattice sites
 integer itmax             ! maximum number of iteration allowed for 
@@ -119,7 +119,7 @@ double  precision norma_tosend
 
 ! iteration xsolbulk
 
-real*8 xsoliter, xsolerror, xsolnorm
+real*8 xsoliter, xNaCliter,  xsolerror, xsolnorm
 
 !
 seed=435+ 3232*rank               ! seed for random number generator
@@ -382,11 +382,18 @@ K0BCl = (KaBCl/vsol)/(Na/1.0d24)! Esta definida igual que en el paper JCP
 xsolerror = 1e-6 ! maximum error in xsolbulk
 xsoliter = 1.0   ! current iterate
 xsolbulk = 100.0
+xNaCliter = 0.0 ! current iterate xNaCl
+xNaClbulk = 100.0
 
-
-do while (abs(xsoliter-xsolbulk).gt.xsolerror)
+do while ((abs(xsoliter-xsolbulk).gt.xsolerror).or.(abs(xNaCliter-xNaClbulk).gt.xsolerror)) ! loop until both conditions are met
 
 xsolbulk = xsoliter
+xNaClbulk = xNaCliter
+
+!!!!!!!!! Substract salt as NaCl     !!!!!!!!!!!!!!!!!!!!!!!!!!
+
+xposbulk = xposbulk - xNaClbulk/2.
+xnegbulk = xnegbulk - xNaClbulk/2.
 
 !!!!!!!!! Calculate bulk composition !!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -445,24 +452,21 @@ case(2) ! polimero positivo
 
 endselect
 
+! Concentration of salt in bulk
+
+  xNaCliter = 2.0*vsalt*vsol*(xposbulk/vsalt/vsol)*(xnegbulk/vsalt/vsol)*Ksal
+
 ! Concentration of free anf paired Na+ and Cl- in bulk reference
-
-  auxaa = 1.
-  auxbb = -1.*(xposbulk/(vsalt*vsol)+xnegbulk/(vsalt*vsol)+Ksal)
-  auxcc = xposbulk*xnegbulk/(vsol*vsalt)**2
-
-  xNaClbulk = ((-auxbb - sqrt(auxbb**2 - 4.*auxaa*auxcc))/(2.0*auxaa))*2.*vsol*vsalt
-
-  xnegbulk = xnegbulk - xNaClbulk/2.
-  xposbulk = xposbulk - xNaClbulk/2.
 
   xsoliter=1.0 -xHplusbulk -xOHminbulk - xnegbulk -xposbulk -phibulkpol-xNaClbulk
 
-  if(rank.eq.0)print*,'Error de iteracion', abs(xsoliter-xsolbulk),xsoliter,xsolbulk 
+  if(rank.eq.0)print*,'Error de iteracion solvent', abs(xsoliter-xsolbulk),xsoliter,xsolbulk 
+  if(rank.eq.0)print*,'Error de iteracion NaCl', abs(xNaCliter-xNaClbulk),xNaCliter,xNaClbulk 
 
 enddo ! iter xsoliter
 
 xsolbulk=xsoliter
+xNaClbulk=xNaCliter
 ! CHEQUEOS
 
 Check_Kbminbulk=xOhminbulk/xsolbulk*(1.0-fNchargebulk(2)-fionchargebulk(2))/fNchargebulk(2)-K0B !!
@@ -471,9 +475,12 @@ Check_Kaplus= xHplusbulk/xsolbulk*(1.0-fNchargebulk(1)-fionchargebulk(1))/fNchar
 check_KANa=(1.0-fNchargebulk(1)-fionchargebulk(1))*(xposbulk/vsalt)/(fionchargebulk(1)*(xsolbulk**vsalt))-1./K0ANA
 check_KBCl=(1.0-fNchargebulk(2)-fionchargebulk(2))*(xnegbulk/vsalt)/(fionchargebulk(2)*(xsolbulk**vsalt))-1./K0BCl
 
-if(rank.eq.0)print*,'Chequeos Equilibrios (Kb,Ka,KbCl,KaNa) ',Check_Kbminbulk,Check_Kaplus,Check_KBCl,Check_KANa
+check_NaCl=xposbulk/(vsalt*vsol)*xnegbulk/(vsalt*vsol)/xNaClbulk*(vsalt*vsol*2.0) - 1./Ksal
+
+if(rank.eq.0)print*,'Chequeos Equilibrios (Kb,Ka,KbCl,KaNa, NaCl) ',Check_Kbminbulk,Check_Kaplus,Check_KBCl,Check_KANa, check_NaCl
 
 if(rank.eq.0)print*, 'Xsolbulk', xsolbulk
+if(rank.eq.0)print*, 'XNaClbulk', xNaClbulk
 !stop
 !!!!!!!! Charge in bulk !!!!!!!!!!!!!!!!!!!
 
