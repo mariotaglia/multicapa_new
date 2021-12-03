@@ -455,7 +455,7 @@ endselect
 
 ! Concentration of salt in bulk
 
-  xNaCliter = 2.0*vsalt*vsol*(xposbulk/vsalt/vsol)*(xnegbulk/vsalt/vsol)*Ksal
+  xNaCliter = 2.0*vsalt*vsol*(xposbulk/vsalt/vsol)*(xnegbulk/vsalt/vsol)*Ksal*vs*vsalt
 
 ! Concentration of free anf paired Na+ and Cl- in bulk reference
 
@@ -476,7 +476,7 @@ Check_Kaplus= xHplusbulk/xsolbulk*(1.0-fNchargebulk(1)-fionchargebulk(1))/fNchar
 check_KANa=(1.0-fNchargebulk(1)-fionchargebulk(1))*(xposbulk/vsalt)/(fionchargebulk(1)*(xsolbulk**vsalt))-1./K0ANA
 check_KBCl=(1.0-fNchargebulk(2)-fionchargebulk(2))*(xnegbulk/vsalt)/(fionchargebulk(2)*(xsolbulk**vsalt))-1./K0BCl
 
-check_NaCl=xposbulk/(vsalt*vsol)*xnegbulk/(vsalt*vsol)/xNaClbulk*(vsalt*vsol*2.0) - 1./Ksal
+check_NaCl=xposbulk/(vsalt*vsol)*xnegbulk/(vsalt*vsol)/xNaClbulk*(vsalt*vsol*2.0) - 1./Ksal/vs/vsalt
 
 if(rank.eq.0)print*,'Chequeos Equilibrios (Kb,Ka,KbCl,KaNa, NaCl) ',Check_Kbminbulk,Check_Kaplus,Check_KBCl,Check_KANa, check_NaCl
 
