@@ -93,7 +93,8 @@ CHARACTER*24 totalfilename
 CHARACTER*24 qtotfilename
 character*27 denspol2filename
 
-
+character*27 avnegfilename
+character*27 avposfilename
 character*27 xposfilename
 character*27 xnegfilename
 character*27 xHplusfilename
@@ -142,7 +143,7 @@ n=ntot                    ! size of lattice
 conf=0                    ! counter for conformations
 
 vsol=0.030                ! volume solvent molecule in (nm)^3
-vpol= 0.15/vsol !  ((4.0/3.0)*pi*(0.3)**3)/vsol  ! volume polymer segment in units of vsol r=0.3
+vpol= 0.1/vsol !  ((4.0/3.0)*pi*(0.3)**3)/vsol  ! volume polymer segment in units of vsol r=0.3
 !print*,vpol,0.1/vsol
 
 !!!!!GGG!!
@@ -706,6 +707,9 @@ write(denspol2filename,'(A16,BZ,I3.3,A1,I3.3,A4)')'densitypolymerA.',countfileun
 write(denssolfilename,'(A15,BZ,I3.3,A1,I3.3,A4)')'densitysolvent.', countfileuno,'.',countfile,'.dat'
 write(totalfilename,'(A13,BZ,I3.3,A1,I3.3,A4)')'densitytotal.',countfileuno,'.',countfile,'.dat'
 
+
+write(avposfilename,'(A11,BZ,I3.3,A1,I3.3,A4)')'avpostotal.',countfileuno,'.',countfile,'.dat'
+write(avnegfilename,'(A11,BZ,I3.3,A1,I3.3,A4)')'avnegtotal.',countfileuno,'.',countfile,'.dat'
 write(xposfilename,'(A10,BZ,I3.3,A1,I3.3,A4)')'xpostotal.',countfileuno,'.',countfile,'.dat'
 write(xnegfilename,'(A10,BZ,I3.3,A1,I3.3,A4)')'xnegtotal.',countfileuno,'.',countfile,'.dat'
 write(xHplusfilename,'(A12,BZ,I3.3,A1,I3.3,A4)')'xHplustotal.',countfileuno,'.',countfile,'.dat'
@@ -739,7 +743,8 @@ open(unit=334,file=xOHminfilename)
 open(unit=335,file=potenfilename)
 open(unit=336,file=qtotfilename)
 open(unit=337,file=rho2filename)
-
+open(unit=338,file=avposfilename)
+open(unit=339,file=avnegfilename)
 
 do ii = 1,2
 open(unit=500+ii+5,file=densbindfilename(ii))
@@ -777,6 +782,8 @@ write(334,*)zc(i),xOHmin(i)
 write(335,*)zc(i),psi(i)
 write(336,*)zc(i),qtot(i)
 write(337,*)zc(i),rhopol2(i)
+write(338,*)zc(i),avpolpos(i)
+write(339,*)zc(i),avpolneg(i)
 end do
 
 
