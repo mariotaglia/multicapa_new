@@ -22,7 +22,7 @@ integer *4 ier ! Kinsol error flag
 !parameter (Na=6.02d23)
 
 real*8 alfa, beta
-
+real*8 xposbulk0, xnegbulk0
 real*8 avpol_red(ntot)
 
 REAL*8 avtotal(ntot)       ! sum over all avpol
@@ -413,15 +413,26 @@ select case (LT) !
 case(1) ! polimero negativo
 
 ! variables auxiliares
-  alfa=xposbulk/vsalt*K0ANa/(xsolbulk**vsalt)
-  beta = K0A*xsolbulk/xHplusbulk
+  
+!!! ITERATION XPOSBULK !!!
+
+  xposbulk0 = 1.e10
+
+  do while (abs(xposbulk0-xposbulk).gt.xsolerror) ! iteration
+  xposbulk0 = xposbulk
+
+    alfa=xposbulk/vsalt*K0ANa/(xsolbulk**vsalt)
+    beta = K0A*xsolbulk/xHplusbulk
 
 ! calculo primero fs en bulk con los cationes
-  fNchargebulk(1) = 1.0/(1.0+beta*(1.0+alfa))
-  fionchargebulk(1)= alfa*beta*fNchargebulk(1)
+    fNchargebulk(1) = 1.0/(1.0+beta*(1.0+alfa))
+    fionchargebulk(1)= alfa*beta*fNchargebulk(1)
 
-! ahora, le resto el polimeri a los aniones
-  xnegbulk = xnegbulk - (phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)-fionchargebulk(1)))*(vsalt*vsol)
+! ahora, le sumo el polimeri a los cationes
+    xposbulk = xposbulk + (phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)-fionchargebulk(1)))*(vsalt*vsol)
+  
+  enddo ! loop hasta que xposbulk converja
+
 
 ! finalmente, calculo el f bulk del polimero positivo con los aniones
 
@@ -434,6 +445,14 @@ case(1) ! polimero negativo
 case(2) ! polimero positivo
 
 ! variables auxiliares
+
+!!! ITERATION XNEGBULK !!!
+
+  xnegbulk0 = 1.e10
+
+  do while (abs(xnegbulk0-xnegbulk).gt.xsolerror) ! iteration
+  xnegbulk0 = xnegbulk
+
   alfa=xnegbulk/vsalt*K0BCl/(xsolbulk**vsalt)
   beta = K0B*xsolbulk/xOHminbulk
 
@@ -441,8 +460,10 @@ case(2) ! polimero positivo
   fNchargebulk(2) = 1.0/(1.0+beta*(1.0+alfa))
   fionchargebulk(2)= alfa*beta*fNchargebulk(2)
 
-! ahora, le resto el polimero a los cationes
-  xposbulk = xposbulk - (phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(2)-fionchargebulk(2)))*(vsalt*vsol)
+! ahora, le sumo el polimero a los aniones
+  xnegbulk = xnegbulk + (phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(2)-fionchargebulk(2)))*(vsalt*vsol)
+
+  enddo ! loop hasta que xposbulk converja
 
 ! finalmente, calculo el f bulk del polimero negativo con los cationes
   alfa=xposbulk/vsalt*K0ANa/(xsolbulk**vsalt)
@@ -455,7 +476,7 @@ endselect
 
 ! Concentration of salt in bulk
 
-  xNaCliter = 2.0*vsalt*vsol*(xposbulk/vsalt/vsol)*(xnegbulk/vsalt/vsol)*Ksal*vs*vsalt
+  xNaCliter = 2.0*vsalt*vsol*(xposbulk/vsalt/vsol)*(xnegbulk/vsalt/vsol)*Ksal*vsol*vsalt
 
 ! Concentration of free anf paired Na+ and Cl- in bulk reference
 
@@ -476,7 +497,7 @@ Check_Kaplus= xHplusbulk/xsolbulk*(1.0-fNchargebulk(1)-fionchargebulk(1))/fNchar
 check_KANa=(1.0-fNchargebulk(1)-fionchargebulk(1))*(xposbulk/vsalt)/(fionchargebulk(1)*(xsolbulk**vsalt))-1./K0ANA
 check_KBCl=(1.0-fNchargebulk(2)-fionchargebulk(2))*(xnegbulk/vsalt)/(fionchargebulk(2)*(xsolbulk**vsalt))-1./K0BCl
 
-check_NaCl=xposbulk/(vsalt*vsol)*xnegbulk/(vsalt*vsol)/xNaClbulk*(vsalt*vsol*2.0) - 1./Ksal/vs/vsalt
+check_NaCl=xposbulk/(vsalt*vsol)*xnegbulk/(vsalt*vsol)/xNaClbulk*(vsalt*vsol*2.0) - 1./Ksal/vsol/vsalt
 
 if(rank.eq.0)print*,'Chequeos Equilibrios (Kb,Ka,KbCl,KaNa, NaCl) ',Check_Kbminbulk,Check_Kaplus,Check_KBCl,Check_KANa, check_NaCl
 
