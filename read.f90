@@ -4,6 +4,7 @@ use multicapa
 use bulk
 use const
 use MPI
+use volume
 implicit none
 integer i
 
@@ -95,6 +96,10 @@ read(8,*)lseg
 
 read(8,*)nada
 read(8,*)AA,BA,CA
+
+read(8,*)nada
+read(8,*)vpol0
+
 
 if(curvature.eq.0)radio=1 ! planar
 if(curvature.lt.0)ntot=radio ! pore

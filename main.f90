@@ -143,7 +143,7 @@ n=ntot                    ! size of lattice
 conf=0                    ! counter for conformations
 
 vsol=0.030                ! volume solvent molecule in (nm)^3
-vpol= 0.1/vsol !  ((4.0/3.0)*pi*(0.3)**3)/vsol  ! volume polymer segment in units of vsol r=0.3
+vpol= vpol0/vsol !  ((4.0/3.0)*pi*(0.3)**3)/vsol  ! volume polymer segment in units of vsol r=0.3
 !print*,vpol,0.1/vsol
 
 !!!!!GGG!!

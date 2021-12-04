@@ -100,6 +100,7 @@ endmodule
 
 module volume
 real*8 vpol, vsol
+real*8 vpol0
 endmodule
 
 
