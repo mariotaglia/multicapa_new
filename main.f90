@@ -22,7 +22,7 @@ integer *4 ier ! Kinsol error flag
 !parameter (Na=6.02d23)
 
 real*8 alfa, beta
-real*8 xposbulk0, xnegbulk0
+real*8 xposbulk0, xnegbulk0, xposbulkold, xnegbulkold
 real*8 avpol_red(ntot)
 
 REAL*8 avtotal(ntot)       ! sum over all avpol
@@ -416,10 +416,12 @@ case(1) ! polimero negativo
   
 !!! ITERATION XPOSBULK !!!
 
+  xposbulkold = xposbulk
   xposbulk0 = 1.e10
 
   do while (abs(xposbulk0-xposbulk).gt.xsolerror) ! iteration
   xposbulk0 = xposbulk
+  xposbulk = xposbulkold
 
     alfa=xposbulk/vsalt*K0ANa/(xsolbulk**vsalt)
     beta = K0A*xsolbulk/xHplusbulk
@@ -449,9 +451,12 @@ case(2) ! polimero positivo
 !!! ITERATION XNEGBULK !!!
 
   xnegbulk0 = 1.e10
+  xnegbulkold = xnegbulk
+
 
   do while (abs(xnegbulk0-xnegbulk).gt.xsolerror) ! iteration
   xnegbulk0 = xnegbulk
+  xnegbulk = xnegbulkold
 
   alfa=xnegbulk/vsalt*K0BCl/(xsolbulk**vsalt)
   beta = K0B*xsolbulk/xOHminbulk
@@ -520,6 +525,10 @@ if(rank.eq.0) then
   
   print*, 'sum:', xposbulk/(vsol*vsalt)+xHplusbulk/vsol-xnegbulk/(vsol*vsalt)- & 
   xOHminbulk/vsol-phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)-fionchargebulk(1))
+
+  if(abs(xposbulk/(vsol*vsalt)+xHplusbulk/vsol-xnegbulk/(vsol*vsalt)- &
+  xOHminbulk/vsol-phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)-fionchargebulk(1))).gt.1e-3)stop
+
 endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
