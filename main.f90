@@ -22,7 +22,7 @@ integer *4 ier ! Kinsol error flag
 !parameter (Na=6.02d23)
 
 real*8 alfa, beta
-real*8 xposbulk0, xnegbulk0, xposbulkold, xnegbulkold
+real*8 xpositer, xnegiter
 real*8 avpol_red(ntot)
 
 REAL*8 avtotal(ntot)       ! sum over all avpol
@@ -120,7 +120,7 @@ double  precision norma_tosend
 
 ! iteration xsolbulk
 
-real*8 xsoliter, xNaCliter,  xsolerror, xsolnorm
+real*8 xsoliter, xsolerror, xsolnorm
 
 !
 seed=435+ 3232*rank               ! seed for random number generator
@@ -383,46 +383,48 @@ K0BCl = (KaBCl/vsol)/(Na/1.0d24)! Esta definida igual que en el paper JCP
 xsolerror = 1e-6 ! maximum error in xsolbulk
 xsoliter = 1.0   ! current iterate
 xsolbulk = 100.0
-xNaCliter = 0.0 ! current iterate xNaCl
-xNaClbulk = 100.0
+xpositer = xsalt/zpos
+xnegiter = -xsalt/zneg
+xposbulk = 100.0
+xnegbulk = 100.0
 
-do while ((abs(xsoliter-xsolbulk).gt.xsolerror).or.(abs(xNaCliter-xNaClbulk).gt.xsolerror)) ! loop until both conditions are met
+do while ((abs(xsoliter-xsolbulk).gt.xsolerror).or.&
+(abs(xpositer-xposbulk).gt.xsolerror).or.(abs(xnegiter-xnegbulk).gt.xsolerror)) ! loop until both conditions are met
 
 xsolbulk = xsoliter
-xNaClbulk = xNaCliter
-
-!!!!!!!!! Substract salt as NaCl     !!!!!!!!!!!!!!!!!!!!!!!!!!
-
-xposbulk = xposbulk - xNaClbulk/2.
-xnegbulk = xnegbulk - xNaClbulk/2.
+xposbulk = xpositer
+xnegbulk = xnegiter
 
 !!!!!!!!! Calculate bulk composition !!!!!!!!!!!!!!!!!!!!!!!!!!
 
+!
+! [Na+] = [Na+]0 - [Na+]NaCl + [Na+]_fac + [Na+]_fion
+!
+
 ! 1) pH counterions
 if(pHbulk.le.7) then  ! pH<= 7
-   xposbulk=xsalt/zpos
-   xnegbulk= -xsalt/zneg +(xHplusbulk -xOHminbulk) *vsalt ! NaCl+ HCl  
+   xpositer=xsalt/zpos
+   xnegiter= -xsalt/zneg +(xHplusbulk -xOHminbulk) *vsalt ! NaCl+ HCl  
 else                  ! pH >7 
-   xposbulk=xsalt/zpos +(xOHminbulk -xHplusbulk) *vsalt ! NaCl+ NaOH   
-   xnegbulk=-xsalt/zneg
+   xpositer=xsalt/zpos +(xOHminbulk -xHplusbulk) *vsalt ! NaCl+ NaOH   
+   xnegiter=-xsalt/zneg
 endif
 
-! 2) disociation in bulk  
+! 2) !!!!!!!! Substract salt as NaCl     !!!!!!!!!!!!!!!!!!!!!!!!!!
+! Concentration of salt in bulk
+
+xNaClbulk = 2.0*vsalt*vsol*(xposbulk/vsalt/vsol)*(xnegbulk/vsalt/vsol)*Ksal*vsol*vsalt
+
+xpositer = xpositer - xNaClbulk/2.
+xnegiter = xnegiter - xNaClbulk/2.
+
+! 3) disociation in bulk  
 select case (LT) ! 
 
 case(1) ! polimero negativo
 
 ! variables auxiliares
   
-!!! ITERATION XPOSBULK !!!
-
-  xposbulkold = xposbulk
-  xposbulk0 = 1.e10
-
-  do while (abs(xposbulk0-xposbulk).gt.xsolerror) ! iteration
-  xposbulk0 = xposbulk
-  xposbulk = xposbulkold
-
     alfa=xposbulk/vsalt*K0ANa/(xsolbulk**vsalt)
     beta = K0A*xsolbulk/xHplusbulk
 
@@ -431,11 +433,8 @@ case(1) ! polimero negativo
     fionchargebulk(1)= alfa*beta*fNchargebulk(1)
 
 ! ahora, le sumo el polimeri a los cationes
-    xposbulk = xposbulk + (phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)-fionchargebulk(1)))*(vsalt*vsol)
+    xpositer = xpositer + (phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)-fionchargebulk(1)))*(vsalt*vsol)
   
-  enddo ! loop hasta que xposbulk converja
-
-
 ! finalmente, calculo el f bulk del polimero positivo con los aniones
 
   alfa=xnegbulk/vsalt*K0BCl/(xsolbulk**vsalt)
@@ -448,16 +447,6 @@ case(2) ! polimero positivo
 
 ! variables auxiliares
 
-!!! ITERATION XNEGBULK !!!
-
-  xnegbulk0 = 1.e10
-  xnegbulkold = xnegbulk
-
-
-  do while (abs(xnegbulk0-xnegbulk).gt.xsolerror) ! iteration
-  xnegbulk0 = xnegbulk
-  xnegbulk = xnegbulkold
-
   alfa=xnegbulk/vsalt*K0BCl/(xsolbulk**vsalt)
   beta = K0B*xsolbulk/xOHminbulk
 
@@ -466,9 +455,7 @@ case(2) ! polimero positivo
   fionchargebulk(2)= alfa*beta*fNchargebulk(2)
 
 ! ahora, le sumo el polimero a los aniones
-  xnegbulk = xnegbulk + (phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(2)-fionchargebulk(2)))*(vsalt*vsol)
-
-  enddo ! loop hasta que xposbulk converja
+  xnegiter = xnegiter + (phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(2)-fionchargebulk(2)))*(vsalt*vsol)
 
 ! finalmente, calculo el f bulk del polimero negativo con los cationes
   alfa=xposbulk/vsalt*K0ANa/(xsolbulk**vsalt)
@@ -479,21 +466,19 @@ case(2) ! polimero positivo
 
 endselect
 
-! Concentration of salt in bulk
-
-  xNaCliter = 2.0*vsalt*vsol*(xposbulk/vsalt/vsol)*(xnegbulk/vsalt/vsol)*Ksal*vsol*vsalt
-
 ! Concentration of free anf paired Na+ and Cl- in bulk reference
 
   xsoliter=1.0 -xHplusbulk -xOHminbulk - xnegbulk -xposbulk -phibulkpol-xNaClbulk
 
   if(rank.eq.0)print*,'Error de iteracion solvent', abs(xsoliter-xsolbulk),xsoliter,xsolbulk 
-  if(rank.eq.0)print*,'Error de iteracion NaCl', abs(xNaCliter-xNaClbulk),xNaCliter,xNaClbulk 
+  if(rank.eq.0)print*,'Error de iteracion Na+', abs(xpositer-xposbulk),xpositer,xposbulk 
+  if(rank.eq.0)print*,'Error de iteracion Cl-', abs(xnegiter-xnegbulk),xnegiter,xnegbulk 
 
 enddo ! iter xsoliter
 
 xsolbulk=xsoliter
-xNaClbulk=xNaCliter
+xposbulk=xpositer
+xnegbulk=xnegiter
 ! CHEQUEOS
 
 Check_Kbminbulk=xOhminbulk/xsolbulk*(1.0-fNchargebulk(2)-fionchargebulk(2))/fNchargebulk(2)-K0B !!
@@ -524,10 +509,10 @@ if(rank.eq.0) then
   if(LT.eq.2)print*, 'f pol+',(1.0-fNchargebulk(2)-fionchargebulk(2))
   
   print*, 'sum:', xposbulk/(vsol*vsalt)+xHplusbulk/vsol-xnegbulk/(vsol*vsalt)- & 
-  xOHminbulk/vsol-phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)-fionchargebulk(1))
+  xOHminbulk/vsol+zpol(LT)*phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)-fionchargebulk(1))
 
   if(abs(xposbulk/(vsol*vsalt)+xHplusbulk/vsol-xnegbulk/(vsol*vsalt)- &
-  xOHminbulk/vsol-phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)-fionchargebulk(1))).gt.1e-3)stop
+  xOHminbulk/vsol+zpol(LT)*phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)-fionchargebulk(1))).gt.1e-3)stop
 
 endif
 
