@@ -380,7 +380,7 @@ K0BCl = (KaBCl/vsol)/(Na/1.0d24)! Esta definida igual que en el paper JCP
 
 ! Iteration to calculate bulk composition
 
-xsolerror = 1e-6 ! maximum error in xsolbulk
+xsolerror = 1e-10 ! maximum error in xsolbulk
 xsoliter = 1.0   ! current iterate
 xsolbulk = 100.0
 xpositer = xsalt/zpos
@@ -457,6 +457,9 @@ case(2) ! polimero positivo
 ! ahora, le sumo el polimero a los aniones
   xnegiter = xnegiter + (phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(2)-fionchargebulk(2)))*(vsalt*vsol)
 
+
+  print*, 'contraiones', (phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(2)-fionchargebulk(2)))
+
 ! finalmente, calculo el f bulk del polimero negativo con los cationes
   alfa=xposbulk/vsalt*K0ANa/(xsolbulk**vsalt)
   beta = K0A*xsolbulk/xHplusbulk
@@ -493,6 +496,8 @@ if(rank.eq.0)print*,'Chequeos Equilibrios (Kb,Ka,KbCl,KaNa, NaCl) ',Check_Kbminb
 
 if(rank.eq.0)print*, 'Xsolbulk', xsolbulk
 if(rank.eq.0)print*, 'XNaClbulk', xNaClbulk
+if(rank.eq.0)print*, 'fNchargebulk', fNchargebulk
+if(rank.eq.0)print*, 'fionchargebulk', fionchargebulk
 !stop
 !!!!!!!! Charge in bulk !!!!!!!!!!!!!!!!!!!
 
@@ -509,10 +514,10 @@ if(rank.eq.0) then
   if(LT.eq.2)print*, 'f pol+',(1.0-fNchargebulk(2)-fionchargebulk(2))
   
   print*, 'sum:', xposbulk/(vsol*vsalt)+xHplusbulk/vsol-xnegbulk/(vsol*vsalt)- & 
-  xOHminbulk/vsol+zpol(LT)*phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)-fionchargebulk(1))
+  xOHminbulk/vsol+zpol(LT)*phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(LT)-fionchargebulk(LT))
 
   if(abs(xposbulk/(vsol*vsalt)+xHplusbulk/vsol-xnegbulk/(vsol*vsalt)- &
-  xOHminbulk/vsol+zpol(LT)*phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)-fionchargebulk(1))).gt.1e-3)stop
+  xOHminbulk/vsol+zpol(LT)*phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(LT)-fionchargebulk(LT))).gt.1e-3)stop
 
 endif
 
