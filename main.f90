@@ -20,7 +20,7 @@ implicit none
 integer *4 ier ! Kinsol error flag
 !real*8 Na               
 !parameter (Na=6.02d23)
-
+real*8 sumads
 real*8 alfa, beta
 real*8 xpositer, xnegiter
 real*8 avpol_red(ntot)
@@ -123,6 +123,9 @@ double  precision norma_tosend
 real*8 xsoliter, xsolerror, xsolnorm
 
 !
+sumads = 0
+
+
 seed=435+ 3232*rank               ! seed for random number generator
 print*, 'I am', rank, ' and my seed is', seed
 
@@ -332,6 +335,7 @@ newcuantas(2)=cuantas(2)
 if(rank.eq.0) then
 open(unit=533,file='ADS-mol.cm-2.dat')
 open(unit=534,file='ADS-cad.nm-2.dat')
+open(unit=537,file='SUM-ADS-cad.nm-2.dat')
 open(unit=535,file='meanz.dat')
 open(unit=536,file='maxpos.dat')
 endif
@@ -677,7 +681,7 @@ if (ccc.eq.npbp) then
 if(rank.eq.0) then
 sumrho2 = 0.0
 do i=1,n
-sumrho2 = sumrho2 + avpol2(i)/vpol
+sumrho2 = sumrho2 + avpol(nads+1,i)/vpol
 enddo
 
 sumrho2mol = sumrho2/vsol/Na*1.0d21*delta/1.0d7 ! mol.cm-2
@@ -688,6 +692,10 @@ WRITE(533,*)(nads+1), sumrho2mol  ! mol.cm-2
 flush(533)
 WRITE(534,*)(nads+1), sumrho2  ! chains by nm2
 flush(534)
+sumads = sumads+sumrho2
+WRITE(537,*)(nads+1), sumads  ! chains by nm2
+flush(537)
+
 
 ! weighted z
 
@@ -714,7 +722,6 @@ end do
 enddo
 meanz=meanz/sumrhoz
 
-endif ! only for last Kbind
 
 
 write(535,*)(nads+1), meanz
@@ -793,7 +800,6 @@ end do
 WRITE(323,*)zc(i),(avtotal(i))
 enddo
 
-
 do i=1,n
 write(331,*)zc(i),xpos(i)
 write(332,*)zc(i),xneg(i)
@@ -867,6 +873,7 @@ end do
 countfile = countfile+1 ! next
 
 endif ! rank
+endif ! only last kbind
 call fe(cc)
 
 END do ! loop de kbind

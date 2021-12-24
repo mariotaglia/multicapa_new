@@ -7,8 +7,8 @@ SRC = modules.f90 read.f90 allocation.f90 main.f90 fkfun.f90 cadenas.f90 rands.f
 HOST=$(shell hostname)
 $(info HOST is ${HOST})
 
+LFLAGS = -lm -L/home/conda/mtaglia/software/KINSOL/lib -lsundials_fkinsol -lsundials_kinsol -lsundials_fnvecserial -lsundials_nvecserial ${LIBS} -Wl,-rpath,/home/conda/mtaglia/software/KINSOL/lib
 
-LFLAGS = -lm /usr/lib/x86_64-linux-gnu/librt.so  -L/usr/local/lib  -lsundials_fkinsol -lsundials_kinsol -lsundials_fnvecserial -lsundials_nvecserial ${LIBS} -Wl,-rpath,/usr/local/lib
 
 # some definitions
 SHELL = /bin/bash
