@@ -18,6 +18,7 @@ use MPI
 use const
 implicit none
 integer *4 ier ! Kinsol error flag
+integer counteriter
 !real*8 Na               
 !parameter (Na=6.02d23)
 real*8 sumads
@@ -392,6 +393,9 @@ xnegiter = -xsalt/zneg
 xposbulk = 100.0
 xnegbulk = 100.0
 
+
+counteriter = 0
+
 do while ((abs(xsoliter-xsolbulk).gt.xsolerror).or.&
 (abs(xpositer-xposbulk).gt.xsolerror).or.(abs(xnegiter-xnegbulk).gt.xsolerror)) ! loop until both conditions are met
 
@@ -480,6 +484,10 @@ endselect
   if(rank.eq.0)print*,'Error de iteracion solvent', abs(xsoliter-xsolbulk),xsoliter,xsolbulk 
   if(rank.eq.0)print*,'Error de iteracion Na+', abs(xpositer-xposbulk),xpositer,xposbulk 
   if(rank.eq.0)print*,'Error de iteracion Cl-', abs(xnegiter-xnegbulk),xnegiter,xnegbulk 
+
+
+  counteriter = counteriter + 1
+  if(counteriter.gt.100)stop
 
 enddo ! iter xsoliter
 
