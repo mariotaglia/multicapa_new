@@ -122,7 +122,7 @@ double precision function interaction12(d)
 use multicapa
 implicit none
 real*8 d
-interaction12 = (lseg/d)**(6.0)
+interaction12 =  (lseg/d)**(6.0)
 end function
 
 
