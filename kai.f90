@@ -115,14 +115,14 @@ double precision function interaction11(d)
 use multicapa
 implicit none
 real*8 d
-interaction11 = AA*(lseg/d)**(6.0) - BA*exp(-d*CA)/d
+interaction11 = (lseg/d)**(6.0)
 end function
 
 double precision function interaction12(d)
 use multicapa
 implicit none
 real*8 d
-interaction12 = AA*(lseg/d)**(6.0) + BA*exp(-d*CA)/d
+interaction12 = (lseg/d)**(6.0)
 end function
 
 
