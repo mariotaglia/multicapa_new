@@ -176,7 +176,7 @@ xsalt=(csalt*Na/(1.0d24))*(vsalt*vsol)   ! volume fraction salt,csalt in mol/l
 !!GGG!!!
 
 if(rank.eq.0)print*,'nst',nst
-do i = 0, adsmax
+do i = 0, adsmax+1
 algo = MOD(i,2)
 IF(algo.EQ.0)Tcapas(i) = 2 
 IF(algo.NE.0)Tcapas(i) = 1 

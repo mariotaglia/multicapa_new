@@ -314,7 +314,10 @@ do iiR = -Xulimit, Xulimit
    endif
 
 enddo
+    ! bulk
+    F_vdW = F_vdW + 0.5*st*sumXu11*phibulkpol/(vpol*vsol)*phibulkpol/(vpol*vsol)
 enddo
+
 
 F_vdW = F_vdW*delta
 
@@ -384,9 +387,12 @@ do iiR = -Xulimit, Xulimit
 
   endif
 enddo
+    ! bulk
+    sumvdW = sumvdW - st*sumXu11*phibulkpol/(vpol*vsol)*phibulkpol/(vpol*vsol)
 enddo
 
 sumvdW = sumvdW*delta
+
 sumpi=sumpi*delta/vsol!
 sumrho=sumrho*delta/vsol!
 sumrhopol=sumrhopol*delta!
