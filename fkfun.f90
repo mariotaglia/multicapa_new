@@ -277,17 +277,19 @@ protemp = protemp-dlog(1.0-fbound(AT, i)-fNcharge(AT,i)-fioncharge(AT,i))
 protemp = protemp-psi2(i)*zpol(AT)
 
 
-!do iz = -Xulimit, Xulimit
-!if((iz+i).ge.1) then
-!if(AT.eq.1) then ! pos
-!protemp=protemp + Xu(1,2,iz)*st/(vpol*vsol)*avpolneg(i+iz) ! use poor solvent only for curvature = 0
-!protemp=protemp + Xu(1,1,iz)*st/(vpol*vsol)*avpolpos(i+iz)
-!else ! neg
-!protemp=protemp + Xu(1,1,iz)*st/(vpol*vsol)*avpolneg(i+iz)
-!protemp=protemp + Xu(1,2,iz)*st/(vpol*vsol)*avpolpos(i+iz)
-!endif
-!endif
-!enddo
+do iz = -Xulimit, Xulimit
+
+  if(((iz+i).ge.1).and.((iz+i).le.ntot)) then
+    if(AT.eq.1) then ! pos
+      protemp=protemp + Xu(1,2,iz)*st/(vpol*vsol)*avpolneg(i+iz) ! use poor solvent only for curvature = 0
+      protemp=protemp + Xu(1,1,iz)*st/(vpol*vsol)*avpolpos(i+iz)
+    else ! neg
+      protemp=protemp + Xu(1,1,iz)*st/(vpol*vsol)*avpolneg(i+iz)
+      protemp=protemp + Xu(1,2,iz)*st/(vpol*vsol)*avpolpos(i+iz)
+   endif
+
+  endif
+enddo
 
 xpot(i) = dexp(protemp)
 

@@ -25,7 +25,7 @@ real*8 sumads
 real*8 alfa, beta
 real*8 xpositer, xnegiter
 real*8 avpol_red(ntot)
-
+real*8 gama
 REAL*8 avtotal(ntot)       ! sum over all avpol
 !real*8 xsol(ntot)         ! volume fraction solvent
 
@@ -386,22 +386,24 @@ K0BCl = (KaBCl/vsol)/(Na/1.0d24)! Esta definida igual que en el paper JCP
 ! Iteration to calculate bulk composition
 
 xsolerror = 1e-10 ! maximum error in xsolbulk
-xsoliter = 1.0   ! current iterate
-xsolbulk = 100.0
-xpositer = xsalt/zpos
-xnegiter = -xsalt/zneg
-xposbulk = 100.0
-xnegbulk = 100.0
 
+xsolbulk = 1.0 - xsalt * 2.0
+xpositer = xsalt
+xnegiter = xsalt
+xposbulk = xsalt
+xnegbulk = xsalt
+xsoliter = 1.0 - xnegiter - xpositer   ! current iterate
+
+gama = 0.5
 
 counteriter = 0
 
-do while ((abs(xsoliter-xsolbulk).gt.xsolerror).or.&
-(abs(xpositer-xposbulk).gt.xsolerror).or.(abs(xnegiter-xnegbulk).gt.xsolerror)) ! loop until both conditions are met
+do while (((abs(xsoliter-xsolbulk).gt.xsolerror).or.&
+(abs(xpositer-xposbulk).gt.xsolerror).or.(abs(xnegiter-xnegbulk).gt.xsolerror)).or.(counteriter.eq.0)) ! loop until both conditions are met
 
-xsolbulk = xsoliter
-xposbulk = xpositer
-xnegbulk = xnegiter
+xsolbulk = xsoliter*gama + xsolbulk*(1.0-gama)
+xposbulk = xpositer*gama + xposbulk*(1.0-gama)
+xnegbulk = xnegiter*gama + xnegbulk*(1.0-gama)
 
 !!!!!!!!! Calculate bulk composition !!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -484,6 +486,7 @@ endselect
   if(rank.eq.0)print*,'Error de iteracion solvent', abs(xsoliter-xsolbulk),xsoliter,xsolbulk 
   if(rank.eq.0)print*,'Error de iteracion Na+', abs(xpositer-xposbulk),xpositer,xposbulk 
   if(rank.eq.0)print*,'Error de iteracion Cl-', abs(xnegiter-xnegbulk),xnegiter,xnegbulk 
+  if(rank.eq.0)print*,'Iter #', counteriter
 
 
   counteriter = counteriter + 1
