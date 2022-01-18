@@ -548,6 +548,7 @@ expmuOHmin = xOHminbulk /xsolbulk   ! vsol = vOHmin
 expmupol = (phibulkpol*vsol)/(vpol*vsol*long(LT)*xsolbulk**(long(LT)*vpol))        ! exp of bulk value of pol. chem. pot.
 expmupol = expmupol/sumweight(LT)
 expmupol = expmupol*(1.0-fNchargebulk(LT)-fionchargebulk(LT))**long(LT)
+expmupol = expmupol/dexp(sumXu11*st/(vpol*vsol)*(phibulkpol)*long(LT))
 
 
 !print*,'expmu',expmupos,expmuneg,expmuhplus,expmuohmin,expmupol

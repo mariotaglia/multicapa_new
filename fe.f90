@@ -25,7 +25,7 @@ integer cc
 integer n
 real*8 Free_energy,Free_energy2, Fmupol
 real*8 F_mix_s, F_mix_NaCl, F_mix_avpolA,F_mix_avpolb,F_conf,F_EQ,Fpro,F_mix_pos,F_mix_neg
-real*8 F_mix_OHmin, F_mix_Hplus,F_electro
+real*8 F_mix_OHmin, F_mix_Hplus,F_electro, F_vdW
 integer i,ii,j,jj
 real*8 sumas,sumrho,sumrhopol,sumpi,sum,sumel
 real*8 Fact_rhobulk
@@ -34,6 +34,7 @@ double precision, external :: jacobian
 integer sumnewcuantas
 integer err
 integer maxR, minR
+integer iiR
 
 if(curvature.ge.0) then
  maxR = ntot
@@ -306,6 +307,27 @@ Free_Energy = Free_Energy + F_electro
 if(rank.eq.0)print*,'Felec',F_electro
 
 
+! 10. Poor solvent ! solo superficies planas
+
+F_vdW = 0.0
+
+do iR = minR, maxR
+do iiR = -Xulimit, Xulimit
+
+  if(((iR+iiR).ge.1).and.((iR+iiR).le.ntot)) then
+    F_vdW = F_vdW - 0.5*st*Xu(1,1,iiR)*avpolneg(iR+iiR)/(vpol*vsol)*avpolneg(iR+iiR)/(vpol*vsol)
+    F_vdW = F_vdW - 0.5*st*Xu(1,1,iiR)*avpolpos(iR+iiR)/(vpol*vsol)*avpolpos(iR+iiR)/(vpol*vsol)
+    F_vdW = F_vdW - st*Xu(1,2,iiR)*avpolpos(iR+iiR)/(vpol*vsol)*avpolneg(iR+iiR)/(vpol*vsol)
+   endif
+
+enddo
+enddo
+
+F_vdW = F_vdW*delta/(vpol*vsol)
+
+Free_Energy = Free_Energy + F_electro
+if(rank.eq.0)print*,'F_vdW',F_vdW
+
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Free energy at extrema 
@@ -328,9 +350,6 @@ do iR=minR, maxR
  sumel = sumel + avpolnegcero(iR)*zpol(1)/vpol*psi(iR)*jacobian(iR)    ! electrostatic part free en
  sumel = sumel + avpolposcero(iR)*zpol(2)/vpol*psi(iR)*jacobian(iR)    ! electrostatic part free energy  
 
-! sumel = sumel + (avpolnegcero(iR)*zpol(1)+avpolposcero(iR)*zpol(2))/vpol*psi(iR)/2.0*jacobian(iR)    ! electrostatic part free energy  
-
-
  sumrhopol=sumrhopol-(rhopol2(iR)) *jacobian(iR)
  sumrhopol=sumrhopol-(-Fact_rhobulk)*jacobian(iR)
 
@@ -339,15 +358,8 @@ if (AT.eq.1) then
  sumas=sumas+avpolneg(iR)*fbound(1,iR)*jacobian(iR)
 
  sumas=sumas+avpolnegcero(iR)*log(1.-fbound(1,iR)-fncharge(1,iR)-fioncharge(1,ir))*jacobian(iR)
-! sumas=sumas+avpolnegcero(iR)*fNcharge(1,iR)*log(fNcharge(1,iR))*jacobian(iR)
-! sumas=sumas+avpolnegcero(iR)*fNcharge(1,iR)*log(K0A/xsolbulk)*jacobian(iR)
-! sumas=sumas-avpolnegcero(iR)*fNcharge(1,iR)*(log(expmuHplus))*jacobian(iR)
 
  sumas=sumas+avpolposcero(iR)*log(1.-fbound(2,iR)-fncharge(2,iR)-fioncharge(2,ir))*jacobian(iR)
-
-! sumas=sumas+avpolposcero(iR)*(fncharge(2,iR)*log(fncharge(2,iR)))*jacobian(iR)
-! sumas=sumas+avpolposcero(iR)*fNcharge(2,iR)*log(k0B/xsolbulk)*jacobian(iR)
-! sumas=sumas-avpolposcero(iR)*fNcharge(2,iR)*log(expmuOHmin)*jacobian(iR)
 
 else
 
@@ -355,17 +367,8 @@ else
 
  sumas=sumas+avpolposcero(iR)*log(1.-fbound(2,iR)-fncharge(2,iR)-fioncharge(2,ir))*jacobian(iR)
 
-! sumas=sumas+avpolposcero(iR)*(fncharge(2,iR)*log(fncharge(2,iR)))*jacobian(iR)
-! sumas=sumas+avpolposcero(iR)*fNcharge(2,iR)*log(k0B/xsolbulk)*jacobian(iR)
-! sumas=sumas-avpolposcero(iR)*fNcharge(2,iR)*log(expmuOHmin)*jacobian(iR)
-
  sumas=sumas+avpolnegcero(iR)*log(1.-fbound(1,iR)-fNcharge(1,iR)-fioncharge(1,ir))*jacobian(iR)
 
-
-
-! sumas=sumas+avpolnegcero(iR)*fNcharge(1,iR)*log(fNcharge(1,iR))*jacobian(iR)
-! sumas=sumas+avpolnegcero(iR)*fNcharge(1,iR)*log(K0A/xsolbulk)*jacobian(iR)
-! sumas=sumas-avpolnegcero(iR)*fNcharge(1,iR)*(log(expmuHplus))*jacobian(iR)
 
 endif
 enddo
@@ -384,7 +387,7 @@ if(rank.eq.0)print*,'sumrho',sumrho
 if(rank.eq.0)print*,'sumrhopol',sumrhopol
 if(rank.eq.0)print*,'sumas',sumas
 
-sum=sumpi+sumrho+sumrhopol+sumel+sumas
+sum=sumpi+sumrho+sumrhopol+sumel+sumas-F_vdW
 
 Free_energy2=sum
 
