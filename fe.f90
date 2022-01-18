@@ -27,7 +27,7 @@ real*8 Free_energy,Free_energy2, Fmupol
 real*8 F_mix_s, F_mix_NaCl, F_mix_avpolA,F_mix_avpolb,F_conf,F_EQ,Fpro,F_mix_pos,F_mix_neg
 real*8 F_mix_OHmin, F_mix_Hplus,F_electro, F_vdW
 integer i,ii,j,jj
-real*8 sumas,sumrho,sumrhopol,sumpi,sum,sumel
+real*8 sumas,sumrho,sumrhopol,sumpi,sum,sumel, sumvdW
 real*8 Fact_rhobulk
 integer iz,ir,dimz
 double precision, external :: jacobian
@@ -58,13 +58,6 @@ open(unit=301, file='F_tot.dat')
 !open(unit=306, file='F_mixOH.dat')
 !open(unit=307, file='F_conf.dat')
 !open(unit=308, file='F_eq.dat')
-
-!do is=1,Npoorsv
-!do js=1,Npoorsv
-!write(F_vdWfilename(is,js),'(A6,BZ,I3.3,A1,I3.3,A4)')'F_vdW.',is,'.',js,'.dat'
-!open(unit=10000*is+js, file=F_vdWfilename(is,js) )
-!enddo
-!enddo
 
 open(unit=312, file='F_tot2.dat')
 !open(unit=313, file='F_mixp.dat')
@@ -323,9 +316,9 @@ do iiR = -Xulimit, Xulimit
 enddo
 enddo
 
-F_vdW = F_vdW*delta/(vpol*vsol)
+F_vdW = F_vdW*delta
 
-Free_Energy = Free_Energy + F_electro
+Free_Energy = Free_Energy + F_vdW
 if(rank.eq.0)print*,'F_vdW',F_vdW
 
 
@@ -373,6 +366,27 @@ else
 endif
 enddo
 
+
+sumvdW = 0.0
+
+do iR = minR, maxR
+do iiR = -Xulimit, Xulimit
+
+  if(((iR+iiR).ge.1).and.((iR+iiR).le.ntot)) then
+
+   if(AT.eq.1) then ! negativo
+    sumvdW = sumvdW + st*Xu(1,1,iiR)*(avpolneg(iR+iiR)-avpolnegcero(iR+iiR))/(vpol*vsol)*&
+    (avpolneg(iR+iiR)+avpolpos(iR+iiR))/(vpol*vsol)
+   else ! negativo
+    sumvdW = sumvdW + st*Xu(1,1,iiR)*(avpolpos(iR+iiR)-avpolposcero(iR+iiR))/(vpol*vsol)*&
+    (avpolneg(iR+iiR)+avpolpos(iR+iiR))/(vpol*vsol)
+   endif
+
+  endif
+enddo
+enddo
+
+sumvdW = sumvdW*delta
 sumpi=sumpi*delta/vsol!
 sumrho=sumrho*delta/vsol!
 sumrhopol=sumrhopol*delta!
@@ -385,9 +399,10 @@ if(rank.eq.0)print*,'sumel',sumel
 if(rank.eq.0)print*,'sumpi',sumpi
 if(rank.eq.0)print*,'sumrho',sumrho
 if(rank.eq.0)print*,'sumrhopol',sumrhopol
+if(rank.eq.0)print*,'sumvdW',sumvdW
 if(rank.eq.0)print*,'sumas',sumas
 
-sum=sumpi+sumrho+sumrhopol+sumel+sumas-F_vdW
+sum=sumpi+sumrho+sumrhopol+sumel+sumas+F_vdW+sumvdW
 
 Free_energy2=sum
 
