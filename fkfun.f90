@@ -277,6 +277,7 @@ protemp = protemp-dlog(1.0-fbound(AT, i)-fNcharge(AT,i)-fioncharge(AT,i))
 protemp = protemp-psi2(i)*zpol(AT)
 
 
+
 do iz = -Xulimit, Xulimit
 
   if(((iz+i).ge.1).and.((iz+i).le.ntot)) then

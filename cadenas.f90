@@ -127,14 +127,12 @@ use senos
 use multicapa
 implicit none
 
-real*8, external :: interaction11
 integer longo
 integer i,state,ii,j,k1,k2,ncha
 real*8 rn,dista
 real*8 rands,angle
 real*8 m(3,3), mm(3,3)
 real*8 x(3),xend(3,maxlong+5),xendr(3,maxlong+5)
-real*8 tmp
 REAL*8 chains(3,maxlong,ncha_max), chainsw(ncha_max)
 integer LT
 character*1 test
@@ -229,7 +227,6 @@ enddo
 enddo
 
 ! determine statistical weight
-tmp = 1.0
 
 do k1=1, longo
 do k2=k1+1,longo
@@ -237,7 +234,6 @@ dista=(xend(1,k2)-xend(1,k1))**(2.0)
 dista=dista+(xend(2,k2)-xend(2,k1))**(2.0)
 dista=dista+(xend(3,k2)-xend(3,k1))**(2.0)
 dista=sqrt(dista)
-tmp=tmp*exp(interaction11(dista))
 enddo
 enddo
 
@@ -251,7 +247,7 @@ do j=1,longo
  chains(2,j,ncha)=xendr(2,j)
  chains(3,j,ncha)=xendr(3,j)
 enddo
- chainsw(ncha)=tmp
+ chainsw(ncha)=1.0
 enddo
 
 if (ncha.eq.0) goto 223
