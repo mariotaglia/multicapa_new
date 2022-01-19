@@ -93,6 +93,8 @@ character*26 denschargefilename(2)
 CHARACTER*24 totalfilename
 CHARACTER*24 qtotfilename
 character*27 denspol2filename
+character*26 densionbifilename(2)
+character*26 densuncharfilename(2)
 
 character*27 avnegfilename
 character*27 avposfilename
@@ -768,6 +770,13 @@ end do
 do ii = 1, 2
 write(denschargefilename(ii),'(A12,BZ,I2.2, A1, I3.3,A1,I3.3,A4)')'densitycharge',ii,'.', countfileuno,'.',countfile,'.dat'
 end do
+do ii = 1, 2
+write(densionbifilename(ii),'(A11,BZ,I2.2, A1, I3.3,A1,I3.3,A4)')'densityionbi',ii,'.', countfileuno,'.',countfile,'.dat'
+end do
+do ii = 1, 2
+write(densuncharfilename(ii),'(A12,BZ,I2.2, A1, I3.3,A1,I3.3,A4)')'densityunchar',ii,'.', countfileuno,'.',countfile,'.dat'
+end do
+
 
 
 open(unit=310,file=sysfilename)
@@ -788,6 +797,8 @@ open(unit=339,file=avnegfilename)
 do ii = 1,2
 open(unit=500+ii+5,file=densbindfilename(ii))
 open(unit=700+ii+5,file=denschargefilename(ii))
+open(unit=800+ii+5,file=densionbifilename(ii))
+open(unit=900+ii+5,file=densuncharfilename(ii))
 end do
 
 do jj = 1, nads+1
@@ -800,7 +811,10 @@ write(330,*)zc(i),xsol(i)
 
 do ii = 1,2
 write(500+ii+5,*)zc(i),fbound(ii, i)
-write(700+ii+5,*)zc(i),1.-fNcharge(ii, i)-fbound(ii,i)
+write(700+ii+5,*)zc(i),1.-fNcharge(ii, i)-fbound(ii,i)-fioncharge(ii,i)
+write(800+ii+5,*)zc(i),fioncharge(ii, i)
+write(900+ii+5,*)zc(i),fNcharge(ii, i)
+
 
 end do
 
