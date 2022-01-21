@@ -28,7 +28,7 @@ real*8 avpol_red(ntot)
 real*8 gama
 REAL*8 avtotal(ntot)       ! sum over all avpol
 !real*8 xsol(ntot)         ! volume fraction solvent
-
+real*8 trash
 real*8 x1(3*ntot),xg1(3*ntot)   ! density solvent iteration vector
 real*8 zc(ntot)           ! z-coordinate layer 
 
@@ -589,20 +589,20 @@ endif
 
 if (infile.ge.1) then
 do i=1,n
-read(100,*)j,xfile(i)   ! solvent
+read(100,*)trash,xfile(i)   ! solvent
 enddo
 do i=n+1,2*n
-read(200,*)j,xfile(i)   ! potencial
+read(200,*)trash,xfile(i)   ! potencial
 enddo     
 do i=2*n+1,3*n
-read(300,*)j,xfile(i)   ! polimero
+read(300,*)trash,xfile(i)   ! polimero
 enddo     
 endif
 
 if(infile.eq.2) then
 do ii=1, preads ! preadsorbed layers
 do i = 1, ntot
-read(300+ii, *)j, avpol(ii,i)
+read(300+ii, *)trash, avpol(ii,i)
 print*, i, ii, avpol(ii, i)
 enddo
 enddo
