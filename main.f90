@@ -596,7 +596,10 @@ read(200,*)trash,xfile(i)   ! potencial
 enddo     
 do i=2*n+1,3*n
 read(300,*)trash,xfile(i)   ! polimero
-enddo     
+enddo    
+
+x1 = xfile
+
 endif
 
 if(infile.eq.2) then
