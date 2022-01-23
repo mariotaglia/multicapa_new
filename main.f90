@@ -565,7 +565,9 @@ expmupol = expmupol/dexp(sumXu11*st/(vpol*vsol)*(phibulkpol)*long(LT))
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     init guess all 1.0 
 
-
+do i=1,n
+zc(i)= (i-0.5) * delta
+enddo
 
 if (infile.eq.0) then
 do i=1,n
