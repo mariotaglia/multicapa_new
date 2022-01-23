@@ -609,6 +609,10 @@ read(300+ii, *)trash, avpol(ii,i)
 print*, i, ii, avpol(ii, i)
 enddo
 enddo
+
+xflag(mod(LT,2)+1,:)=xfile(:)
+xflag(mod(LT,2)+1,n+1:2*n)=-xflag(mod(LT,2)+1,n+1:2*n)
+
 endif
 
 !do i=1,3*n             ! initial gues for x1
