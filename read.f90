@@ -100,6 +100,10 @@ read(8,*)AA,BA,CA
 read(8,*)nada
 read(8,*)vpol0
 
+read(8,*)nada
+read(8,*)vsaltpos, vsaltneg
+
+
 
 if(curvature.eq.0)radio=1 ! planar
 if(curvature.lt.0)ntot=radio ! pore

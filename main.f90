@@ -35,11 +35,12 @@ real*8 zc(ntot)           ! z-coordinate layer
 REAL*8 sumrhoz, meanz     ! Espesor medio pesado
 !real*8 pro                ! probability distribution function 
 
-real*8 check_NaCl, check_KANa,check_KBCl,check_KAplus,check_Kbminbulk
+real*8 check_KANa,check_KBCl,check_KAplus,check_Kbminbulk
 
 integer n                 ! number of lattice sites
 integer itmax             ! maximum number of iteration allowed for 
-real*8 xsalt
+real*8 xsaltpos
+real*8 xsaltneg
 real*8 fnorm              ! L2 norm of residual vector function fcn
 real*8 cHplus, cOHmin
 real*8 pOHbulk
@@ -157,7 +158,6 @@ zpos = 1.0      ! charge of cation
 zneg = -1.0     ! charge of anion
 zpol(1) = -1.0      ! charge of polyelectrolyte segment A
 zpol(2) = 1.0      ! charge of polyelectrolyte segment B
-vsalt= 1.0 !((4.0/3.0)*pi*(0.27)**3)/vsol  ! volume salt in units of vsol 0.27=radius salt  
 
 pKw = 14.0 ! -log10(Kw)
 kW=10**(-pKw)
@@ -173,7 +173,8 @@ pOHbulk= pKw -pHbulk
 cOHmin = 10**(-pOHbulk)   ! concentration OH- in bulk
 xOHminbulk = (cOHmin*Na/(1.0d24))*(vsol)  ! volume fraction H+ in bulk vH+=vsol  
 
-xsalt=(csalt*Na/(1.0d24))*(vsalt*vsol)   ! volume fraction salt,csalt in mol/l 
+xsaltpos=(csalt*Na/(1.0d24))*(vsaltpos*vsol)   ! volume fraction salt,csalt in mol/l 
+xsaltneg=(csalt*Na/(1.0d24))*(vsaltneg*vsol)   ! volume fraction salt,csalt in mol/l 
 
 !!GGG!!!
 
@@ -361,7 +362,7 @@ countfileuno=1
 
 do nads=preads, adsmax-1 ! number of layers, starts from preads
 
-countfile=1
+countfile=preads
 
 
 do cc = 1, nst !loop st
@@ -389,11 +390,11 @@ K0BCl = (KaBCl/vsol)/(Na/1.0d24)! Esta definida igual que en el paper JCP
 
 xsolerror = 1e-10 ! maximum error in xsolbulk
 
-xsolbulk = 1.0 - xsalt * 2.0
-xpositer = xsalt
-xnegiter = xsalt
-xposbulk = xsalt
-xnegbulk = xsalt
+xsolbulk = 1.0 - xsaltpos - xsaltneg
+xpositer = xsaltpos
+xnegiter = xsaltneg
+xposbulk = xsaltpos
+xnegbulk = xsaltneg
 xsoliter = 1.0 - xnegiter - xpositer   ! current iterate
 
 gama = 0.5
@@ -415,20 +416,13 @@ xnegbulk = xnegiter*gama + xnegbulk*(1.0-gama)
 
 ! 1) pH counterions
 if(pHbulk.le.7) then  ! pH<= 7
-   xpositer=xsalt/zpos
-   xnegiter= -xsalt/zneg +(xHplusbulk -xOHminbulk) *vsalt ! NaCl+ HCl  
+   xpositer=xsaltpos/zpos
+   xnegiter= -xsaltneg/zneg +(xHplusbulk -xOHminbulk) *vsaltneg ! NaCl+ HCl  
 else                  ! pH >7 
-   xpositer=xsalt/zpos +(xOHminbulk -xHplusbulk) *vsalt ! NaCl+ NaOH   
-   xnegiter=-xsalt/zneg
+   xpositer=xsaltpos/zpos +(xOHminbulk -xHplusbulk) *vsaltpos ! NaCl+ NaOH   
+   xnegiter=-xsaltneg/zneg
 endif
 
-! 2) !!!!!!!! Substract salt as NaCl     !!!!!!!!!!!!!!!!!!!!!!!!!!
-! Concentration of salt in bulk
-
-xNaClbulk = 2.0*vsalt*vsol*(xposbulk/vsalt/vsol)*(xnegbulk/vsalt/vsol)*Ksal*vsol*vsalt
-
-xpositer = xpositer - xNaClbulk/2.
-xnegiter = xnegiter - xNaClbulk/2.
 
 ! 3) disociation in bulk  
 select case (LT) ! 
@@ -437,7 +431,7 @@ case(1) ! polimero negativo
 
 ! variables auxiliares
   
-    alfa=xposbulk/vsalt*K0ANa/(xsolbulk**vsalt)
+    alfa=xposbulk/vsaltpos*K0ANa/(xsolbulk**vsaltpos)
     beta = K0A*xsolbulk/xHplusbulk
 
 ! calculo primero fs en bulk con los cationes
@@ -445,11 +439,11 @@ case(1) ! polimero negativo
     fionchargebulk(1)= alfa*beta*fNchargebulk(1)
 
 ! ahora, le sumo el polimeri a los cationes
-    xpositer = xpositer + (phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)-fionchargebulk(1)))*(vsalt*vsol)
+    xpositer = xpositer + (phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(1)-fionchargebulk(1)))*(vsaltpos*vsol)
   
 ! finalmente, calculo el f bulk del polimero positivo con los aniones
 
-  alfa=xnegbulk/vsalt*K0BCl/(xsolbulk**vsalt)
+  alfa=xnegbulk/vsaltneg*K0BCl/(xsolbulk**vsaltneg)
   beta = K0B*xsolbulk/xOHminbulk
 
   fNchargebulk(2) = 1.0/(1.0+beta*(1.0+alfa))
@@ -459,7 +453,7 @@ case(2) ! polimero positivo
 
 ! variables auxiliares
 
-  alfa=xnegbulk/vsalt*K0BCl/(xsolbulk**vsalt)
+  alfa=xnegbulk/vsaltneg*K0BCl/(xsolbulk**vsaltneg)
   beta = K0B*xsolbulk/xOHminbulk
 
 ! calculo primero fs en bulk con los aniones
@@ -467,13 +461,13 @@ case(2) ! polimero positivo
   fionchargebulk(2)= alfa*beta*fNchargebulk(2)
 
 ! ahora, le sumo el polimero a los aniones
-  xnegiter = xnegiter + (phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(2)-fionchargebulk(2)))*(vsalt*vsol)
+  xnegiter = xnegiter + (phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(2)-fionchargebulk(2)))*(vsaltneg*vsol)
 
 
   print*, 'contraiones', (phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(2)-fionchargebulk(2)))
 
 ! finalmente, calculo el f bulk del polimero negativo con los cationes
-  alfa=xposbulk/vsalt*K0ANa/(xsolbulk**vsalt)
+  alfa=xposbulk/vsaltpos*K0ANa/(xsolbulk**vsaltpos)
   beta = K0A*xsolbulk/xHplusbulk
 
   fNchargebulk(1) = 1.0/(1.0+beta*(1.0+alfa))
@@ -483,7 +477,7 @@ endselect
 
 ! Concentration of free anf paired Na+ and Cl- in bulk reference
 
-  xsoliter=1.0 -xHplusbulk -xOHminbulk - xnegbulk -xposbulk -phibulkpol-xNaClbulk
+  xsoliter=1.0 -xHplusbulk -xOHminbulk - xnegbulk -xposbulk -phibulkpol
 
   if(rank.eq.0)print*,'Error de iteracion solvent', abs(xsoliter-xsolbulk),xsoliter,xsolbulk 
   if(rank.eq.0)print*,'Error de iteracion Na+', abs(xpositer-xposbulk),xpositer,xposbulk 
@@ -504,23 +498,21 @@ xnegbulk=xnegiter
 Check_Kbminbulk=xOhminbulk/xsolbulk*(1.0-fNchargebulk(2)-fionchargebulk(2))/fNchargebulk(2)-K0B !!
 Check_Kaplus= xHplusbulk/xsolbulk*(1.0-fNchargebulk(1)-fionchargebulk(1))/fNchargebulk(1)-K0A !!
 
-check_KANa=(1.0-fNchargebulk(1)-fionchargebulk(1))*(xposbulk/vsalt)/(fionchargebulk(1)*(xsolbulk**vsalt))-1./K0ANA
-check_KBCl=(1.0-fNchargebulk(2)-fionchargebulk(2))*(xnegbulk/vsalt)/(fionchargebulk(2)*(xsolbulk**vsalt))-1./K0BCl
+check_KANa=(1.0-fNchargebulk(1)-fionchargebulk(1))*(xposbulk/vsaltpos)/(fionchargebulk(1)*(xsolbulk**vsaltpos))-1./K0ANA
+check_KBCl=(1.0-fNchargebulk(2)-fionchargebulk(2))*(xnegbulk/vsaltneg)/(fionchargebulk(2)*(xsolbulk**vsaltneg))-1./K0BCl
 
-check_NaCl=xposbulk/(vsalt*vsol)*xnegbulk/(vsalt*vsol)/xNaClbulk*(vsalt*vsol*2.0) - 1./Ksal/vsol/vsalt
 
-if(rank.eq.0)print*,'Chequeos Equilibrios (Kb,Ka,KbCl,KaNa, NaCl) ',Check_Kbminbulk,Check_Kaplus,Check_KBCl,Check_KANa, check_NaCl
+if(rank.eq.0)print*,'Chequeos Equilibrios (Kb,Ka,KbCl,KaNa) ',Check_Kbminbulk,Check_Kaplus,Check_KBCl,Check_KANa
 
 if(rank.eq.0)print*, 'Xsolbulk', xsolbulk
-if(rank.eq.0)print*, 'XNaClbulk', xNaClbulk
 if(rank.eq.0)print*, 'fNchargebulk', fNchargebulk
 if(rank.eq.0)print*, 'fionchargebulk', fionchargebulk
 !stop
 !!!!!!!! Charge in bulk !!!!!!!!!!!!!!!!!!!
 
 if(rank.eq.0)print*, 'Charge in bulk in q/nm^3'
-if(rank.eq.0)print*, '+',xposbulk/(vsol*vsalt)
-if(rank.eq.0)print*, '-', xnegbulk/(vsol*vsalt)
+if(rank.eq.0)print*, '+',xposbulk/(vsol*vsaltpos)
+if(rank.eq.0)print*, '-', xnegbulk/(vsol*vsaltneg)
 if(rank.eq.0)print*, 'H+', xHplusbulk/vsol
 if(rank.eq.0)print*, 'OH-', xOHminbulk/vsol
  
@@ -530,19 +522,18 @@ if(rank.eq.0) then
   if(LT.eq.2)print*, 'pol+',phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(2)-fionchargebulk(2))
   if(LT.eq.2)print*, 'f pol+',(1.0-fNchargebulk(2)-fionchargebulk(2))
   
-  print*, 'sum:', xposbulk/(vsol*vsalt)+xHplusbulk/vsol-xnegbulk/(vsol*vsalt)- & 
+  print*, 'sum:', xposbulk/(vsol*vsaltpos)+xHplusbulk/vsol-xnegbulk/(vsol*vsaltneg)- & 
   xOHminbulk/vsol+zpol(LT)*phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(LT)-fionchargebulk(LT))
 
-  if(abs(xposbulk/(vsol*vsalt)+xHplusbulk/vsol-xnegbulk/(vsol*vsalt)- &
+  if(abs(xposbulk/(vsol*vsaltpos)+xHplusbulk/vsol-xnegbulk/(vsol*vsaltneg)- &
   xOHminbulk/vsol+zpol(LT)*phibulkpol/(vpol*vsol)*(1.0-fNchargebulk(LT)-fionchargebulk(LT))).gt.1e-3)stop
 
 endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!
-expmuNaCl = xNaClbulk / xsolbulk**(2.0*vsalt)
-expmupos = xposbulk /xsolbulk**vsalt
-expmuneg = xnegbulk /xsolbulk**vsalt
+expmupos = xposbulk /xsolbulk**vsaltpos
+expmuneg = xnegbulk /xsolbulk**vsaltneg
 expmuHplus = xHplusbulk /xsolbulk   ! vsol = vHplus 
 expmuOHmin = xOHminbulk /xsolbulk   ! vsol = vOHmin 
 !!!

@@ -90,9 +90,8 @@ else
 endif
 
 do i=1,n
-   xNaCl(i) = expmuNaCl*(xh(i)**(2.0*vsalt)) ! NaCl
-   xpos(i) = expmupos*(xh(i)**vsalt)*exp(-psi2(i)*zpos) ! ion plus volume fraction
-   xneg(i) = expmuneg*(xh(i)**vsalt)*exp(-psi2(i)*zneg) ! ion neg volume fraction
+   xpos(i) = expmupos*(xh(i)**vsaltpos)*exp(-psi2(i)*zpos) ! ion plus volume fraction
+   xneg(i) = expmuneg*(xh(i)**vsaltneg)*exp(-psi2(i)*zneg) ! ion neg volume fraction
    xHplus(i) = expmuHplus*(xh(i))*exp(-psi2(i))         ! H+ volume fraction
    xOHmin(i) = expmuOHmin*(xh(i))*exp(+psi2(i))         ! OH-  volume fraction
 enddo
@@ -178,8 +177,8 @@ do i=lim1,lim2
 
   betaA = K0A*xh(i)/xHplus(i)
   betaB = K0B*xh(i)/xOHmin(i)
-  alfaA = K0ANa*(xpos(i)/vsalt)/(xh(i)**vsalt)
-  alfaB = K0BCl*(xneg(i)/vsalt)/(xh(i)**vsalt)
+  alfaA = K0ANa*(xpos(i)/vsaltpos)/(xh(i)**vsaltpos)
+  alfaB = K0BCl*(xneg(i)/vsaltneg)/(xh(i)**vsaltneg)
   gamaA = 1.0+alfaA+1.0/betaA
   gamaB = 1.0+alfaB+1.0/betaB
 
@@ -225,8 +224,8 @@ do i=lim3, lim4
 
   betaA = K0A*xh(i)/xHplus(i)
   betaB = K0B*xh(i)/xOHmin(i)
-  alfaA = K0ANa*(xpos(i)/vsalt)/(xh(i)**vsalt)
-  alfaB = K0BCl*(xneg(i)/vsalt)/(xh(i)**vsalt)
+  alfaA = K0ANa*(xpos(i)/vsaltpos)/(xh(i)**vsaltpos)
+  alfaB = K0BCl*(xneg(i)/vsaltneg)/(xh(i)**vsaltneg)
 
   fNcharge(1,i) = 1.0/(1.0+betaA+betaA*alfaA)
   fNcharge(2,i) = 1.0/(1.0+betaB+betaB*alfaB)
@@ -414,7 +413,7 @@ avpol(nads+1,:) = avpol_red(:)
 
 
 do i=1,n
- f(i)=xh(i)+ xNaCl(i) + xneg(i) + xpos(i) + xHplus(i) + xOHmin(i) -1.0d0
+ f(i)=xh(i)+  xneg(i) + xpos(i) + xHplus(i) + xOHmin(i) -1.0d0
 do jj = 0, nads
  f(i) = f(i) + avpol(jj, i)
 end do
@@ -427,7 +426,7 @@ enddo
 
 
 do i=1,n
- qtot(i) = (zpos*xpos(i)+zneg*xneg(i))/vsalt + avpolneg(i)*zpol(1)/vpol*(1.0-fbound(1,i)-fNcharge(1,i)-fioncharge(1,i))& !!
+ qtot(i) = (zpos*xpos(i)/vsaltpos+zneg*xneg(i)/vsaltneg) + avpolneg(i)*zpol(1)/vpol*(1.0-fbound(1,i)-fNcharge(1,i)-fioncharge(1,i))& !!
 + avpolpos(i)*zpol(2)/vpol*(1.0-fbound(2,i)-fNcharge(2,i)-fioncharge(2,i)) + xHplus(i)-xOHmin(i)                       !
 enddo
 !do i=1,n

@@ -12,7 +12,8 @@ integer, parameter :: ncha_max = 700
 real*8, allocatable :: weight(:,:,:)
 real*8 sumweight(2)
 real*8 lseg
-real*8  vsalt
+real*8  vsaltpos
+real*8  vsaltneg
 integer kaitype
 real*8, allocatable :: Xu(:,:,:)
 real*8 sumXu11, sumXu12
@@ -49,7 +50,6 @@ real*8, allocatable :: xsol(:) !!!G
 real*8, allocatable :: pro(:)  !!!G
 real*8, allocatable :: psi(:)
 real*8, allocatable :: xpos(:)
-real*8, allocatable :: xNaCl(:)
 real*8, allocatable :: xneg(:)
 real*8, allocatable :: xHplus(:)
 real*8, allocatable :: xOHmin(:)
@@ -107,11 +107,11 @@ endmodule
 module bulk
 REAL*8 expmupol
 real*8 xsolbulk, phibulkpol           ! volume fraction of solvent in bulk
-real*8 expmuNaCl, expmupos, expmuneg, expmuHplus, expmuOHmin  ! exp(-beta*mu)*(bulk volume fraction), where mu is the chemical potential
+real*8 expmupos, expmuneg, expmuHplus, expmuOHmin  ! exp(-beta*mu)*(bulk volume fraction), where mu is the chemical potential
 real*8 csalt
 real*8 pHbulk
 real*8 xHplusbulk, xOHminbulk ! bulk volume fraction of H+ and OH-
-real*8 xposbulk, xnegbulk, xNaClbulk 
+real*8 xposbulk, xnegbulk
 endmodule
 
 module seed1
